@@ -30,20 +30,20 @@ You must have the following packages installed before trying to build:
 
 Before begin to build the engine and tools, you have to build and install the libraries listed above, There is a tool which does this for you automatically. So start by entering following commands:
 
-``
+```
 git clone git@github.com:septag/darkhammer.git
 cd darkhammer
 sudo ./install_3rdparty --prefix=/path/to/prefix
-``
+```
 
 *install_3rdparty* tool will first search for existing 3rdparty packages, if not found, it will try to fetch them from their official repos and build them on your system. There is also an optional *--prefix* argument, which you can define where to install the libraries and their headers.
 After successful 3rdparty build, proceed with following commands:
 
-``
+```
 waf configure --physx-sdk=/path/to/physx-sdk --prefix=/path/to/prefix
 waf build
 sudo waf install
-``
+```
 
 This is the simplest command for configuring the build, however there are many more options available, like enabling *asserts*, *profile* build and others, which you can see with `waf --help` command.
 
@@ -55,6 +55,7 @@ If you have any questions, suggestions or bug reports, please post to developer'
 #### Active developers
 - *Sepehr Taghdisian*: Founder, Engine developer, [profile](https://github.com/septag)
 - *Amin Valinejad*: Tools developer, founder of [sharphammer](https://bitbucket.org/Amin67v/sharphammer)
+
 #### Contributors
 - *Davide Bacchet*: Initial OSX port (davide.bacchet@gmail.com)
 
