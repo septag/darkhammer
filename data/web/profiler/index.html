@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>dark-hammer</title>
+        <script src="../js/jquery/jquery-1.8.3.js"></script>
+        <script src="../js/flot/jquery.flot.js"></script>
+        <script src="../js/gantt/gantt.js"></script>
+        <script src="../bootstrap/js/bootstrap.min.js"></script>
+        <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen"/>
+        <script>
+            var cur_timer = 0;
+            
+            function init_ui()
+            {
+                $.ajaxSetup({cache: false});
+                
+                $("#btn-frame-prf").click(function(event) {
+                    event.preventDefault();
+                    clearTimeout(cur_timer);
+                    $.ajax("/profiler/frame-prf.html",  {
+                        dataType: "html",
+                        success: function(html, text_status, jqXHR) {
+                            $("#main-content").html(html);
+                        }
+                    });
+                });
+            }
+            
+            $(document).ready(init_ui);
+        </script>
+    </head>
+    <body>
+        <div class="navbar navbar-inverse ">
+          <div class="navbar-inner">
+            <div class="container-fluid">
+                <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </a>
+              <a class="brand" href="#">Profiler</a>
+              <div class="nav-collapse collapse">
+                <ul class="nav">
+                  <li class="active"><a href="/">Home</a></li>
+                  <li><a href="#about">About</a></li>
+                </ul>
+              </div><!--/.nav-collapse -->
+            </div>
+          </div>
+        </div>
+        
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span2">
+                    <div class="well sidebar-nav">
+                        <ul class="nav nav-list">
+                            <li><a id="btn-frame-prf" href="">Frame profiler</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="span10" id="main-content">
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

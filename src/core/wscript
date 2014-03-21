@@ -1,0 +1,50 @@
+#! /usr/bin/env python
+
+import os, sys, glob
+
+def build(bld):
+    files = bld.path.ant_glob('*.c')
+    files.extend(bld.path.ant_glob('deps/cJSON/*.c'))
+    files.extend(bld.path.ant_glob('deps/miniz/*.c'))
+
+    # platform dependent files
+    if sys.platform == 'win32':
+        files.extend(bld.path.ant_glob('platform/win/*.c*'))
+    elif sys.platform == 'linux':
+        files.extend(bld.path.ant_glob('platform/posix/*.c'))
+        files.extend(bld.path.ant_glob('platform/linux/*.c'))
+    elif sys.platform == 'darwin':
+        files.extend(bld.path.ant_glob('platform/posix/*.c'))
+        files.extend(bld.path.ant_glob('platform/osx/*.c'))
+
+    # general libs
+    libs = []
+    linkflags = []
+    frameworks = []
+    if sys.platform == 'linux':
+        libs.extend(['rt', 'm'])
+    elif sys.platform == 'darwin':
+        frameworks.extend(['Cocoa','CoreFoundation'])
+        libs.extend(['stdc++'])
+    elif sys.platform == 'win32':
+        linkflags.extend(['/NODEFAULTLIB:"LIBCMTD.LIB"', '/NODEFAULTLIB:"LIBCMT.LIB"'])
+        libs.extend(['ws2_32', 'Shell32', 'Advapi32'])
+    libs.append('efsw')
+
+    bld.shlib(
+        source = files,
+        includes = [\
+            os.path.join(bld.env.ROOTDIR, 'build'),
+            os.path.join(bld.env.ROOTDIR, 'include', 'dhcore'),
+            'deps'
+        ],
+        lib = libs,
+        linkflags = linkflags,
+        framework = frameworks,
+        target = 'dhcore' + bld.env.SUFFIX,
+        name = 'dhcore',
+        export_includes = os.path.join(bld.env.ROOTDIR, 'include'),
+        install_path = '${PREFIX}/lib',
+        defines = ['_CORE_EXPORT_', '_FILEMON_'],
+        vnum = bld.env.VERSION)
+

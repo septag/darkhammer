@@ -1,0 +1,9 @@
+#! /usr/bin/env python
+
+def build(bld):
+    bld.stlib(
+        source = 'ezxml.c',
+        name = "3rdparty_ezxml",
+        export_includes = '..',
+        target = "ezxml" + bld.env.SUFFIX)
+

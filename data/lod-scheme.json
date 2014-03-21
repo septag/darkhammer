@@ -1,0 +1,16 @@
+{
+	"model": [
+		{
+			"name": "default",
+			"high-range": 10,
+			"medium-range": 50,
+			"low-range": 300
+		}
+	],
+	"light": [
+		{
+			"name": "default",
+			"vis-range": 100
+		}
+	]	
+}

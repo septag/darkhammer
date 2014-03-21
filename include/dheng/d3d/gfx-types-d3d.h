@@ -1,0 +1,286 @@
+/***********************************************************************************
+ *
+ * Copyright (c) 2012, Sepehr Taghdisian
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright notice,
+ *   this list of conditions and the following disclaimer.
+ * - Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ **********************************************************************************/
+
+#ifndef __GFXTYPES_D3D_H__
+#define __GFXTYPES_D3D__H__
+
+#include "dhcore/types.h"
+
+#if defined(_MSVC_)
+#pragma warning(disable: 663)
+#endif
+
+/* api specific flag differences */
+/* extra flag for flipping imasges, automatically applied to draw 2d bitmap flags */
+#define GFX_BMP2D_EXTRAFLAG 0
+
+/**************************************************************************
+ * ENUMS
+ */
+enum gfx_blend_mode
+{
+    GFX_BLEND_ZERO              = 1,    /* D3D11_BLEND_ZERO */
+    GFX_BLEND_ONE               = 2,    /* D3D11_BLEND_ONE  */
+    GFX_BLEND_SRC_COLOR         = 3,    /* D3D11_BLEND_SRC_COLOR  */
+    GFX_BLEND_INV_SRC_COLOR     = 4,    /* D3D11_BLEND_INV_SRC_COLOR */
+    GFX_BLEND_SRC_ALPHA         = 5,    /* D3D11_BLEND_SRC_ALPHA  */
+    GFX_BLEND_INV_SRC_ALPHA     = 6,    /* D3D11_BLEND_INV_SRC_ALPHA */
+    GFX_BLEND_DEST_ALPHA        = 7,    /* D3D11_BLEND_DEST_ALPHA */
+    GFX_BLEND_INV_DEST_ALPHA    = 8,    /* D3D11_BLEND_INV_DEST_ALPHA */
+    GFX_BLEND_DEST_COLOR        = 9,    /* D3D11_BLEND_DEST_COLOR */
+    GFX_BLEND_INV_DEST_COLOR    = 10,   /* D3D11_BLEND_INV_DEST_COLOR */
+    GFX_BLEND_SRC_ALPHA_SAT     = 11,   /* D3D11_BLEND_SRC_ALPHA_SAT */
+    GFX_BLEND_CONSTANT_COLOR    = 14,   /* D3D11_BLEND_BLEND_FACTOR */
+    GFX_BLEND_INV_CONSTANT_COLOR= 15,   /* D3D11_BLEND_INV_BLEND_FACTOR */
+    GFX_BLEND_SRC1_COLOR        = 16,   /* D3D11_BLEND_SRC1_COLOR */
+    GFX_BLEND_INV_SRC1_COLOR    = 17,   /* D3D11_BLEND_INV_SRC1_COLOR */
+    GFX_BLEND_SRC1_ALPHA        = 18,   /* D3D11_BLEND_SRC1_ALPHA */
+    GFX_BLEND_INV_SRC1_ALPHA    = 19,   /* D3D11_BLEND_INV_SRC1_ALPHA */
+    GFX_BLEND_UNKNOWN           = 0xff
+};
+
+enum gfx_blend_op
+{
+    GFX_BLENDOP_ADD            = 1, /* D3D11_BLEND_OP_ADD */
+    GFX_BLENDOP_SUBTRACT       = 2, /* D3D11_BLEND_OP_SUBTRACT */
+    GFX_BLENDOP_REV_SUBTRACT   = 3, /* D3D11_BLEND_OP_REV_SUBTRACT */
+    GFX_BLENDOP_MIN            = 4, /* D3D11_BLEND_OP_MIN */
+    GFX_BLENDOP_MAX            = 5, /* D3D11_BLEND_OP_MAX */
+    GFX_BLENDOP_UNKNOWN        = 0xff
+};
+
+enum gfx_clear_flag
+{
+    GFX_CLEAR_DEPTH = 0x1,  /* D3D11_CLEAR_DEPTH */
+    GFX_CLEAR_STENCIL = 0x2, /* D3D11_CLEAR_STENCIL */
+    GFX_CLEAR_COLOR = 0x4
+};
+
+enum gfx_cmp_func
+{
+	GFX_CMP_OFF = 0, /* */
+    GFX_CMP_NEVER = 1, /* D3D11_COMPARISON_NEVER */
+    GFX_CMP_LESS = 2, /* D3D11_COMPARISON_LESS */
+    GFX_CMP_EQUAL = 3, /* D3D11_COMPARISON_EQUAL */
+    GFX_CMP_LESSEQUAL = 4, /* D3D11_COMPARISON_LESS_EQUAL */
+    GFX_CMP_GREATER = 5, /* D3D11_COMPARISON_GREATER */
+    GFX_CMP_NOTEQUAL = 6, /* D3D11_COMPARISON_NOT_EQUAL */
+    GFX_CMP_GREATEREQUAL = 7, /* D3D11_COMPARISON_GREATER_EQUAL  */
+    GFX_CMP_ALWAYS = 8, /* D3D11_COMPARISON_ALWAYS */
+    GFX_CMP_UNKNOWN = 0xff
+};
+
+enum gfx_cull_mode
+{
+    GFX_CULL_NONE = 1, /* D3D11_CULL_NONE */
+    GFX_CULL_FRONT = 2, /* D3D11_CULL_FRONT */
+    GFX_CULL_BACK = 3, /* D3D11_CULL_BACK */
+    GFX_CULL_UNKNOWN = 0xff
+};
+
+enum gfx_fill_mode
+{
+    GFX_FILL_WIREFRAME = 2, /* D3D11_FILL_WIREFRAME */
+    GFX_FILL_SOLID = 3, /* D3D11_FILL_SOLID */
+    GFX_FILL_UNKNOWN = 0xff
+};
+
+enum gfx_filter_mode
+{
+    GFX_FILTER_UNKNOWN = 0,
+    GFX_FILTER_NEAREST,
+    GFX_FILTER_LINEAR
+};
+
+enum gfx_stencil_op
+{
+    GFX_STENCILOP_KEEP = 1, /* D3D11_STENCIL_OP_KEEP */
+    GFX_STENCILOP_ZERO = 2, /* D3D11_STENCIL_OP_ZERO */
+    GFX_STENCILOP_REPLACE = 3, /* D3D11_STENCIL_OP_REPLACE */
+    GFX_STENCILOP_INCR_SAT = 4, /* D3D11_STENCIL_OP_INCR_SAT */
+    GFX_STENCILOP_DECR_SAT = 5, /* D3D11_STENCIL_OP_DECR_SAT */
+    GFX_STENCILOP_INVERT = 6, /* D3D11_STENCIL_OP_INVERT */
+    GFX_STENCILOP_INCR = 7, /* D3D11_STENCIL_OP_INCR */
+    GFX_STENCILOP_DECR = 8, /* D3D11_STENCIL_OP_DECR */
+    GFX_STENCILOP_UNKNOWN = 0xff
+};
+
+enum gfx_address_mode
+{
+    GFX_ADDRESS_UNKNOWN = 0, /* */
+    GFX_ADDRESS_WRAP = 1, /* D3D11_TEXTURE_ADDRESS_WRAP */
+    GFX_ADDRESS_MIRROR = 2, /* D3D11_TEXTURE_ADDRESS_MIRROR */
+    GFX_ADDRESS_CLAMP = 3, /* D3D11_TEXTURE_ADDRESS_CLAMP */
+    GFX_ADDRESS_BORDER = 4 /* D3D11_TEXTURE_ADDRESS_BORDER */
+};
+
+enum gfx_primitive_type
+{
+    GFX_PRIMITIVE_POINTLIST = 1, /* */
+    GFX_PRIMITIVE_LINELIST = 2, /* D3D11_PRIMITIVE_TOPOLOGY_LINELIST */
+    GFX_PRIMITIVE_LINESTRIP = 3, /* D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP */
+    GFX_PRIMITIVE_TRIANGLELIST = 4, /* D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST */
+    GFX_PRIMITIVE_TRIANGLESTRIP = 5, /* D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP */
+    GFX_PRIMITIVE_LINELIST_ADJ = 10, /* D3D11_PRIMITIVE_TOPOLOGY_LINELIST_ADJ */
+    GFX_PRIMITIVE_LINESTRIP_ADJ = 11, /* D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ */
+    GFX_PRIMITIVE_TRIANGLELIST_ADJ = 12, /* D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ */
+    GFX_PRIMITIVE_TRIANGLESTRIP_ADJ = 13 /* D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ */
+};
+
+enum gfx_format
+{
+    GFX_FORMAT_UNKNOWN = 0,
+    GFX_FORMAT_R32G32B32A32_FLOAT  = 2,
+    GFX_FORMAT_R32G32B32A32_UINT = 3,
+    GFX_FORMAT_R32G32B32A32_SINT = 4,
+    GFX_FORMAT_R32G32B32_FLOAT = 6,
+    GFX_FORMAT_R32G32B32_UINT = 7,
+    GFX_FORMAT_R32G32B32_SINT = 8,
+    GFX_FORMAT_R16G16B16A16_FLOAT = 10,
+    GFX_FORMAT_R16G16B16A16_UNORM = 11,
+    GFX_FORMAT_R16G16B16A16_UINT = 12,
+    GFX_FORMAT_R16G16B16A16_SNORM = 13,
+    GFX_FORMAT_R16G16B16A16_SINT = 14,
+    GFX_FORMAT_R32G32_FLOAT = 16,
+    GFX_FORMAT_R32G32_UINT = 17,
+    GFX_FORMAT_R32G32_SINT = 18,
+    GFX_FORMAT_R10G10B10A2_UNORM = 24,
+    GFX_FORMAT_R10G10B10A2_UINT = 25,
+    GFX_FORMAT_R11G11B10_FLOAT = 26,
+    GFX_FORMAT_RGBA_UNORM = 28, /* DXGI_FORMAT_R8G8B8A8_UNORM */
+    GFX_FORMAT_RGBA_UNORM_SRGB = 29, /* DXGI_FORMAT_R8G8B8A8_UNORM_SRGB */
+    GFX_FORMAT_RGBA_SNORM = 31,
+    GFX_FORMAT_R16G16_FLOAT = 34,
+    GFX_FORMAT_R16G16_UNORM = 35,
+    GFX_FORMAT_R16G16_UINT = 36,
+    GFX_FORMAT_R16G16_SNORM = 37,
+    GFX_FORMAT_R16G16_SINT = 38,
+    GFX_FORMAT_R32_FLOAT = 41,
+    GFX_FORMAT_R32_UINT = 42,
+    GFX_FORMAT_R32_SINT = 43,
+    GFX_FORMAT_R8G8_UNORM = 49,
+    GFX_FORMAT_R8G8_UINT = 50,
+    GFX_FORMAT_R8G8_SNORM = 51,
+    GFX_FORMAT_R8G8_SINT = 52,
+    GFX_FORMAT_R16_FLOAT = 54,
+    GFX_FORMAT_R16_UNORM = 56,
+    GFX_FORMAT_R16_UINT = 57,
+    GFX_FORMAT_R16_SNORM = 58,
+    GFX_FORMAT_R16_SINT = 59,
+    GFX_FORMAT_R8_UNORM = 61,
+    GFX_FORMAT_R8_UINT = 62,
+    GFX_FORMAT_R8_SNORM = 63,
+    GFX_FORMAT_R8_SINT = 64,
+    GFX_FORMAT_BC1 = 71,
+    GFX_FORMAT_BC1_SRGB = 72,
+    GFX_FORMAT_BC2 = 74,
+    GFX_FORMAT_BC2_SRGB = 75,
+    GFX_FORMAT_BC3 = 77,
+    GFX_FORMAT_BC3_SRGB = 78,
+    GFX_FORMAT_BC4 = 80,
+    GFX_FORMAT_BC4_SNORM = 81,
+    GFX_FORMAT_BC5 = 83,
+    GFX_FORMAT_BC5_SNORM = 84,
+    GFX_FORMAT_DEPTH24_STENCIL8 = 45, /*DXGI_FORMAT_D24_UNORM_S8_UINT*/
+    GFX_FORMAT_DEPTH32 = 40, /*DXGI_FORMAT_D32_FLOAT*/
+    GFX_FORMAT_DEPTH16 = 55 /*DXGI_FORMAT_D16_UNORM*/
+};
+
+enum gfx_texture_type
+{
+    GFX_TEXTURE_1D,
+    GFX_TEXTURE_2D,
+    GFX_TEXTURE_3D,
+    GFX_TEXTURE_CUBE,
+    GFX_TEXTURE_1D_ARRAY,
+    GFX_TEXTURE_2D_ARRAY,
+    GFX_TEXTURE_CUBE_ARRAY
+};
+
+enum gfx_buffer_type
+{
+    GFX_BUFFER_VERTEX = 0x1L, /*D3D11_BIND_VERTEX_BUFFER*/
+    GFX_BUFFER_INDEX = 0x2L, /*D3D11_BIND_INDEX_BUFFER*/
+    GFX_BUFFER_SHADERSTORAGE = 0x100L,
+    GFX_BUFFER_SHADERTEXTURE = 0x200L,  /* TBUFFER */
+    GFX_BUFFER_STREAMOUT = 0x10L, /*D3D11_BIND_STREAM_OUTPUT*/
+    GFX_BUFFER_CONSTANT = 0x4L /*D3D11_BIND_CONSTANT_BUFFER*/
+};
+
+enum gfx_map_mode
+{
+    GFX_MAP_READ = 1, /*D3D11_MAP_READ*/
+    GFX_MAP_WRITE = 2, /*D3D11_MAP_WRITE*/
+    GFX_MAP_READ_WRITE = 3, /*D3D11_MAP_READ_WRITE*/
+    GFX_MAP_WRITE_DISCARD = 4, /*D3D11_MAP_WRITE_DISCARD*/
+    GFX_MAP_WRITE_DISCARDRANGE = 5 /*D3D11_MAP_WRITE_NO_OVERWRITE*/
+};
+
+enum gfx_mem_hint
+{
+    GFX_MEMHINT_STATIC = 0, /*D3D11_USAGE_DEFAULT*/
+    GFX_MEMHINT_DYNAMIC = 2, /*D3D11_USAGE_DYNAMIC*/
+    GFX_MEMHINT_READ = 3 /*D3D11_USAGE_STAGING*/
+};
+
+enum gfx_input_element_fmt
+{
+    GFX_INPUTELEMENT_FMT_FLOAT,
+    GFX_INPUTELEMENT_FMT_UINT,
+    GFX_INPUTELEMENT_FMT_INT
+};
+
+enum gfx_index_type
+{
+    GFX_INDEX_UNKNOWN = 0,
+    GFX_INDEX_UINT32 = 42, /*DXGI_FORMAT_R32_UINT*/
+    GFX_INDEX_UINT16 = 57, /*DXGI_FORMAT_R16_UINT*/
+};
+
+enum gfx_constant_type
+{
+    GFX_CONSTANT_UNKNOWN = 0,
+    GFX_CONSTANT_FLOAT,
+    GFX_CONSTANT_FLOAT2,
+    GFX_CONSTANT_FLOAT3,
+    GFX_CONSTANT_FLOAT4,
+    GFX_CONSTANT_INT,
+    GFX_CONSTANT_INT2,
+    GFX_CONSTANT_INT3,
+    GFX_CONSTANT_INT4,
+    GFX_CONSTANT_BOOL,
+    GFX_CONSTANT_UINT,
+    GFX_CONSTANT_MAT4x3,
+    GFX_CONSTANT_MAT4x4,
+    GFX_CONSTANT_STRUCT
+};
+
+struct gfx_input_element_binding;
+struct gfx_program_bin_desc
+{
+    uint vs_sz;
+    uint ps_sz;
+    uint gs_sz;
+
+    const void* vs;
+    const void* gs;
+    const void* ps;
+
+    uint input_cnt;
+    const struct gfx_input_element_binding* inputs;
+};
+
+#endif /* __GFXTYPES_D3D_H__ */

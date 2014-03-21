@@ -1,0 +1,112 @@
+#! /usr/bin/env python
+
+import os, sys
+
+def build(bld):
+    files = bld.path.ant_glob('*.c')
+    files.extend(bld.path.ant_glob('components/*.c'))
+    files.extend(bld.path.ant_glob('luabind/*.c*'))
+    files.extend(bld.path.ant_glob('physx/*.c*'))
+    files.extend(bld.path.ant_glob('renderpaths/*.c'))
+
+    libs = []
+    libpath = []
+    includes = []
+    frameworks = []
+    linkflags = []
+
+    if sys.platform == 'linux' or sys.platform == 'darwin':
+        libs.extend([\
+            'X11',
+            'Xi',
+            'Xrandr',
+            'Xxf86vm',
+            'PhysX3Extensions',
+            'PhysX3',
+            'SimulationController',
+            'PxTask',
+            'PhysXProfileSDK',
+            'LowLevel',
+            'LowLevelCloth',
+            'SceneQuery',
+            'PhysX3Common',
+            'PhysX3CharacterKinematic',
+            'PhysX3Vehicle',
+            'PhysX3Cooking',
+            'RepX3'])
+    else:
+        rel_suffix = ''
+        if '_DEBUG_' in bld.env.DEFINES:    rel_suffix = 'DEBUG'
+        if bld.env.DEST_CPU == 'amd64' or bld.env.DEST_CPU == 'x86_64':  arch_suffix = '_x64'
+        else:            arch_suffix = '_x86'
+        libs.extend([\
+            'PhysX3' + rel_suffix + arch_suffix,
+            'PhysX3Common' + rel_suffix + arch_suffix,
+            'PhysX3Extensions' + rel_suffix,
+            'PhysXProfileSDK' + rel_suffix])
+
+    if sys.platform == 'win32':
+        files.extend(bld.path.ant_glob('platform/win/*.c', excl='input-win.c'))
+        linkflags.extend(['/NODEFAULTLIB:"LIBCMTD.LIB"', '/NODEFAULTLIB:"LIBCMT.LIB"'])
+    elif sys.platform == 'linux':
+        files.extend(bld.path.ant_glob('platform/linux/*.c'))
+    elif sys.platform == 'darwin':
+        files.extend(bld.path.ant_glob('platform/osx/*.c'))
+        frameworks.extend(['Cocoa', 'CoreFoundation', 'CoreVideo', 'IOKit', 'OpenGL'])
+
+    if bld.env.GFX_API == 'D3D':
+        files.extend(bld.path.ant_glob('d3d/*.c*'))
+        libpath.append(bld.env.DX_LIBPATH)
+        includes.append(bld.env.DX_INCLUDES)
+        libs.extend(['d3dcompiler', 'dxguid', 'd3d11', 'dxgi'])
+        files.append('platform/win/input-win.c')
+    elif bld.env.GFX_API == 'GL':
+        files.extend(bld.path.ant_glob('gl/*.c'))
+        if sys.platform == 'linux':            libs.append('GL')
+        elif sys.platform == 'win32':          libs.append('OpenGL32')
+
+    includes.extend([\
+        os.path.join(bld.env.ROOTDIR, 'build'),
+        os.path.join(bld.env.ROOTDIR, 'include', 'dheng'),
+        bld.env.PHYSX_INCLUDES])
+
+    libpath.append(bld.env.PHYSX_LIBPATH)
+
+    # 3rdparty
+    libs.extend(['GLEW', 'lua', 'glfwext'])
+
+    # default target name and install path
+    install_path = '${PREFIX}/lib'
+
+    # pymod variant
+    pattern = bld.env.cshlib_PATTERN
+    if bld.variant == 'pymod':
+        files.extend(bld.path.ant_glob('pybind/*.c'))
+        pymod_path = '${PREFIX}/lib/python' + bld.env.PY_VERSION
+
+        if sys.platform == 'linux':     pattern = '_%s.so'
+        elif sys.platform == 'win32':   pattern = '_%s.pyd'
+        elif sys.platform == 'darwin':  pattern = '_%s.dylib'
+
+        bld.install_as(os.path.join(pymod_path, '__init__.py'), 'pybind/dheng.py')
+        bld.install_as(os.path.join(pymod_path, ''))
+
+        libpath.append(bld.env.PY_LIBPATH)
+        includes.append(bld.env.PY_INCLUDES)
+
+    bld.shlib(
+        source = files,
+        name = 'dheng',
+        target = 'dheng' + bld.env.SUFFIX,
+        install_path = '${PREFIX}/lib' if bld.variant != 'pymod' else pymod_path,
+        defines = ['_ENGINE_EXPORT_'],
+        lib = libs,
+        libpath = libpath,
+        includes = includes,
+        framework = frameworks,
+        linkflags = linkflags,
+        cxxshlib_PATTERN = pattern,
+        cshlib_PATTERN = pattern,
+        vnum = bld.env.VERSION,
+        use = ['dhcore', '3rdparty_mongoose'])
+

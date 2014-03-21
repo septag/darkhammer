@@ -1,0 +1,363 @@
+#!/usr/bin/env python
+
+import os, sys, subprocess, inspect, shutil, glob
+
+TERM_RESET = '\033[0m'
+TERM_GREY = '\033[90m'
+TERM_RED = '\033[31m'
+TERM_GREEN = '\033[32m'
+TERM_YELLOW = '\033[33m'
+TERM_BLUE = '\033[34m'
+TERM_WHITE = '\033[37m'
+TERM_BOLDYELLOW = '\033[1m\033[33m'
+TERM_BOLDBLUE = '\033[1m\033[34m'
+TERM_BOLDMAGENTA = '\033[1m\033[35m'
+TERM_BOLDRED = '\033[1m\033[31m'
+TERM_BOLDWHITE = '\033[1m\033[37m'
+TERM_BOLDGREEN = '\033[1m\033[32m'
+
+ROOTDIR = os.path.abspath(os.path.dirname(inspect.getframeinfo(inspect.currentframe())[0]))
+LIBDIR = ''
+INCLUDEDIR = ''
+PREFIX = ROOTDIR
+
+def log(msg, color = TERM_RESET):
+    if sys.platform == 'linux' or sys.platform == 'darwin':
+        sys.stdout.write(color + msg + TERM_RESET)
+    else:
+        sys.stdout.write(msg)
+    sys.stdout.flush()
+
+def search_package(name):
+    libs = []
+    ver = ''
+
+    if sys.platform == 'linux':
+        try:
+            subprocess.check_output(['pkg-config', '--exists', name], universal_newlines=True)
+            sver = subprocess.check_output(['pkg-config', '--modversion', name],
+                universal_newlines=True)
+            slibs = subprocess.check_output(['pkg-config', '--libs', name], universal_newlines=True)
+        except subprocess.CalledProcessError:
+            return (False, ver, libs)
+        else:
+            ver = sver.split('\n')[0]
+            libs_raw = slibs.split('\n')[0].split(' ')
+            for lib in libs_raw:
+                if len(lib) > 0:
+                    libs.append(lib.split('-l')[0])
+
+            return (True, ver, libs)
+    else:
+        return (False, ver, libs)
+
+def install_lua():
+    luadir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'lua')
+    libfile = os.path.join(LIBDIR, 'liblua.so')
+
+    if os.path.isfile(libfile):
+        return True
+
+    url = 'https://github.com/LuaDist/lua/archive/master.zip'
+    log('downloading lua source from "https://github.com/LuaDist/lua"...\n', TERM_GREY)
+    log('')
+
+    os.makedirs(luadir, exist_ok=True)
+    os.chdir(luadir)
+    if os.system('wget -N {0}'.format(url)) != 0:
+        os.chdir(ROOTDIR)
+        return False
+    if os.system('unzip -o master.zip') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    os.chdir('lua-master')
+    if os.system('cmake .') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    if os.system('make') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    # copy important files
+    shutil.copyfile('liblua.so', libfile)
+
+    # headers
+    includes = os.path.join(INCLUDEDIR, 'lua')
+    headers = ['src/lua.h', 'src/lauxlib.h', 'src/lua.hpp', 'src/lualib.h']
+    os.makedirs(includes, exist_ok=True)
+    for header in headers:
+        shutil.copyfile(header, os.path.join(includes, os.path.basename(header)))
+
+    os.chdir(ROOTDIR)
+    return True
+
+def check_lua():
+    log('looking for lua...', TERM_GREEN)
+
+    (r, ver, libs) = search_package('lua')
+    if not r:
+        log('\t\tnot found\n', TERM_YELLOW)
+        return install_lua()
+
+    sver = ver.split('.')
+    if int(sver[0]) < 5 or int(sver[1]) < 2:
+        log('\t\told version: {0}\n'.format(ver), TERM_YELLOW)
+        return install_lua()
+
+    log('\t\tfound: {0}\n'.format(ver), TERM_GREEN)
+    return True
+
+def install_assimp():
+    if os.path.isfile(os.path.join(LIBDIR, 'libassimp.so')):
+        return True
+
+    url = 'https://github.com/assimp/assimp/archive/master.zip'
+    log('downloading assimp source from "https://github.com/assimp/assimp"...\n', TERM_GREY)
+
+    assimpdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'assimp')
+    os.makedirs(assimpdir, exist_ok=True)
+    os.chdir(assimpdir)
+    if os.system('wget -N {0}'.format(url)) != 0:
+        os.chdir(ROOTDIR)
+        return False
+    if os.system('unzip -o master.zip') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    os.chdir('assimp-master')
+    if os.system('cmake -DENABLE_BOOST_WORKAROUND=ON . ') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    if os.system('make') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    # copy important files
+    # libs
+    libs = glob.glob('lib/libassimp.so*')
+    for lib in libs:
+        shutil.copyfile(lib, os.path.join(LIBDIR, os.path.basename(lib)))
+
+    # headers
+    includes = os.path.join(INCLUDEDIR, 'assimp')
+    headers = glob.glob('include/assimp/*')
+    os.makedirs(includes, exist_ok=True)
+    for header in headers:
+        if os.path.isfile(header):
+            shutil.copyfile(header, os.path.join(includes, os.path.basename(header)))
+    os.makedirs(os.path.join(includes, 'Compiler'), exist_ok=True)
+    headers = glob.glob('include/assimp/Compiler/*')
+    for header in headers:
+        shutil.copyfile(header, os.path.join(includes, 'Compiler', os.path.basename(header)))
+
+    os.chdir(ROOTDIR)
+    return True
+
+def check_assimp():
+    log('looking for assimp...', TERM_GREEN)
+
+    (r, ver, libs) = search_package('assimp')
+    if not r:
+        log('\t\tnot found\n', TERM_YELLOW)
+        return False
+
+    sver = ver.split('.')
+    if int(sver[0]) < 3:
+        log('\t\told version: {0}\n'.format(ver), TERM_YELLOW)
+        return False
+
+    log('\t\tfound: {0}\n'.format(ver), TERM_GREEN)
+    return True
+
+def install_glfwext():
+    log('looking for glfwext...', TERM_GREEN)
+    if os.path.isfile(os.path.join(LIBDIR, 'libglfwext.so')):
+        log('\t\tfound\n', TERM_GREEN)
+        return True
+    log('\t\tnot found\n', TERM_YELLOW)
+
+    url = 'https://github.com/septag/glfw/archive/master.zip'
+    log('downloading assimp source from "https://github.com/septag/glfw"...\n', TERM_GREY)
+
+    glfwdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'glfwext')
+    os.makedirs(glfwdir, exist_ok=True)
+    os.chdir(glfwdir)
+    if os.system('wget -N {0}'.format(url)) != 0:
+        os.chdir(ROOTDIR)
+        return False
+    if os.system('unzip -o master.zip') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    os.chdir('glfw-master')
+    if os.system('waf configure build install') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    # copy important files
+    # libs
+    libs = glob.glob('lib/libglfwext.so*')
+    for lib in libs:
+        shutil.copyfile(lib, os.path.join(LIBDIR, os.path.basename(lib)))
+
+    # headers
+    includes = os.path.join(INCLUDEDIR, 'GLFWEXT')
+    headers = glob.glob('include/GLFW/*.h')
+    os.makedirs(includes, exist_ok=True)
+    for header in headers:
+        shutil.copyfile(header, os.path.join(includes, os.path.basename(header)))
+
+    os.chdir(ROOTDIR)
+    return True
+
+def check_glew():
+    log('looking for glew...', TERM_GREEN)
+
+    (r, ver, libs) = search_package('glew')
+    if not r:
+        log('\t\tnot found\n', TERM_YELLOW)
+        return False
+
+    sver = ver.split('.')
+    if int(sver[0]) < 1 or int(sver[1]) < 10:
+        log('\t\told version: {0}\n'.format(ver), TERM_YELLOW)
+        return False
+
+    log('\t\tfound: {0}\n'.format(ver), TERM_GREEN)
+    return True
+
+def install_glew():
+    if os.path.isfile(os.path.join(LIBDIR, 'libGLEW.so')):
+        return True
+
+    url = 'https://sourceforge.net/projects/glew/files/glew/1.10.0/glew-1.10.0.zip/download'
+    log('downloading assimp source from "https://sourceforge.net/projects/glew"...\n', TERM_GREY)
+
+    glewdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'glew')
+    os.makedirs(glewdir, exist_ok=True)
+    os.chdir(glewdir)
+    if os.system('wget -N {0}'.format(url)) != 0:
+        os.chdir(ROOTDIR)
+        return False
+    if os.system('unzip -o download') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    dirs = glob.glob('*')
+    for d in dirs:
+        if os.path.isdir(d):
+            os.chdir(d)
+            break
+
+    if os.system('make') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    # copy important files
+    # libs
+    libs = glob.glob('lib/libGLEW.so*')
+    for lib in libs:
+        shutil.copyfile(lib, os.path.join(LIBDIR, os.path.basename(lib)))
+
+    # headers
+    includes = os.path.join(INCLUDEDIR, 'GL')
+    headers = glob.glob('include/GL/*.h')
+    os.makedirs(includes, exist_ok=True)
+    for header in headers:
+        shutil.copyfile(header, os.path.join(includes, os.path.basename(header)))
+
+    os.chdir(ROOTDIR)
+    return True
+
+def install_efsw():
+    log('looking for efsw...', TERM_GREEN)
+    if os.path.isfile(os.path.join(LIBDIR, 'libefsw.so')):
+        log('\t\tfound\n', TERM_GREEN)
+        return True
+    log('\t\tnot found\n', TERM_YELLOW)
+
+    url = 'https://bitbucket.org/sepul/efsw/get/8a83663b130d.zip'
+    log('downloading assimp source from "https://bitbucket.org/sepul/efsw"...\n', TERM_GREY)
+
+    efswdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'efsw')
+    os.makedirs(efswdir, exist_ok=True)
+    os.chdir(efswdir)
+    if os.system('wget -N {0}'.format(url)) != 0:
+        os.chdir(ROOTDIR)
+        return False
+    if os.system('unzip -o 8a83663b130d.zip') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    dirs = glob.glob('*')
+    for d in dirs:
+        if os.path.isdir(d):
+            os.chdir(d)
+            break
+
+    if os.system('waf configure build install') != 0:
+        os.chdir(ROOTDIR)
+        return False
+
+    # copy important files
+    # libs
+    libs = glob.glob('lib/libefsw.so*')
+    for lib in libs:
+        shutil.copyfile(lib, os.path.join(LIBDIR, os.path.basename(lib)))
+
+    # headers
+    includes = os.path.join(INCLUDEDIR, 'efsw')
+    headers = glob.glob('include/efsw/*.h*')
+    os.makedirs(includes, exist_ok=True)
+    for header in headers:
+        shutil.copyfile(header, os.path.join(includes, os.path.basename(header)))
+
+    os.chdir(ROOTDIR)
+    return True
+
+def main():
+    global LIBDIR, INCLUDEDIR, PREFIX
+    for arg in sys.argv:
+        if '--prefix' in arg:
+            prefix_value = arg.split('=')[-1]
+            if os.path.isdir(prefix_value):
+                PREFIX = prefix_value
+
+    LIBDIR = os.path.join(PREFIX, 'lib')
+    INCLUDEDIR = os.path.join(PREFIX, 'include')
+
+    log('library install path: ' + LIBDIR + '\n', TERM_GREEN)
+    log('include install path: ' + INCLUDEDIR + '\n', TERM_GREEN)
+
+    os.makedirs(INCLUDEDIR, exist_ok=True)
+    os.makedirs(LIBDIR, exist_ok=True)
+
+    if not check_lua():
+        if not install_lua():
+            log('error: could not install lua\n', TERM_RED)
+            return False
+
+    if not check_assimp():
+        if not install_assimp():
+            log('error: could not install assimp\n', TERM_RED)
+            return False
+
+    if not install_glfwext():
+        log('error: could not install glfwext\n', TERM_RED)
+        return False
+
+    if not check_glew():
+        if not install_glew():
+            log('error: could not install glew\n', TERM_RED)
+            return False
+
+    if not install_efsw():
+        log('error: could not install efsw\n', TERM_RED)
+        return False
+
+r = main()
+if r:    sys.exit(0)
+else:    sys.exit(-1)

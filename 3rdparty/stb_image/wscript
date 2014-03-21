@@ -1,0 +1,8 @@
+#! /usr/bin/env python
+
+def build(bld):
+    bld.stlib(
+        source = ['stb_image.c', 'stb_image_write.c'],
+        name = "3rdparty_stbimage",
+        export_includes = '..',
+        target = "stbimage" + bld.env.SUFFIX)

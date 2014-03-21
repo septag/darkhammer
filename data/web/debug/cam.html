@@ -1,0 +1,62 @@
+<div>
+    <textarea id="cam-data" style="width:500px; height:400px;"></textarea>
+    <form class="form-inline">
+        <button type="button" class="btn btn-small" id="btn-update-pos">Position</button>
+        <button type="button" class="btn btn-small" id="btn-update-rot">Rotation</button>
+        <button type="button" class="btn btn-small" id="btn-clear">Clear</button>
+    </form>
+</div>
+
+<script>
+    $("#btn-update-pos").click(function() {
+        $.ajax("/json/info-cam", {
+            dataType: "json",
+            type: "POST",
+            success: function(json, text_status, jqXHR) {
+                var text = $("#cam-data").val();
+                var prefix;
+                if (text != "")
+                    prefix = "\n";
+                else
+                    prefix = "";
+
+                var str_pos = prefix + "pos: (" + json.cam.x + ", " + json.cam.y + ", " +
+                    json.cam.z + ")";
+                text += str_pos;
+                $("#cam-data").val(text);
+            },
+            error: function(jqXHR, text_status, err_thrown) {
+                console.log(text_status);
+            }
+        });
+    });
+
+
+    $("#btn-update-rot").click(function() {
+        $.ajax("/json/info-cam", {
+            dataType: "json",
+            type: "POST",
+            success: function(json, text_status, jqXHR) {
+                var text = $("#cam-data").val();
+                var prefix;
+                if (text != "")
+                    prefix = "\n";
+                else
+                    prefix = "";
+                var str_rot = prefix + "rot: (" + json.cam.qx + ", " + json.cam.qy + ", " +
+                    json.cam.qz + ", " + json.cam.qw + ")";
+                text += str_rot;
+                $("#cam-data").val(text);
+            },
+            error: function(jqXHR, text_status, err_thrown) {
+                console.log(text_status);
+            }
+        });
+    });
+
+    $("#btn-clear").click(function() {
+        $("#cam-data").val("");
+    });
+
+
+</script>

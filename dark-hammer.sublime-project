@@ -1,0 +1,25 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "3rdparty"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "src"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "include"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "tutorials"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "data/shaders/glsl"
+		}
+	]
+}

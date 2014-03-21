@@ -1,0 +1,39 @@
+#! /usr/bin/env python
+
+import os
+
+def configure(conf):
+    conf.check_cc(header_name='stdarg.h', mandatory=False)
+    conf.check_cc(header_name='unistd.h', mandatory=False)
+    conf.check_cc(header_name='signal.h', mandatory=False)
+    conf.check_cc(header_name='malloc.h', mandatory=False)
+    conf.check_cc(header_name='execinfo.h', mandatory=False)
+    conf.check_cc(header_name='xtgmath.h', mandatory=False)
+    conf.write_config_header('nvconfig.h')
+
+def build(bld):
+    files = []
+    files.append('nvcore/poshlib/posh.c')
+    files.extend(bld.path.ant_glob('nvcore/*.c*',
+        excl=['nvcore/Tokenizer.cpp']))
+    files.append('nvmath/Plane.cpp')
+    files.extend(bld.path.ant_glob('nvimage/*.c*',
+        excl=['nvimage/ConeMap.cpp', 'nvimage/NormalMipmap.cpp']))
+    files.extend(bld.path.ant_glob('nvtt/cuda/*.cpp'))
+    files.extend(bld.path.ant_glob('nvtt/squish/*.c*',
+        excl=['nvtt/squish/alpha.cpp', 'nvtt/squish/singlechannelfit.cpp',
+              'nvtt/squish/squish.cpp', 'nvtt/squish/rangefit.cpp',
+              'nvtt/squish/singlecolourfit.cpp']))
+
+    # nvtt
+    files.extend(bld.path.ant_glob('nvtt/*.c*'))
+
+    bld.shlib(
+        source = files,
+        defines = ['NVTT_EXPORTS', 'NVTT_SHARED', '__SSE2__', '__SSE__', '__MMX__'],
+        includes = ['.', 'nvtt/squish', os.path.join(bld.env.ROOTDIR, 'build', '3rdparty', 'nvtt')],
+        export_includes = '.',
+        lib = ['dl', 'stdc++'],
+        name = '3rdparty_nvtt',
+        install_path = '${PREFIX}/lib',
+        target = 'nvtt' + bld.env.SUFFIX)

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>dark-hammer</title>
+        <script src="../js/jquery/jquery-1.8.3.js"></script>
+        <script src="../js/flot/jquery.flot.js"></script>
+        <script src="../bootstrap/js/bootstrap.min.js"></script>
+        <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen"/>
+        <script>
+            var cur_timer = 0;
+
+            function insert_arrow(direction)
+            {
+                switch (direction)    {
+                    case 1:
+                      return "  <i class='icon-arrow-up'>";
+                    case -1:
+                      return "  <i class='icon-arrow-down'>";
+                    default:
+                      return "";
+                }
+            }
+
+            function get_arrow_dir(item, prev_item)
+            {
+                var arrow_dir = 0;
+                if (prev_item != null)  {
+                    var arrow_dir = 0;
+                    if (prev_item != null)  {
+                        if (prev_item.value < item.value)
+                            arrow_dir = 1;
+                        else if (prev_item.value > item.value)
+                            arrow_dir = -1;
+                    }
+                }
+                return arrow_dir;
+            }
+
+            function init_ui()
+            {
+                $.ajaxSetup({cache: false});
+
+                $("#btn-heap").click(function(event) {
+                    event.preventDefault();
+                    clearTimeout(cur_timer);
+                    $.ajax("/memory/heap.html",  {
+                        dataType: "html",
+                        success: function(html, text_status, jqXHR) {
+                            $("#main-content").html(html);
+                        }
+                    });
+                });
+
+                $("#btn-subsys").click(function(event) {
+                    event.preventDefault();
+                    clearTimeout(cur_timer);
+                    $.ajax("/memory/heap-sub.html", {
+                        dataType: "html",
+                        success: function(html, text_status, jqXHR) {
+                            $("#main-content").html(html);
+                        }
+                    });
+                });
+
+                $("#btn-gpu").click(function(event) {
+                    event.preventDefault();
+                    clearTimeout(cur_timer);
+                    $.ajax("/memory/gpu.html", {
+                        dataType: "html",
+                        success: function(html, text_status, jqXHR) {
+                            $("#main-content").html(html);
+                        }
+                    });
+                });
+
+                $("#btn-buffers").click(function(event) {
+                    event.preventDefault();
+                    clearTimeout(cur_timer);
+                    $.ajax("/memory/buffers.html", {
+                        dataType: "html",
+                        success: function(html, text_status, jqXHR) {
+                            $("#main-content").html(html);
+                        }
+                    });
+                });
+
+            }
+
+            $(document).ready(init_ui);
+        </script>
+    </head>
+    <body>
+        <div class="navbar navbar-inverse ">
+          <div class="navbar-inner">
+            <div class="container-fluid">
+                <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </a>
+              <a class="brand" href="#">Memory</a>
+              <div class="nav-collapse collapse">
+                <ul class="nav">
+                  <li class="active"><a href="/">Home</a></li>
+                  <li><a href="#about">About</a></li>
+                </ul>
+              </div><!--/.nav-collapse -->
+            </div>
+          </div>
+        </div>
+
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span2">
+                    <div class="well sidebar-nav">
+                        <ul class="nav nav-list">
+                            <li><a id="btn-heap" href="">Heap</a></li>
+                            <li><a id="btn-subsys" href="">Subsystems</a></li>
+                            <li><a id="btn-gpu" href="">GPU</a></li>
+                            <li><a id="btn-buffers" href="">Buffers</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="span10" id="main-content">
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

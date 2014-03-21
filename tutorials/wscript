@@ -1,0 +1,24 @@
+#! /usr/bin/env python
+
+import os
+
+def build(bld):
+    install_path = '${PREFIX}/bin/tuts' if (bld.env.PREFIX == bld.env.ROOTDIR) else \
+        '${PREFIX}/bin/dark-hammer/tuts'
+
+    bld.program(
+        source = ['shared/helper-app.cpp', 'tut01-helloworld/helloworld.cpp'],
+        target = 'helloworld' + bld.env.SUFFIX,
+        install_path = install_path,
+        includes = 'shared',
+        use = ['dhcore', 'dheng'])
+
+    bld.program(
+        source = ['shared/helper-app.cpp', 'tut02-models/models.cpp'],
+        target = 'models' + bld.env.SUFFIX,
+        install_path = install_path,
+        includes = 'shared',
+        use = ['dhcore', 'dheng'])
+
+
+

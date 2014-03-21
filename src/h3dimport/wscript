@@ -1,0 +1,49 @@
+#! /usr/bin/env python
+
+import os, glob, sys
+
+def build(bld):
+    libs = []
+
+    files = bld.path.ant_glob('*.c*')
+
+    if sys.platform in ['linux', 'darwin']:
+        libs.extend([
+            'm',
+            'pthread',
+            'stdc++',
+            'PhysX3Cooking',
+            'PhysX3',
+            'SimulationController',
+            'PxTask',
+            'PhysXProfileSDK',
+            'PhysX3Extensions',
+            'LowLevel',
+            'LowLevelCloth',
+            'SceneQuery',
+            'PhysX3Common',
+            'PhysX3CharacterKinematic',
+            'PhysX3Vehicle',
+            'RepX3'])
+    elif sys.platform == 'win32':
+        rel_suffix = ''
+        if '_DEBUG_' in bld.env.DEFINES:
+            rel_suffix = 'DEBUG'
+        if bld.env.DEST_CPU == 'amd64' or bld.env.DEST_CPU == 'x86_64': arch_suffix = '_x64'
+        else:                                                   arch_suffix = '_x86'
+        libs.extend(['PhysX3Common' + rel_suffix + arch_suffix,
+            'PhysX3Cooking' + rel_suffix + arch_suffix])
+
+    libs.append('assimp')
+
+    # build
+    bld.program(
+        source = files,
+        target = 'h3dimport' + bld.env.SUFFIX,
+        includes = [bld.env.PHYSX_INCLUDES],
+        libpath = [bld.env.PHYSX_LIBPATH],
+        lib = libs,
+        install_path = '${PREFIX}/bin',
+        use = ['dhcore', '3rdparty_stbimage', '3rdparty_ezxml', '3rdparty_nvtt'])
+
+

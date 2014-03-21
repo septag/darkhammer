@@ -1,0 +1,122 @@
+<div>
+	<div id="the-flot" style="width:640px; height:320px"></div>
+	<br>
+    <table id="the-table" class="table table-hover table-bordered">
+    </table>
+
+    <div class="well">
+    <form class="form-inline">
+    <button type="button" class="btn btn-small" id="btn-update">Update</button>
+    </form>
+    <form class="form-inline">
+    <label class="checkbox">
+        <input type="checkbox" id="check-autoupdate">
+        Auto update :
+    </label>
+    <label class="form-inline">
+    <input type="text" class="input-small" id="edit-updateinterval">
+    ms
+    </label>
+    </form>
+    </div>
+
+    <script>
+        var update_interval = 1000;
+        var auto_update = true;
+		var plot_data = [];
+		var cur_time = 0;
+		var max_plot_samples = 30;
+		var flot;
+		var plot_idx = 0;
+        var prev_items = [];
+
+		function format_mem(item)
+		{
+			if (item.isgraph)	{
+				var nbytes = item.value;
+				var str = nbytes.toString() + " (" + Math.floor(nbytes/1024).toString() +
+					" kb)"
+				return str;
+			}	else	{
+				return item.value;
+			}
+		}
+
+		function add_plotitem(item)
+		{
+			if (plot_data[plot_idx] == null)
+				plot_data[plot_idx] = {label: item.key, data:[]};
+			var values = plot_data[plot_idx].data;
+			if (values.length > max_plot_samples)
+				values.shift();
+			values.push([cur_time, item.value])
+			plot_idx ++;
+		}
+
+        function update_sub()
+        {
+            $.ajax("/json/mem-heap-sub", {
+                dataType: "json",
+                type: "POST",
+                success: function(json, text_status, jqXHR) {
+                    var html = "";
+                    $.each(json.data, function(idx, item) {
+                        var row;
+                        var arrow_dir = get_arrow_dir(item, prev_items[idx]);
+                        row = "<tr><td width='100px'>" + item.key + " </td><td>" + format_mem(item)
+                            + insert_arrow(arrow_dir) + "</td></tr>";
+                        prev_items[idx] = item;
+                        html += row;
+						if (item.isgraph)
+							add_plotitem(item);
+                        });
+                    $("#the-table").html(html);
+
+					cur_time += (update_interval/1000);
+					plot_idx = 0;
+
+					flot.setData(plot_data);
+					flot.setupGrid();
+					flot.draw();
+                },
+                error: function(jqXHR, text_status, err_thrown) {
+                    console.log(text_status);
+                }
+            });
+
+            if (auto_update)  {
+                cur_timer = setTimeout(update_sub, update_interval);
+            }
+        }
+
+        $("#edit-updateinterval").val(update_interval).keyup(function() {
+            update_interval = $(this).val();
+            if (update_interval < 100)
+                update_interval = 100;
+            });
+        $("#check-autoupdate").attr("checked", auto_update).click(function() {
+            auto_update = ($(this).attr("checked") == "checked");
+            $("#btn-update").attr("disabled", auto_update);
+           });
+        $("#btn-update").click(function() {
+            update_sub();
+        }).attr("disabled", true);
+
+		$(document).ready(function() {
+			var options = {
+				legend: {show:true},
+				series: {shadowSize: 0},
+				xaxis: {show: false},
+				yaxis: {
+					tickFormatter: function(n)	{
+						return Math.floor(n/(1024*1024)).toString() + " mb";
+					}
+				}
+			};
+			var data = [[0, 0]];
+			flot = $.plot($("#the-flot"), [data], options);
+		});
+
+        update_sub();
+    </script>
+</div>
