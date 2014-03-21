@@ -1,8 +1,8 @@
 ## darkHAMMER Game Engine
 
-Version 0.5.0-devel
-[http://www.hmrengine.com](http://www.hmrengine.com)
-[https://github.com/septag/darkhammer](https://github.com/septag/darkhammer)
+Version 0.5.0-devel  
+[http://www.hmrengine.com](http://www.hmrengine.com)  
+[https://github.com/septag/darkhammer](https://github.com/septag/darkhammer)  
 
 ### Description
 *darkHAMMER* is a lightweight, open-source, multiplatform game engine. written in C (C99) language.
@@ -19,6 +19,9 @@ You must have the following packages installed before trying to build:
 - **cmake**: for building 3rdparty libraries like *assimp*
 - **gcc**
 - **python**: version 3 and higher
+- **wget**: for fetching non-existing 3rdparty libraries from web
+- **pkg-config**: for aquiring information from installed packages
+- **unzip**: for unzipping 3rdparty repos
 
 *darkHAMMER* requires some 3rdparty libraries for it's tools and engine, which are not included inside engine's repo. Some of them are already available as a package on many linux distros, some are not.
 
@@ -45,7 +48,7 @@ waf build
 sudo waf install
 ```
 
-This is the simplest command for configuring the build, however there are many more options available, like enabling *asserts*, *profile* build and others, which you can see with `waf --help` command.
+This is the simplest command for configuring the build, however there are many more options available, like *debug* build, enabling *asserts*, *profile* build and others, which you can see with `waf --help` command.
 
 ### Questions ?
 If you have any questions, suggestions or bug reports, please post to developer's
