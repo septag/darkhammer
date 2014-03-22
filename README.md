@@ -84,8 +84,8 @@ This is the simplest command for configuring the build, however there are many m
 *Note* that *prefix* path for 3rdparty libs and engine itself should be the same, or you may get build errors.
 
 ### Questions ?
-If you have any questions, suggestions or bug reports, please post to developer's
-[forum](http://hmrengine.com/forums/).
+If you have any questions, suggestions, please post to developer's
+[forum](http://hmrengine.com/forums/). If you encountered a bug you can fill an issue right here on *github*.
 
 ### Credits
 #### Active developers
