@@ -54,8 +54,8 @@ This is the simplest command for configuring the build, however there are many m
 Just like linux build, you need to acquire (or build) some external 3rdparty libraries. There is a python tool *install_3rdparty-win.py* which helps you with that process. Before using the 3rdparty installer tool, you need to install the softwares listed below:  
 
 - **Microsoft visual studio**: preferred C/C++ compiler on windows. The project isn't tested with any other compiler on windows.
-- **git for windows**: (link)[http://git-scm.com/download/win] also make sure to include it's binaries into PATH environment variable.
-- **wget**: (link)[http://users.ugent.be/~bpuype/wget/] This is a linux tool but also is built on windows and 3rdparty installer needs it. Make sure to put it somewhere in PATH environment variable.
+- **git for windows**: [link](http://git-scm.com/download/win) also make sure to include it's binaries into PATH environment variable.
+- **wget**: [link](http://users.ugent.be/~bpuype/wget/) This is a linux tool but also is built on windows and 3rdparty installer needs it. Make sure you download and put it somewhere in PATH environment variable.
 - **python**: version 3 or higher
 
 Now start by fetching the source from the repo and install 3rdparty libraries: 
