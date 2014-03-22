@@ -1085,7 +1085,7 @@ gfx_inputlayout gfx_create_inputlayout(const struct gfx_input_vbuff_desc* vbuffs
     obj->desc.il.vbuff_cnt = vbuff_cnt;
     for (uint i = 0; i < vbuff_cnt; i++)  {
         obj->desc.il.vbuffs[i] = (void*)vbuffs[i].vbuff;
-        obj->desc.il.strides[i] = vbuffs[i].stride;
+        obj->desc.il.strides[i] = (uint)vbuffs[i].stride;
     }
 
     obj->desc.il.ibuff = (void*)idxbuffer;
@@ -1277,8 +1277,8 @@ gfx_program gfx_create_program(const struct gfx_shader_data* source_data,
      * note that in GL input layout is created in gfx_create_inputlayout and not here
      * but in DX we have to create the layout with compiled VS code
      */
-    il = gfx_create_inputlayout_fromshader(vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
-        bindings, binding_cnt);
+    il = gfx_create_inputlayout_fromshader(vs_blob->GetBufferPointer(), 
+        (uint)vs_blob->GetBufferSize(), bindings, binding_cnt);
     if (il == NULL)   {
         err_print(__FILE__, __LINE__, "hlsl-compiler failed: could not create input-layout");
         goto err_cleanup;

@@ -180,7 +180,7 @@ def install_glfwext():
     log('\t\tnot found\n', TERM_YELLOW)
 
     url = 'https://github.com/septag/glfw/archive/master.zip'
-    log('downloading assimp source from "https://github.com/septag/glfw"...\n', TERM_GREY)
+    log('downloading glfwext source from "https://github.com/septag/glfw"...\n', TERM_GREY)
 
     glfwdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'glfwext')
     os.makedirs(glfwdir, exist_ok=True)
@@ -234,7 +234,7 @@ def install_glew():
         return True
 
     url = 'https://sourceforge.net/projects/glew/files/glew/1.10.0/glew-1.10.0.zip/download'
-    log('downloading assimp source from "https://sourceforge.net/projects/glew"...\n', TERM_GREY)
+    log('downloading glew source from "https://sourceforge.net/projects/glew"...\n', TERM_GREY)
 
     glewdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'glew')
     os.makedirs(glewdir, exist_ok=True)
@@ -279,8 +279,8 @@ def install_efsw():
         return True
     log('\t\tnot found\n', TERM_YELLOW)
 
-    url = 'https://bitbucket.org/sepul/efsw/get/8a83663b130d.zip'
-    log('downloading assimp source from "https://bitbucket.org/sepul/efsw"...\n', TERM_GREY)
+    url = 'https://bitbucket.org/sepul/efsw/get/9e7b94e606c4.zip'
+    log('downloading efsw source from "https://bitbucket.org/sepul/efsw"...\n', TERM_GREY)
 
     efswdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'efsw')
     os.makedirs(efswdir, exist_ok=True)
@@ -288,7 +288,7 @@ def install_efsw():
     if os.system('wget -N {0}'.format(url)) != 0:
         os.chdir(ROOTDIR)
         return False
-    if os.system('unzip -o 8a83663b130d.zip') != 0:
+    if os.system('unzip -o ' + os.path.basename(url)) != 0:
         os.chdir(ROOTDIR)
         return False
 
@@ -357,7 +357,9 @@ def main():
     if not install_efsw():
         log('error: could not install efsw\n', TERM_RED)
         return False
-
+        
+    log('ok, ready for build.\n')
+    
 r = main()
 if r:    sys.exit(0)
 else:    sys.exit(-1)

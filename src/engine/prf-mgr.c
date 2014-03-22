@@ -313,7 +313,7 @@ int webserver_request_handler(struct mg_connection* conn, enum mg_event ev)
             if (f != NULL)  {
                 size_t size;
                 void* data = fio_detachmem(f, &size, NULL);
-                mg_send_data(conn, data, size);
+                mg_send_data(conn, data, (uint)size);
                 fio_close(f);
             }   else {
                 mg_send_status(conn, 404);
@@ -337,7 +337,7 @@ void webserver_runajax(struct mg_connection* conn, const char* cmd, const char* 
 			size_t json_size;
 			char* json_data = json_savetobuffer(j, &json_size, TRUE);
 			if (json_data != NULL)	{
-				mg_write(conn, json_data, json_size);
+				mg_write(conn, json_data, (uint)json_size);
 				json_deletebuffer(json_data);
 			}
 			json_destroy(j);

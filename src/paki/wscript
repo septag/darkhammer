@@ -1,10 +1,14 @@
 #! /usr/bin/env python
-import os
+import sys
 
 def build(bld):
+    cflags = []
+    if sys.platform == 'win32':
+        cflags.append('/TP')
     bld.program(
         source = ['paki.c'],
         target = 'dhpak' + bld.env.SUFFIX,
         install_path = '${PREFIX}/bin',
+        cflags = cflags,
         use = ['dhcore'])
 

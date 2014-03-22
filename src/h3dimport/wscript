@@ -35,6 +35,10 @@ def build(bld):
             'PhysX3Cooking' + rel_suffix + arch_suffix])
 
     libs.append('assimp')
+    
+    cxxflags = []
+    if sys.platform == 'win32':
+        cxxflags.append('/EHsc-')
 
     # build
     bld.program(
@@ -43,6 +47,7 @@ def build(bld):
         includes = [bld.env.PHYSX_INCLUDES],
         libpath = [bld.env.PHYSX_LIBPATH],
         lib = libs,
+        cxxflags = cxxflags,
         install_path = '${PREFIX}/bin',
         use = ['dhcore', '3rdparty_stbimage', '3rdparty_ezxml', '3rdparty_nvtt'])
 

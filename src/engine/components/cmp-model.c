@@ -251,7 +251,7 @@ result_t cmp_model_modify(struct cmp_obj* obj, struct allocator* alloc,
      * so they are managed by model component */
 	for (uint i = 1, xform_cnt = gmodel->node_cnt; i < xform_cnt; i++)	{
 		m->xforms[i] = cmp_create_instance(cmp_findtype(cmp_xform_type), obj,
-            CMP_INSTANCEFLAG_INDIRECTHOST, cur_hdl, offsetof(struct cmp_model, xforms[i]));
+            CMP_INSTANCEFLAG_INDIRECTHOST, cur_hdl, (uint)offsetof(struct cmp_model, xforms[i]));
 		if (m->xforms[i] == INVALID_HANDLE)	{
 			log_print(LOG_WARNING, "modify-model failed: xform component creation failed");
 			return RET_FAIL;

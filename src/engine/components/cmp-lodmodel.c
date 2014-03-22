@@ -259,7 +259,7 @@ result_t cmp_lodmodel_modify_hi(struct cmp_obj* obj, struct allocator* alloc,
     if (m->models[LOD_INDEX_HIGH] == INVALID_HANDLE) {
         m->models[LOD_INDEX_HIGH] = cmp_create_instance(cmp_findtype(cmp_model_type), obj,
             CMP_INSTANCEFLAG_INDIRECTHOST,
-            cur_hdl, offsetof(struct cmp_lodmodel, models[LOD_INDEX_HIGH]));
+            cur_hdl, (uint)offsetof(struct cmp_lodmodel, models[LOD_INDEX_HIGH]));
     }
 
     if (m->models[LOD_INDEX_HIGH] == INVALID_HANDLE)
@@ -277,7 +277,7 @@ result_t cmp_lodmodel_modify_md(struct cmp_obj* obj, struct allocator* alloc,
     if (m->models[LOD_INDEX_MED] == INVALID_HANDLE) {
         m->models[LOD_INDEX_MED] = cmp_create_instance(cmp_findtype(cmp_model_type), NULL,
             CMP_INSTANCEFLAG_INDIRECTHOST,
-            cur_hdl, offsetof(struct cmp_lodmodel, models[LOD_INDEX_MED]));
+            cur_hdl, (uint)offsetof(struct cmp_lodmodel, models[LOD_INDEX_MED]));
     }
 
     if (m->models[LOD_INDEX_MED] == INVALID_HANDLE)
@@ -296,7 +296,7 @@ result_t cmp_lodmodel_modify_lo(struct cmp_obj* obj, struct allocator* alloc,
     if (m->models[LOD_INDEX_LOW] == INVALID_HANDLE) {
         m->models[LOD_INDEX_LOW] = cmp_create_instance(cmp_findtype(cmp_model_type), NULL,
             CMP_INSTANCEFLAG_INDIRECTHOST,
-            cur_hdl, offsetof(struct cmp_lodmodel, models[LOD_INDEX_LOW]));
+            cur_hdl, (uint)offsetof(struct cmp_lodmodel, models[LOD_INDEX_LOW]));
     }
 
     if (m->models[LOD_INDEX_LOW] == INVALID_HANDLE)

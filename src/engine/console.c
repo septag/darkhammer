@@ -78,7 +78,7 @@ static struct console g_con;
  */
 INLINE void con_trim_arg(char* arg)
 {
-    str_trim(arg, strlen(arg) + 1, arg, "\"");
+    str_trim(arg, (uint)strlen(arg) + 1, arg, "\"");
 }
 
 /*************************************************************************************************/

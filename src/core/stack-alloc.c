@@ -280,16 +280,11 @@ void* mem_stack_alloc_ts(struct stack_alloc_ts* stack, size_t size, uint mem_id)
         size_t new_offset = cur_offset + size;
 
         /* set maximum bytes fetched from stack alloc, not really important in multi-threading */
-#if defined(_X86_) || defined(_ARM_)
-        if (new_offset > stack->alloc_max)
-            MT_ATOMIC_SET(stack->alloc_max, new_offset);
-#elif defined(_X64_)
-        if (new_offset > stack->alloc_max)
-            MT_ATOMIC_SET64(stack->alloc_max, new_offset);
-#endif
+        if (new_offset > (size_t)stack->alloc_max)
+            stack->alloc_max = new_offset;
 
         /* commit changes */
-#if defined(_X86_)
+#if defined(_X86_) || defined(_ARM_)
         if (MT_ATOMIC_CAS(stack->offset, cur_offset, new_offset) == cur_offset)
             return ptr;
 #elif defined(_X64_)
@@ -352,6 +347,11 @@ void mem_stack_load_ts(struct stack_alloc_ts* stack)
 
 void mem_stack_reset_ts(struct stack_alloc_ts* stack)
 {
+#if defined(_X86_)
     MT_ATOMIC_SET(stack->offset, 0);
     MT_ATOMIC_SET(stack->save_offset, 0);
+#elif defined(_X64_)
+    MT_ATOMIC_SET64(stack->offset, 0);
+    MT_ATOMIC_SET64(stack->save_offset, 0);
+#endif
 }

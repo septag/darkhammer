@@ -157,7 +157,7 @@ uint lod_findmodelscheme(const char* name)
 {
     struct hashtable_item* item = hashtable_fixed_find(&g_lod.model_table, hash_str(name));
     if (item != NULL)
-        return item->value;
+        return (uint)item->value;
 
     return 0;
 }
@@ -172,7 +172,7 @@ uint lod_findlightscheme(const char* name)
 {
     struct hashtable_item* item = hashtable_fixed_find(&g_lod.light_table, hash_str(name));
     if (item != NULL)
-        return item->value;
+        return (uint)item->value;
 
     return 0;
 }

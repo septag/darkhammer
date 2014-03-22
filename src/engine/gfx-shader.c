@@ -466,7 +466,7 @@ void gfx_shader_beginload(struct allocator* alloc, const char* vs_filepath, cons
     /* include files */
     char* total_inc = NULL;
     if (include_cnt > 0)    {
-        uint total_size = 0;
+        size_t total_size = 0;
         char filepath[DH_PATH_MAX];
         char dir_buf[DH_PATH_MAX+20];
 
@@ -619,7 +619,7 @@ uint gfx_shader_load(const char* alias, struct allocator* alloc,
         }
 
         source_data.vs_source = shader_includesource(tmp_alloc, filepath, include_code_vs,
-            source_data.vs_source, source_data.vs_size, (uint*)&source_data.vs_size);
+            source_data.vs_source, (uint)source_data.vs_size, (uint*)&source_data.vs_size);
 
         FREE(include_code_vs);
 	}
@@ -637,7 +637,7 @@ uint gfx_shader_load(const char* alias, struct allocator* alloc,
 
         if (include_code != NULL)  {
             source_data.ps_source = shader_includesource(tmp_alloc, filepath, include_code,
-                source_data.ps_source, source_data.ps_size, (uint*)&source_data.ps_size);
+                source_data.ps_source, (uint)source_data.ps_size, (uint*)&source_data.ps_size);
         }
 	}
 
@@ -654,7 +654,7 @@ uint gfx_shader_load(const char* alias, struct allocator* alloc,
 
         if (include_code != NULL)  {
             source_data.gs_source = shader_includesource(tmp_alloc, filepath, include_code,
-                source_data.gs_source, source_data.gs_size, (uint*)&source_data.gs_size);
+                source_data.gs_source, (uint)source_data.gs_size, (uint*)&source_data.gs_size);
         }
 	}
 
@@ -869,7 +869,7 @@ void gfx_shader_bindcblock_shared(gfx_cmdqueue cmdqueue, struct gfx_shader* shad
 {
     struct hashtable_item* item = hashtable_fixed_find(&shader->cblock_bindtable, cblock->name_hash);
     if (item != NULL)   {
-        gfx_program_bindcblock_range(cmdqueue, shader->prog, GFX_SHADER_NONE, buff, item->value,
+        gfx_program_bindcblock_range(cmdqueue, shader->prog, GFX_SHADER_NONE, buff, (uint)item->value,
             idx, offset, size);
     }
 }
@@ -1190,7 +1190,7 @@ void* shader_includesource(struct allocator* alloc, const char* filepath, const 
                            void* src, uint src_size, OUT uint* outsize)
 {
     ASSERT(include_code);
-    uint s;
+    size_t s;
     void* buffer;
 
     if (include_code[0] != 0)   {
@@ -1202,7 +1202,7 @@ void* shader_includesource(struct allocator* alloc, const char* filepath, const 
         strcpy(dir_buf, "#line 1\n");
 #endif
         size_t dir_size = strlen(dir_buf);
-        uint incl_size = strlen(include_code);
+        size_t incl_size = strlen(include_code);
 
         s = incl_size + dir_size + src_size;
         buffer = A_ALLOC(alloc, s, MID_GFX);
@@ -1217,7 +1217,7 @@ void* shader_includesource(struct allocator* alloc, const char* filepath, const 
         s = src_size;
     }
 
-    *outsize = s;
+    *outsize = (uint)s;
     return buffer;
 }
 

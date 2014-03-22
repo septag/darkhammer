@@ -308,7 +308,7 @@ uint scn_create_scene(const char* name)
 
 	if (s != NULL)	{
         if ((free_item = stack_pop(&g_scn_mgr.free_scenes)) != NULL)  {
-            uint idx = (uptr_t)free_item->data;
+            uint idx = (uint)(uptr_t)free_item->data;
             FREE(free_item);
             ((struct scn_data**)g_scn_mgr.scenes.buffer)[idx] = s;
             return idx + 1;

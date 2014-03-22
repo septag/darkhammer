@@ -50,6 +50,37 @@ sudo waf install
 
 This is the simplest command for configuring the build, however there are many more options available, like *debug* build, enabling *asserts*, *profile* build and others, which you can see with `waf --help` command.
 
+#### Windows
+Just like linux build, you need to acquire (or build) some external 3rdparty libraries. There is a python tool *install_3rdparty-win.py* which helps you with that process. Before using the 3rdparty installer tool, you need to install the softwares listed below:  
+
+- **Microsoft visual studio**: preferred C/C++ compiler on windows. The project isn't tested with any other compiler on windows.
+- **git for windows**: (link)[http://git-scm.com/download/win] also make sure to include it's binaries into PATH environment variable.
+- **wget**: (link)[http://users.ugent.be/~bpuype/wget/] This is a linux tool but also is built on windows and 3rdparty installer needs it. Make sure to put it somewhere in PATH environment variable.
+- **python**: version 3 or higher
+
+Now start by fetching the source from the repo and install 3rdparty libraries: 
+
+```
+git clone https://github.com/septag/darkhammer.git
+cd darkhammer
+python install_3rdparty-win.py --arch=ARCH --msvc=MSVC_VER --prefix=/path/to/prefix
+```
+
+*--arch* and *--msvc* arguments are required, but *--prefix* argument is optional. If you don't specify *prefix* path, the libraries will be searched and installed in */path/to/darkhammer/lib* directory.  
+*--arch* is the compiler platform you want to build, you have two choices, *x86* for 32bit build and *x64* for 64bit builds.  
+*--msvc* is the version of the visual studio, you are building, choices are *9, 10, 11, 12*.  
+
+After successful 3rdparty install, you can start building the engine and it's tools:  
+
+```
+waf configure --physx-sdk=/path/to/physx-sdk --prefix=/path/to/prefix
+waf build
+waf install
+```
+
+This is the simplest command for configuring the build, however there are many more options available, like *debug* build, enabling *asserts*, *profile* build and others, which you can see with `waf --help` command.  
+*Note* that *prefix* path for 3rdparty libs and engine itself should be the same, or you may get build errors.
+
 ### Questions ?
 If you have any questions, suggestions or bug reports, please post to developer's
 [forum](http://hmrengine.com/forums/).

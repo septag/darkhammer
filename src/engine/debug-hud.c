@@ -571,7 +571,7 @@ void hud_console_input(char c, enum input_key key)
 			break;
 	case INPUT_KEY_DELETE:
 		{
-			uint s = strlen(console->cmd);
+			uint s = (uint)strlen(console->cmd);
 			if (idx < s)	{
 				char text[CONSOLE_CMD_SIZE];
 				strncpy(text, console->cmd, idx);
@@ -595,7 +595,7 @@ void hud_console_input(char c, enum input_key key)
 		idx = 0;
 		break;
 	case INPUT_KEY_END:
-		idx = strlen(console->cmd);
+		idx = (uint)strlen(console->cmd);
 		break;
 	case INPUT_KEY_HOME:
 		idx = 0;
@@ -631,7 +631,7 @@ void hud_console_input(char c, enum input_key key)
 	}
 
 	if (c >= 0x20 && c <= 0x7D && c != 0x60)	{
-		uint s = strlen(console->cmd);
+		uint s = (uint)strlen(console->cmd);
 		if (s < sizeof(console->cmd) - 1)	{
 			if (s == idx)	{
 				console->cmd[idx] = c;
@@ -704,7 +704,7 @@ uint hud_console_loadcmd(int idx)
 		strcpy(console->cmd, console->lastcmds[idx]);
 		console->cmdcursor_idx = idx;
 	}
-	return strlen(console->cmd);
+	return (uint)strlen(console->cmd);
 }
 
 void hud_add_image(const char* alias, gfx_texture img_tex, bool_t fullscreen,

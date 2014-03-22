@@ -95,7 +95,7 @@ gfx_texture gfx_texture_loaddds(const char* dds_filepath, uint first_mipidx,
     fio_close(f);
 
 	gfx_texture tex = dds_create_texture(tmp_alloc, first_mipidx, srgb, &header,
-        file_data + cur_offset, bits_size, thread_id);
+        file_data + cur_offset, (uint)bits_size, thread_id);
 
 	A_FREE(tmp_alloc, file_data);
 	A_LOAD(tmp_alloc);

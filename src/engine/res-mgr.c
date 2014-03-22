@@ -568,7 +568,7 @@ reshandle_t rs_load_texture(const char* tex_filepath, uint first_mipidx,
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(tex_filepath));
     if (item != NULL)   {
-        uint idx = item->value;
+        uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
     }
@@ -797,7 +797,7 @@ reshandle_t rs_load_model(const char* model_filepath, uint flags)
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(model_filepath));
     if (item != NULL)   {
-        uint idx = item->value;
+        uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
     }
@@ -894,7 +894,7 @@ reshandle_t rs_load_animreel(const char* reel_filepath, uint flags)
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(reel_filepath));
     if (item != NULL)   {
-        uint idx = item->value;
+        uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
     }
@@ -990,7 +990,7 @@ reshandle_t rs_load_animctrl(const char* ctrl_filepath, uint flags)
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(ctrl_filepath));
     if (item != NULL)   {
-        uint idx = item->value;
+        uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
     }
@@ -1087,7 +1087,7 @@ reshandle_t rs_load_script(const char* lua_filepath, uint flags)
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(lua_filepath));
     if (item != NULL)   {
-        uint idx = item->value;
+        uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
     }
@@ -1184,7 +1184,7 @@ reshandle_t rs_load_phxprefab(const char* phx_filepath, uint flags)
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(phx_filepath));
     if (item != NULL)   {
-        uint idx = item->value;
+        uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
     }

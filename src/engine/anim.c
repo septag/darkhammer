@@ -721,7 +721,7 @@ uint anim_findclip(const anim_reel reel, const char* name)
 {
     struct hashtable_item* item = hashtable_fixed_find(&reel->clip_tbl, hash_str(name));
     if (item != NULL)
-        return item->value;
+        return (uint)item->value;
     return INVALID_INDEX;
 }
 
@@ -729,7 +729,7 @@ uint anim_findclip_hashed(const anim_reel reel, uint name_hash)
 {
     struct hashtable_item* item = hashtable_fixed_find(&reel->clip_tbl, name_hash);
     if (item != NULL)
-        return item->value;
+        return (uint)item->value;
     return INVALID_INDEX;
 }
 

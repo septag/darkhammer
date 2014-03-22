@@ -946,11 +946,11 @@ INLINE result_t pfx_tonemap_creatert(struct gfx_pfx_tonemap* pfx, uint width, ui
     gfx_cmdqueue cmdqueue = gfx_get_cmdqueue(0);
     float clear_clr[] = {0.0f, 0.0f, 0.0f, 1.0f};
     gfx_output_setrendertarget(cmdqueue, pfx->lumadapt_rt[0]);
-    gfx_output_clearrendertarget(cmdqueue, pfx->lumadapt_rt[0], clear_clr, 1.0f, 0.0,
+    gfx_output_clearrendertarget(cmdqueue, pfx->lumadapt_rt[0], clear_clr, 1.0f, 0,
         GFX_CLEAR_COLOR);
 
     gfx_output_setrendertarget(cmdqueue, pfx->lumadapt_rt[1]);
-    gfx_output_clearrendertarget(cmdqueue, pfx->lumadapt_rt[1], clear_clr, 1.0f, 0.0,
+    gfx_output_clearrendertarget(cmdqueue, pfx->lumadapt_rt[1], clear_clr, 1.0f, 0,
         GFX_CLEAR_COLOR);
 
     gfx_output_setrendertarget(cmdqueue, NULL);

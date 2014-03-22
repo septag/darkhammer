@@ -1,6 +1,4 @@
 # dark-hammer build tools
-# Sepehr Taghdisian (sep.tagh@gmail.com)
-# Davide Bacchet (davide.bacchet@gmail.com)
 
 import os, sys, platform, inspect
 import waflib.Logs
@@ -106,8 +104,7 @@ def compiler_setup(conf):
 
     # general
     if compiler_is_msvc(conf):
-        cflags.extend(['/W3', '/fp:fast', '/FC', '/GS-', '/arch:SSE'])
-        cflags.append('/TP') # force compiler as CPP (msvc11 and lower)
+        cflags.extend(['/W3', '/fp:fast', '/FC', '/GS-'])
         conf.env.append_unique('LINKFLAGS', ['/MANIFEST', '/NOLOGO'])
         conf.env['WINDOWS_EMBED_MANIFEST'] = True
 
@@ -242,13 +239,18 @@ def compiler_setup_deps(conf):
         os.path.join(physx_prefix, 'Lib', platform_prefix + '64') if compiler_is_x64(conf) else \
         os.path.join(physx_prefix, 'Lib', platform_prefix + '32')
     physx_includes = os.path.join(physx_prefix, 'Include')
+    
+    lib_postfix = ''
+    if sys.platform == 'win32':
+        if compiler_is_x64(conf):   lib_postfix = '_x64'
+        else:                       lib_postfix = '_x86'
 
     physx_env.append_unique('LIBPATH', physx_libpath)
     physx_env.append_unique('INCLUDES', physx_includes)
     conf.check_cxx(env=physx_env, header_name='PxPhysicsAPI.h', defines='NDEBUG', define_ret=False)
-    conf.check_cc(env=physx_env, lib='PhysX3', define_ret=False)
-    conf.check_cc(env=physx_env, lib='PhysX3Common', define_ret=False)
-    conf.check_cc(env=physx_env, lib='PhysX3Cooking', define_ret=False)
+    conf.check_cc(env=physx_env, lib='PhysX3'+lib_postfix, define_ret=False)
+    conf.check_cc(env=physx_env, lib='PhysX3Common'+lib_postfix, define_ret=False)
+    conf.check_cc(env=physx_env, lib='PhysX3Cooking'+lib_postfix, define_ret=False)
 
     base_env.PHYSX_INCLUDES = physx_includes
     base_env.PHYSX_LIBPATH = physx_libpath
@@ -298,9 +300,9 @@ def compiler_setup_deps(conf):
 
     prefix = os.path.abspath(conf.options.PREFIX)
     if prefix != ROOTDIR:
-        conf.define('SHARE_DIR', os.path.join(prefix, 'share', PROJNAME))
+        conf.define('SHARE_DIR', os.path.join(prefix, 'share', PROJNAME).replace('\\', '\\\\'))
     else:
-        conf.define('SHARE_DIR', prefix)
+        conf.define('SHARE_DIR', prefix.replace('\\', '\\\\'))
 
     conf.write_config_header()
     conf.set_env(base_env)

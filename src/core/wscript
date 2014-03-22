@@ -28,8 +28,16 @@ def build(bld):
         libs.extend(['stdc++'])
     elif sys.platform == 'win32':
         linkflags.extend(['/NODEFAULTLIB:"LIBCMTD.LIB"', '/NODEFAULTLIB:"LIBCMT.LIB"'])
-        libs.extend(['ws2_32', 'Shell32', 'Advapi32'])
+        libs.extend(['ws2_32', 'Shell32', 'Advapi32', 'User32'])
     libs.append('efsw')
+    
+    cflags = []
+    if sys.platform == 'win32':
+        cflags = ['/TP']    
+        
+    vnum = ''
+    if sys.platform == 'linux':
+        vnum = bld.env.VERSION
 
     bld.shlib(
         source = files,
@@ -38,6 +46,7 @@ def build(bld):
             os.path.join(bld.env.ROOTDIR, 'include', 'dhcore'),
             'deps'
         ],
+        cflags = cflags,
         lib = libs,
         linkflags = linkflags,
         framework = frameworks,
@@ -46,5 +55,5 @@ def build(bld):
         export_includes = os.path.join(bld.env.ROOTDIR, 'include'),
         install_path = '${PREFIX}/lib',
         defines = ['_CORE_EXPORT_', '_FILEMON_'],
-        vnum = bld.env.VERSION)
+        vnum = vnum)
 

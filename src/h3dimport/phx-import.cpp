@@ -73,7 +73,7 @@ public:
 
     PxU32 write(const void* src, PxU32 cnt)
     {
-        return fio_write(mf, src, 1, cnt);
+        return (PxU32)fio_write(mf, src, 1, cnt);
     }
 };
 
@@ -537,7 +537,7 @@ bool_t import_phx_createconvexmesh(struct pgeo_ext* geo, ezxml_t xcmesh, ezxml_t
 
     /* parse points into a buffer */
     const char* pts_const = ezxml_txt(ezxml_child(xmeshdata, "points"));
-    uint pts_sz = strlen(pts_const);
+    uint pts_sz = (uint)strlen(pts_const);
     char* pts_data = (char*)ALLOC(pts_sz + 1, 0);
     ASSERT(pts_data);
     memcpy(pts_data, pts_const, pts_sz);    pts_data[pts_sz] = 0;
@@ -607,7 +607,7 @@ bool_t import_phx_createtrimesh(struct pgeo_ext* geo, ezxml_t xtrimesh, ezxml_t 
 
     /* parse points into a buffer */
     const char* pts_const = ezxml_txt(ezxml_child(xmeshdata, "Points"));
-    uint pts_sz = strlen(pts_const);
+    uint pts_sz = (uint)strlen(pts_const);
     char* pts_data = (char*)ALLOC(pts_sz + 1, 0);
     ASSERT(pts_data);
     memcpy(pts_data, pts_const, pts_sz);    pts_data[pts_sz] = 0;
@@ -632,7 +632,7 @@ bool_t import_phx_createtrimesh(struct pgeo_ext* geo, ezxml_t xtrimesh, ezxml_t 
     arr_create(mem_heap(), &idxs, sizeof(int16), 512, 512, 0);
 
     const char* idxs_const = ezxml_txt(ezxml_child(xmeshdata, "Triangles"));
-    uint idxs_sz = strlen(idxs_const);
+    uint idxs_sz = (uint)strlen(idxs_const);
     char* idxs_data = (char*)ALLOC(idxs_sz + 1, 0);
     ASSERT(idxs_data);
     memcpy(idxs_data, idxs_const, idxs_sz);    idxs_data[idxs_sz] = 0;

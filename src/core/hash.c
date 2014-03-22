@@ -326,7 +326,7 @@ void hash_murmurincr_add(struct hash_incr* h, const void* data, size_t size)
 
 void hash_mixtail(struct hash_incr* h, const uint8** pdata, size_t* psize)
 {
-	uint size = *psize;
+	uint size = (uint)*psize;
 	const uint8* data = *pdata;
 
 	while (size && ((size<4) || h->cnt))	{

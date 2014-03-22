@@ -129,10 +129,10 @@ CORE_API void mem_stack_bindalloc(struct stack_alloc* stack, struct allocator* a
 struct stack_alloc_ts
 {
     uint8* buffer;
-    size_t volatile offset;     /* in bytes */
+    atom_t offset;     /* in bytes */
+    atom_t alloc_max;
+    atom_t save_offset;
     size_t size;       /* in bytes */
-    size_t volatile alloc_max;
-    size_t volatile save_offset;
     struct allocator* alloc;
 };
 

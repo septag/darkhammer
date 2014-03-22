@@ -685,7 +685,8 @@ bool_t phx_scene_check(uint scene_id)
 
 void phx_scene_simulate(uint scene_id, float dt)
 {
-    phx_getscene(scene_id)->simulate(dt, NULL, g_phxdev.scratch_buff, g_phxdev.scratch_sz, true);
+    phx_getscene(scene_id)->simulate(dt, NULL, g_phxdev.scratch_buff, 
+        (int)g_phxdev.scratch_sz, true);
 }
 
 struct phx_active_transform* phx_scene_activexforms(uint scene_id, struct allocator* alloc,

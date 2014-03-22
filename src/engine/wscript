@@ -17,10 +17,7 @@ def build(bld):
 
     if sys.platform == 'linux' or sys.platform == 'darwin':
         libs.extend([\
-            'X11',
-            'Xi',
-            'Xrandr',
-            'Xxf86vm',
+            'X11', 'Xi', 'Xrandr', 'Xxf86vm',
             'PhysX3Extensions',
             'PhysX3',
             'SimulationController',
@@ -40,13 +37,14 @@ def build(bld):
         if bld.env.DEST_CPU == 'amd64' or bld.env.DEST_CPU == 'x86_64':  arch_suffix = '_x64'
         else:            arch_suffix = '_x86'
         libs.extend([\
+            'Gdi32', 'User32', 'Advapi32',
             'PhysX3' + rel_suffix + arch_suffix,
             'PhysX3Common' + rel_suffix + arch_suffix,
             'PhysX3Extensions' + rel_suffix,
             'PhysXProfileSDK' + rel_suffix])
 
     if sys.platform == 'win32':
-        files.extend(bld.path.ant_glob('platform/win/*.c', excl='input-win.c'))
+        files.extend(bld.path.ant_glob('platform/win/*.c', excl='platform/win/input-win.c'))
         linkflags.extend(['/NODEFAULTLIB:"LIBCMTD.LIB"', '/NODEFAULTLIB:"LIBCMT.LIB"'])
     elif sys.platform == 'linux':
         files.extend(bld.path.ant_glob('platform/linux/*.c'))
@@ -56,8 +54,8 @@ def build(bld):
 
     if bld.env.GFX_API == 'D3D':
         files.extend(bld.path.ant_glob('d3d/*.c*'))
-        libpath.append(bld.env.DX_LIBPATH)
-        includes.append(bld.env.DX_INCLUDES)
+        if bld.env.DX_LIBPATH != '':        libpath.append(bld.env.DX_LIBPATH)
+        if bld.env.DX_INCLUDES != '':       includes.append(bld.env.DX_INCLUDES)
         libs.extend(['d3dcompiler', 'dxguid', 'd3d11', 'dxgi'])
         files.append('platform/win/input-win.c')
     elif bld.env.GFX_API == 'GL':
@@ -68,17 +66,23 @@ def build(bld):
     includes.extend([\
         os.path.join(bld.env.ROOTDIR, 'build'),
         os.path.join(bld.env.ROOTDIR, 'include', 'dheng'),
-        bld.env.PHYSX_INCLUDES])
+        bld.env.PHYSX_INCLUDES,
+        os.path.join(bld.env.PREFIX, 'include', 'lua')])
 
     libpath.append(bld.env.PHYSX_LIBPATH)
-
+    
     # 3rdparty
     libs.extend(['GLEW', 'lua', 'glfwext'])
 
     # default target name and install path
     install_path = '${PREFIX}/lib'
+    
+    cflags = []
+    if sys.platform == 'win32':
+        cflags = ['/TP']        
 
     # pymod variant
+    vnum = ''
     pattern = bld.env.cshlib_PATTERN
     if bld.variant == 'pymod':
         files.extend(bld.path.ant_glob('pybind/*.c'))
@@ -93,7 +97,10 @@ def build(bld):
 
         libpath.append(bld.env.PY_LIBPATH)
         includes.append(bld.env.PY_INCLUDES)
-
+    else:    
+        if sys.platform == 'linux':
+            vnum = bld.env.VERSION
+        
     bld.shlib(
         source = files,
         name = 'dheng',
@@ -101,12 +108,13 @@ def build(bld):
         install_path = '${PREFIX}/lib' if bld.variant != 'pymod' else pymod_path,
         defines = ['_ENGINE_EXPORT_'],
         lib = libs,
+        cflags = cflags,
         libpath = libpath,
         includes = includes,
         framework = frameworks,
         linkflags = linkflags,
         cxxshlib_PATTERN = pattern,
         cshlib_PATTERN = pattern,
-        vnum = bld.env.VERSION,
+        vnum = vnum,
         use = ['dhcore', '3rdparty_mongoose'])
 

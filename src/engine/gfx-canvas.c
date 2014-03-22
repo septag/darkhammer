@@ -208,7 +208,7 @@ const struct gfx_input_element_binding canvas_shader3d_il[] = {
 INLINE uint canvas_find_char(const struct gfx_font* font, uint ch_id)
 {
     struct hashtable_item* item = hashtable_fixed_find(&font->char_table, ch_id);
-    if (item != NULL)   return item->value;
+    if (item != NULL)   return (uint)item->value;
     else                return INVALID_INDEX;
 }
 
@@ -1026,11 +1026,11 @@ bool_t canvas_stream_text(struct canvas_vertex2d* verts, uint quad_cnt,
 
     /* */
     if (!BIT_CHECK(item->flags, GFX_TEXT_UNICODE))    {
-        text_len = strlen(item->text);
+        text_len = (uint)strlen(item->text);
         if (!vec2i_isequal(&item->p0, &item->p1))
             text_width = canvas_get_textwidth(font, item->text, FALSE, text_len, &firstchar_width);
     }    else    {
-        text_len = wcslen(item->textw);
+        text_len = (uint)wcslen(item->textw);
         wcscpy(textw, item->textw);
         /* resolve unicode using meta rules */
         if (font->meta_rules != NULL)
