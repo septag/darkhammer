@@ -11,6 +11,16 @@ Current supported platforms are Windows (Direct3D10+, OpenGL3.3+) and Linux (Ope
 is there, but it's incomplete and have problems in parts of graphics and build systems.
 
 ### Installation
+
+*darkHAMMER* requires some 3rdparty libraries for it's tools and engine, which are not included inside engine's repo. Some of them are already available as a package on many linux distros, some are not.  
+These are the main external 3rdparty libraries that needs to be fetched from their official repos, other 3rdparty libs are included with the engine.
+
+- *Assimp*: Asset loading library (package name: *assimp*)
+- *lua*: Scripting library (package name: *lua*)
+- *GLEW*: OpenGL extensions library (package name: *glew*)
+- *GLFWEXT*: GLFW with EXTensions, my fork of GLFW with some added functionality
+- *EFSW*: Cross-platform file-system watcher
+
 #### Linux
 You must have the following packages installed before trying to build:
 
@@ -23,15 +33,7 @@ You must have the following packages installed before trying to build:
 - **pkg-config**: for aquiring information from installed packages
 - **unzip**: for unzipping 3rdparty repos
 
-*darkHAMMER* requires some 3rdparty libraries for it's tools and engine, which are not included inside engine's repo. Some of them are already available as a package on many linux distros, some are not.
-
-- *Assimp*: Asset loading library (package name: *assimp*)
-- *lua*: Scripting library (package name: *lua*)
-- *GLEW*: OpenGL extensions library (package name: *glew*)
-- *GLFWEXT*: GLFW with EXTensions, my fork of GLFW with some added functionality
-- *EFSW*: Cross-platform file-system watcher
-
-Before begin to build the engine and tools, you have to build and install the libraries listed above, There is a tool which does this for you automatically. So start by entering following commands:
+Before begin to build the engine and tools, you have to build and install the 3rdparty libraries listed above, There is a tool which does this for you automatically. So start by entering following commands:
 
 ```
 git clone git@github.com:septag/darkhammer.git
