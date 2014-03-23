@@ -6,9 +6,8 @@ Version 0.5.0-devel
 
 ### Description
 *darkHAMMER* is a lightweight, open-source, multiplatform game engine. written in C (C99) language.
-Supports additional scripting languages like *Python* and *Lua*.
-Current supported platforms are Windows (Direct3D10+, OpenGL3.3+) and Linux (OpenGL3.3+) (tested on ArchLinux 3.13), MacOS support
-is there, but it's incomplete and have problems in parts of graphics and build systems.
+Supports additional scripting languages like *Python* and *Lua*.  
+Current supported platforms are Windows (Direct3D10+, OpenGL3.3+) and Linux (OpenGL3.3+) (tested on ArchLinux 3.13), MacOS support is there, but it's incomplete and have problems in some parts of graphics and build system.
 
 ### Installation
 
