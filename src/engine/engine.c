@@ -247,14 +247,16 @@ result_t eng_init(const struct init_params* params)
         path_getdir(g_eng.share_dir, params->data_path);
     }   else    {
         char data_path[DH_PATH_MAX];
-        path_join(data_path, SHARE_DIR, "data", NULL);
+        char share_dir[DH_PATH_MAX];
+        path_norm(share_dir, SHARE_DIR);
+        path_join(data_path, share_dir, "data", NULL);
         if (!util_pathisdir(data_path)) {
             err_print(__FILE__, __LINE__, "engine init: data path is not valid");
             return RET_FAIL;
         }
 
         fio_addvdir(data_path, FALSE);  /* set default (config.h configured on build) data dir */
-        strcpy(g_eng.share_dir, SHARE_DIR);
+        strcpy(g_eng.share_dir, share_dir);
     }
 
     uint rs_flags = 0;

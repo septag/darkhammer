@@ -4,8 +4,8 @@ _ReSharper*
 *.opensdf
 *.sdf
 *.dir
-*.vcxproj*
-*.sln
+*.suo
+*.user
 Win32
 Debug
 Release
@@ -13,12 +13,18 @@ build
 .tags
 .tags_sorted_by_file
 .lock-waf_linux_build
+.lock-waf_win32_build
 darkhammer.sublime-workspace
+*.lnk
+ipch
 
 # Generated files
 docs/Doxyfile
 docs/html
 docs/warnings.txt
+var/waf-*
+3rdparty/tmp
+sharedir.h
 
 # Compiled binaries
 *.so

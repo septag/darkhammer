@@ -123,7 +123,7 @@
         #define _EXTERN_BEGIN_
         #define _EXTERN_END_
     #endif
-    #define _EXTERN_EXPORT_ extern "C"
+    #define _EXTERN_EXPORT_ extern "C" 
 #else
 #define _EXTERN_
 #define _EXTERN_BEGIN_

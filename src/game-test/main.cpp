@@ -191,7 +191,6 @@ void mouseup_callback(const char* wnd_name, int x, int y, enum app_mouse_key key
 int main(int argc, char** argv)
 {
     result_t r;
-    char cfg_filepath[DH_PATH_MAX];
     init_params* params = NULL;
 
     /* init core library */

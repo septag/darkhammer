@@ -967,7 +967,7 @@ void app_get_gfxinfo(struct gfx_device_info* info)
     case 0x163C:        info->vendor = GFX_GPU_INTEL;   break;
     default:            info->vendor = GFX_GPU_UNKNOWN; break;
     }
-    info->mem_avail = desc.DedicatedVideoMemory / 1024;
+    info->mem_avail = (int)(desc.DedicatedVideoMemory / 1024);
 
     /* threading */
     D3D11_FEATURE_DATA_THREADING d3d_thr;

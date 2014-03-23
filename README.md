@@ -72,6 +72,7 @@ python install_3rdparty-win.py --arch=ARCH --msvc=MSVC_VER --prefix=/path/to/pre
 *--arch* is the compiler platform you want to build, you have two choices, *x86* for 32bit build and *x64* for 64bit builds.  
 *--msvc* is the version of the visual studio, you are building, choices are *9, 10, 11, 12*.  
 
+For example if you are using Visual Studio 11 and want to build 64bit binaries, run `python install_3rdparty-win.py --arch=x64 --msvc=11` command.  
 After successful 3rdparty install, you can start building the engine and it's tools:  
 
 ```
@@ -82,6 +83,13 @@ waf install
 
 This is the simplest command for configuring the build, however there are many more options available, like *debug* build, enabling *asserts*, *profile* build and others, which you can see with `waf --help` command.  
 *Note* that *prefix* path for 3rdparty libs and engine itself should be the same, or you may get build errors.
+
+##### Visual studio project
+I also maintain visual studio project files separately for windows developers. To build and debug with visual studio environment, you must first follow the instructions for installing *3rdparty* libraries described in the section above, and you have to successfully run *install_3rdparty-win.py* (see above).  
+After successful 3rdparty install, open *msvc/darkhammer.sln* in visual studio, and choose your preferred build configuration and proceed. Before build you should consider the following notes:  
+
+* Remember to define *Physx SDK* header and library path in your VC's search paths.
+* I had to use some kind of hack to integrate default data path (*SHARE_DIR* preprocessor), into file *msvc/sharedir.h* when building with visual studio in *pre-build events*, **so** if you copy the whole project to another path on your hard-drive, make sure you delete *sharedir.h* to reset that variable, or else, data files may not be found during runtime.
 
 ### Questions ?
 If you have any questions, suggestions, please post to developer's

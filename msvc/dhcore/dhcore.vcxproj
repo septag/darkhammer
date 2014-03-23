@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{E83AC8DB-43CA-43D6-9A53-610D6A94449F}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>dhcore</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>$(ProjectName)-dbg</TargetName>
+    <OutDir>$(SolutionDir)..\lib\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)..\lib\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DHCORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WIN_;_CORE_EXPORT_;_FILEMON_;_SIMD_SSE_;_DEBUG_;_ENABLEASSERT_;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src\core\deps;$(SolutionDir)..\include;$(SolutionDir)..\include\dhcore;$(SolutionDir)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;efsw.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PreBuildEvent>
+      <Command>set __TEMP__=$(SolutionDir)..
+set __TEMP__=%__TEMP__:\=\\%
+
+if NOT EXIST ..\sharedir.h (
+    echo #define SHARE_DIR "%__TEMP__%"  &gt; ..\sharedir.h
+)</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DHCORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_WIN_;_CORE_EXPORT_;_FILEMON_;_SIMD_SSE_;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src\core\deps;$(SolutionDir)..\include;$(SolutionDir)..\include\dhcore;$(SolutionDir)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;efsw.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PreBuildEvent>
+      <Command>set __TEMP__=$(SolutionDir)..
+set __TEMP__=%__TEMP__:\=\\%
+
+if NOT EXIST ..\sharedir.h (
+    echo #define SHARE_DIR "%__TEMP__%"  &gt; ..\sharedir.h
+)</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\dhcore\allocator.h" />
+    <ClInclude Include="..\..\include\dhcore\array.h" />
+    <ClInclude Include="..\..\include\dhcore\color.h" />
+    <ClInclude Include="..\..\include\dhcore\core-api.h" />
+    <ClInclude Include="..\..\include\dhcore\core.h" />
+    <ClInclude Include="..\..\include\dhcore\crash.h" />
+    <ClInclude Include="..\..\include\dhcore\err.h" />
+    <ClInclude Include="..\..\include\dhcore\error-codes.h" />
+    <ClInclude Include="..\..\include\dhcore\file-io.h" />
+    <ClInclude Include="..\..\include\dhcore\freelist-alloc.h" />
+    <ClInclude Include="..\..\include\dhcore\hash-table.h" />
+    <ClInclude Include="..\..\include\dhcore\hash.h" />
+    <ClInclude Include="..\..\include\dhcore\json.h" />
+    <ClInclude Include="..\..\include\dhcore\linked-list.h" />
+    <ClInclude Include="..\..\include\dhcore\log.h" />
+    <ClInclude Include="..\..\include\dhcore\mem-mgr.h" />
+    <ClInclude Include="..\..\include\dhcore\mt.h" />
+    <ClInclude Include="..\..\include\dhcore\net-socket.h" />
+    <ClInclude Include="..\..\include\dhcore\numeric.h" />
+    <ClInclude Include="..\..\include\dhcore\pak-file-fmt.h" />
+    <ClInclude Include="..\..\include\dhcore\pak-file.h" />
+    <ClInclude Include="..\..\include\dhcore\pool-alloc.h" />
+    <ClInclude Include="..\..\include\dhcore\prims.h" />
+    <ClInclude Include="..\..\include\dhcore\queue.h" />
+    <ClInclude Include="..\..\include\dhcore\stack-alloc.h" />
+    <ClInclude Include="..\..\include\dhcore\stack.h" />
+    <ClInclude Include="..\..\include\dhcore\std-math.h" />
+    <ClInclude Include="..\..\include\dhcore\str.h" />
+    <ClInclude Include="..\..\include\dhcore\task-mgr.h" />
+    <ClInclude Include="..\..\include\dhcore\timer.h" />
+    <ClInclude Include="..\..\include\dhcore\types.h" />
+    <ClInclude Include="..\..\include\dhcore\util.h" />
+    <ClInclude Include="..\..\include\dhcore\variant.h" />
+    <ClInclude Include="..\..\include\dhcore\vec-math.h" />
+    <ClInclude Include="..\..\include\dhcore\win.h" />
+    <ClInclude Include="..\..\include\dhcore\zip.h" />
+    <ClInclude Include="..\..\src\core\deps\cJSON\cJSON.h" />
+    <ClInclude Include="..\..\src\core\deps\miniz\miniz.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\core\array.c" />
+    <ClCompile Include="..\..\src\core\core.c" />
+    <ClCompile Include="..\..\src\core\deps\cJSON\cJSON.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\deps\miniz\miniz.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\errors.c" />
+    <ClCompile Include="..\..\src\core\file-io.c" />
+    <ClCompile Include="..\..\src\core\freelist-alloc.c" />
+    <ClCompile Include="..\..\src\core\hash-table.c" />
+    <ClCompile Include="..\..\src\core\hash.c" />
+    <ClCompile Include="..\..\src\core\json.c" />
+    <ClCompile Include="..\..\src\core\log.c" />
+    <ClCompile Include="..\..\src\core\mem-mgr.c" />
+    <ClCompile Include="..\..\src\core\net-socket.c" />
+    <ClCompile Include="..\..\src\core\numeric.c" />
+    <ClCompile Include="..\..\src\core\pak-file.c" />
+    <ClCompile Include="..\..\src\core\platform\win\crash-win.cpp" />
+    <ClCompile Include="..\..\src\core\platform\win\mt-win.c" />
+    <ClCompile Include="..\..\src\core\platform\win\timer-win.c" />
+    <ClCompile Include="..\..\src\core\platform\win\util-win.c" />
+    <ClCompile Include="..\..\src\core\pool-alloc.c" />
+    <ClCompile Include="..\..\src\core\prims.c" />
+    <ClCompile Include="..\..\src\core\stack-alloc.c" />
+    <ClCompile Include="..\..\src\core\std-math.c" />
+    <ClCompile Include="..\..\src\core\str.c" />
+    <ClCompile Include="..\..\src\core\task-mgr.c" />
+    <ClCompile Include="..\..\src\core\timer.c" />
+    <ClCompile Include="..\..\src\core\util.c" />
+    <ClCompile Include="..\..\src\core\variant.c" />
+    <ClCompile Include="..\..\src\core\vec-math.c" />
+    <ClCompile Include="..\..\src\core\zip.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

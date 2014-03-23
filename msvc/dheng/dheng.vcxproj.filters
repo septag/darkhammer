@@ -1,0 +1,448 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\d3d">
+      <UniqueIdentifier>{b7e273f2-3000-4a44-84b8-b3cbda63d5aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\gl">
+      <UniqueIdentifier>{cf334497-4b8a-4c15-a63d-a4684cbd9d56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\renderpaths">
+      <UniqueIdentifier>{edad1f28-fc96-4e89-a1f3-5adf81f48d98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\components">
+      <UniqueIdentifier>{0989867b-071f-496c-86de-e444528d00c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\luabind">
+      <UniqueIdentifier>{56734733-b0f9-4442-a47d-c25594c75a4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\pybind">
+      <UniqueIdentifier>{a44f5cae-25d4-4ff9-9429-e98ca0c83093}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\components">
+      <UniqueIdentifier>{6afa54be-a102-442a-bdaa-e4c372d90324}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\d3d">
+      <UniqueIdentifier>{0ad3540b-e44b-44a5-9c1c-f76ae490b4db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gl">
+      <UniqueIdentifier>{63daaf4c-e247-4545-949f-5871ae941e65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\luabind">
+      <UniqueIdentifier>{09c703eb-239d-4817-a458-7483bc3a7088}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\physx">
+      <UniqueIdentifier>{4d9a4ca4-0c51-4651-82eb-bfdda21e6190}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\platform">
+      <UniqueIdentifier>{7087e15c-065b-40a2-963b-614cf394af60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\platform\win">
+      <UniqueIdentifier>{ee64ff93-12a9-4244-aa39-79b1184b9b17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\pybind">
+      <UniqueIdentifier>{e5fd5ad8-2f95-464e-8f9f-1d7678b2a9c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\renderpaths">
+      <UniqueIdentifier>{21743ee5-7698-49b1-8ad7-a514f6ba2fd7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\dheng\anim.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\app.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\cmp-mgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\cmp-types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\console.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\dds-types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\debug-hud.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\engine-api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-billboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-buffers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-canvas.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-cmdqueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-font.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-input-types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-occ.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-postfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-shader-hashes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gfx-types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\h3d-types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\hwinfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\init-params.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\input.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\lod-scheme.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\mem-ids.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\phx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\phx-device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\phx-prefab.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\phx-types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\prf-mgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\res-mgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\scene-mgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\script.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\world-mgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\d3d\gfx-types-d3d.h">
+      <Filter>Header Files\d3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\gl\gfx-types-gl.h">
+      <Filter>Header Files\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\renderpaths\gfx-csm.h">
+      <Filter>Header Files\renderpaths</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\renderpaths\gfx-deferred.h">
+      <Filter>Header Files\renderpaths</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\renderpaths\gfx-fwd.h">
+      <Filter>Header Files\renderpaths</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-anim.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-animchar.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-attachdock.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-attachment.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-bounds.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-camera.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-light.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-lodmodel.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-model.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-rbody.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-trigger.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\components\cmp-xform.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\luabind\script-lua-common.h">
+      <Filter>Header Files\luabind</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\dheng\pybind\pyalloc.h">
+      <Filter>Header Files\pybind</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\engine\gl\glfw-keycodes.h">
+      <Filter>Source Files\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\engine\platform\win\win-keycodes.h">
+      <Filter>Source Files\platform\win</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\engine\anim.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\app.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\camera.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\cmp-mgr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\cmp-register-main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\console.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\debug-hud.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\engine.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-billboard.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-buffers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-canvas.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-font.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-model.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-occ.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-postfx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-shader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-texture.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gui.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\hwinfo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\input.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\lod-scheme.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\phx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\phx-prefab.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\prf-mgr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\res-mgr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\scene-mgr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\script.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\world-mgr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-anim.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-animchar.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-attachdock.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-attachment.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-bounds.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-camera.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-light.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-lodmodel.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-model.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-rbody.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-trigger.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-xform.c">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\d3d\app-d3d.cpp">
+      <Filter>Source Files\d3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\d3d\gfx-cmdqueue-d3d.cpp">
+      <Filter>Source Files\d3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\d3d\gfx-device-d3d.cpp">
+      <Filter>Source Files\d3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\d3d\gfx-shader-d3d.cpp">
+      <Filter>Source Files\d3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gl\app-gl.c">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gl\gfx-cmdqueue-gl.c">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gl\gfx-device-gl.c">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gl\gfx-shader-gl.c">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gl\input-glfw.c">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\luabind\script-lua-core.cpp">
+      <Filter>Source Files\luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\luabind\script-lua-engine.cpp">
+      <Filter>Source Files\luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\luabind\luacore_wrap.cxx">
+      <Filter>Source Files\luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\luabind\luaengine_wrap.cxx">
+      <Filter>Source Files\luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\physx\phx-device-px.cpp">
+      <Filter>Source Files\physx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\platform\win\hwinfo-win.c">
+      <Filter>Source Files\platform\win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\platform\win\input-win.c">
+      <Filter>Source Files\platform\win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\pybind\pyalloc.c">
+      <Filter>Source Files\pybind</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\pybind\pyengine_wrap.c">
+      <Filter>Source Files\pybind</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\renderpaths\gfx-csm.c">
+      <Filter>Source Files\renderpaths</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\renderpaths\gfx-deferred.c">
+      <Filter>Source Files\renderpaths</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\renderpaths\gfx-fwd.c">
+      <Filter>Source Files\renderpaths</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\engine\luabind\luacore.i">
+      <Filter>Source Files\luabind</Filter>
+    </None>
+    <None Include="..\..\src\engine\luabind\luaengine.i">
+      <Filter>Source Files\luabind</Filter>
+    </None>
+    <None Include="..\..\src\engine\pybind\pyengine.i">
+      <Filter>Source Files\pybind</Filter>
+    </None>
+  </ItemGroup>
+</Project>

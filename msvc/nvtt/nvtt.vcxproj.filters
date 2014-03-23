@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="nvcore">
+      <UniqueIdentifier>{29ef996b-d4c3-4e06-87d2-4795e512f722}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="nvtt">
+      <UniqueIdentifier>{319b1692-d490-4683-bcdc-97c01390cd09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="nvimage">
+      <UniqueIdentifier>{ff3c5013-0cc1-4bfc-ab10-b5bc48de5793}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="nvmath">
+      <UniqueIdentifier>{53f80a73-2fd5-4340-94c1-fc800101a51d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="squish">
+      <UniqueIdentifier>{e50d2731-5072-470b-92a3-ec2ae260ef68}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvcore\Debug.cpp">
+      <Filter>nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvcore\Library.cpp">
+      <Filter>nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvcore\Memory.cpp">
+      <Filter>nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvcore\StrLib.cpp">
+      <Filter>nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvcore\TextReader.cpp">
+      <Filter>nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvcore\TextWriter.cpp">
+      <Filter>nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvimage\BlockDXT.cpp">
+      <Filter>nvimage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvimage\ColorBlock.cpp">
+      <Filter>nvimage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvimage\DirectDrawSurface.cpp">
+      <Filter>nvimage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvimage\Filter.cpp">
+      <Filter>nvimage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvimage\FloatImage.cpp">
+      <Filter>nvimage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvimage\Image.cpp">
+      <Filter>nvimage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvimage\ImageIO.cpp">
+      <Filter>nvimage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvimage\NormalMap.cpp">
+      <Filter>nvimage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvimage\Quantize.cpp">
+      <Filter>nvimage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvmath\Plane.cpp">
+      <Filter>nvmath</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\CompressDXT.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\CompressionOptions.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\Compressor.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\CompressRGB.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\InputOptions.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\nvtt.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\nvtt_wrapper.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\OptimalCompressDXT.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\OutputOptions.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\QuickCompressDXT.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\cuda\CudaCompressDXT.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\cuda\CudaUtils.cpp">
+      <Filter>nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\squish\clusterfit.cpp">
+      <Filter>squish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\squish\colourblock.cpp">
+      <Filter>squish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\squish\colourfit.cpp">
+      <Filter>squish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\squish\colourset.cpp">
+      <Filter>squish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\squish\fastclusterfit.cpp">
+      <Filter>squish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\squish\maths.cpp">
+      <Filter>squish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\nvtt\nvtt\squish\weightedclusterfit.cpp">
+      <Filter>squish</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

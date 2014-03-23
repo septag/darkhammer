@@ -37,7 +37,7 @@
 
 %include "typemaps.i"
 
-%import "../../../include/core/types.h"
+%import "../../../include/dhcore/types.h"
 #endif
 
 /* core.h */

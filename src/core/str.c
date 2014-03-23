@@ -174,7 +174,7 @@ wchar* str_mbtowide(wchar* outstr, const char* instr, uint outstr_size)
 
 char* str_safecpy(char* outstr, uint outstr_sz, const char* instr)
 {
-	uint s = strlen(instr);
+	uint s = (uint)strlen(instr);
 	if (s < outstr_sz)	{
 		return strcpy(outstr, instr);
 	}	else	{
@@ -186,8 +186,8 @@ char* str_safecpy(char* outstr, uint outstr_sz, const char* instr)
 
 char* str_safecat(char* outstr, uint outstr_sz, const char* instr)
 {
-	uint s = strlen(instr);
-	uint s2 = outstr_sz - strlen(outstr);
+	uint s = (uint)strlen(instr);
+	uint s2 = outstr_sz - (uint)strlen(outstr);
 	if (s < s2)	{
 		return strcat(outstr, instr);
 	}	else	{
@@ -308,10 +308,16 @@ char* path_norm(char* outpath, const char* inpath)
     char tmp[DH_PATH_MAX];
 #if defined(_WIN_)
     GetFullPathName(inpath, DH_PATH_MAX, tmp, NULL);
-    return path_towin(outpath, tmp);
+    path_towin(outpath, tmp);
+    size_t sz = strlen(outpath);
+    if (outpath[sz-1] == '\\')
+        outpath[sz-1] = 0;
+    return outpath;
 #else
     realpath(inpath, tmp);
     path_tounix(outpath, tmp);
+    if (outpath[sz-1] == '/')
+        outpath[sz-1] = 0;
     return outpath;
 #endif
 }

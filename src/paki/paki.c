@@ -21,13 +21,11 @@
 
 #if defined(_LINUX_) || defined(_OSX_)
 #include <dirent.h>
-#endif
-
-#if defined(_WIN_)
+#elif defined(_WIN_)
 #include "dhcore/win.h"
 #endif
 
-#define VERSION     "1.0b"
+#define VERSION     "1.0"
 #define FILE_SIZE_WARNING_THRESHOLD     (64*1024*1024)
 
 /* application input arguments */

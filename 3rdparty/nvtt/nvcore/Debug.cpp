@@ -3,7 +3,7 @@
 #include <nvcore/Debug.h>
 #include <nvcore/StrLib.h>
 
-// Extern
+// Extern 
 #if NV_OS_WIN32 //&& NV_CC_MSVC
 #	define WIN32_LEAN_AND_MEAN
 #	define VC_EXTRALEAN
