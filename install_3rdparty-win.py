@@ -13,6 +13,13 @@ MSVC = ''
 def log(msg):
     sys.stdout.write(msg)
     sys.stdout.flush()
+    
+def get_msvctarget():
+    global ARCH
+    vctarget = ''
+    if ARCH == 'x64':   vctarget='x86_amd64'    # use cross-compiler for compatibility
+    elif ARCH == 'x86': vctarget='x86'
+    return vctarget
 
 def install_lua():
     lua_srcfiles = {\
@@ -146,7 +153,7 @@ def install_glfwext():
         return False
 
     os.chdir('glfw-master')
-    if os.system('python {0} configure build install --msvc_targets={1}'.format(WAFPATH, ARCH)) != 0:
+    if os.system('python {0} configure build install --msvc_targets={1}'.format(WAFPATH, get_msvctarget())) != 0:
         os.chdir(ROOTDIR)
         return False
 
@@ -242,8 +249,8 @@ def install_efsw():
     name = os.path.splitext(os.path.basename(url))[0]
     dirname = 'sepul-efsw-' + name
     os.chdir(dirname)
-
-    if os.system('python {0} configure build install --msvc_targets={1}'.format(WAFPATH, ARCH)) != 0:
+    
+    if os.system('python {0} configure build install --msvc_targets={1}'.format(WAFPATH, get_msvctarget())) != 0:
         os.chdir(ROOTDIR)
         return False
 
