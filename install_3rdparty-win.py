@@ -146,7 +146,7 @@ def install_glfwext():
         return False
 
     os.chdir('glfw-master')
-    if os.system('python {0} configure build install'.format(WAFPATH)) != 0:
+    if os.system('python {0} configure build install --msvc_targets={1}'.format(WAFPATH, ARCH)) != 0:
         os.chdir(ROOTDIR)
         return False
 
@@ -243,7 +243,7 @@ def install_efsw():
     dirname = 'sepul-efsw-' + name
     os.chdir(dirname)
 
-    if os.system('python {0} configure build install'.format(WAFPATH)) != 0:
+    if os.system('python {0} configure build install --msvc_targets={1}'.format(WAFPATH, ARCH)) != 0:
         os.chdir(ROOTDIR)
         return False
 
