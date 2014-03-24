@@ -779,7 +779,7 @@ bool_t import_mtl_texture(const struct aiMaterial* mtl, enum aiTextureType type,
 void import_gather_bones(struct aiNode* root_node, struct array* bones, const char* name)
 {
     struct aiNode* node = import_find_node(root_node, name);
-    ASSERT(node);ls
+    ASSERT(node);
     import_addbone(node, bones);
 
     /* move up to root_node and add all nodes to bones */

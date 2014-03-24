@@ -226,7 +226,7 @@ def install_efsw():
         return True
     log('\t\tnot found\n')
 
-    url = 'https://bitbucket.org/sepul/efsw/get/9e7b94e606c4.zip'
+    url = 'https://bitbucket.org/sepul/efsw/get/522e8fe8d9e1.zip'
     log('downloading efsw source from "https://bitbucket.org/sepul/efsw"...\n')
 
     efswdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'efsw')
@@ -238,12 +238,10 @@ def install_efsw():
     if os.system('unzip -o ' + os.path.basename(url)) != 0:
         os.chdir(ROOTDIR)
         return False
-
-    dirs = glob.glob('*')
-    for d in dirs:
-        if os.path.isdir(d):
-            os.chdir(d)
-            break
+    
+    name = os.path.splitext(os.path.basename(url))[0]
+    dirname = 'sepul-efsw-' + name
+    os.chdir(dirname)
 
     if os.system('python {0} configure build install'.format(WAFPATH)) != 0:
         os.chdir(ROOTDIR)
