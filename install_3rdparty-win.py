@@ -20,6 +20,11 @@ def get_msvctarget():
     if ARCH == 'x64':   vctarget='x86_amd64'    # use cross-compiler for compatibility
     elif ARCH == 'x86': vctarget='x86'
     return vctarget
+    
+def get_msvccompiler():
+    global MSVC
+    compilers = {'9': 'msvc 9.0', '10': 'msvc 10.0', '11': 'msvc 11.0', '12': 'msvc 12.0'}
+    return compilers[MSVC]
 
 def install_lua():
     lua_srcfiles = {\
@@ -153,7 +158,14 @@ def install_glfwext():
         return False
 
     os.chdir('glfw-master')
-    if os.system('python {0} configure build install --msvc_targets={1}'.format(WAFPATH, get_msvctarget())) != 0:
+    if os.system('python {0} configure --msvc_version="{1}" --msvc_targets={2}'.format(\
+        WAFPATH, get_msvccompiler(), ARCH)) != 0:
+        if os.system('python {0} configure --msvc_version="{1}" --msvc_targets={2}'.format(\
+            WAFPATH, get_msvccompiler(), get_msvctarget())) != 0:
+            os.chdir(ROOTDIR)
+            return False
+        
+    if os.system('python {0} build install'.format(WAFPATH)) != 0:
         os.chdir(ROOTDIR)
         return False
 
@@ -250,10 +262,17 @@ def install_efsw():
     dirname = 'sepul-efsw-' + name
     os.chdir(dirname)
     
-    if os.system('python {0} configure build install --msvc_targets={1}'.format(WAFPATH, get_msvctarget())) != 0:
+    if os.system('python {0} configure --msvc_version="{1}" --msvc_targets={2}'.format(\
+        WAFPATH, get_msvccompiler(), ARCH)) != 0:
+        if os.system('python {0} configure --msvc_version="{1}" --msvc_targets={2}'.format(\
+            WAFPATH, get_msvccompiler(), get_msvctarget())) != 0:
+            os.chdir(ROOTDIR)
+            return False
+        
+    if os.system('python {0} build install'.format(WAFPATH)) != 0:
         os.chdir(ROOTDIR)
         return False
-
+        
     # copy important files
     # libs
     libs = ['lib/efsw.dll', 'build/release/efsw.lib']
