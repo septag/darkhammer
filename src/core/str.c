@@ -350,6 +350,7 @@ char* path_getdir(char* outpath, const char* inpath)
     char* r = strrchr(tmp, '/');
     if (r == NULL)     r = strrchr(tmp, '\\');
     if (r != NULL)     {    strncpy(tmp, inpath, (r - tmp)); tmp[r - tmp] = 0;    }
+    else               tmp[0] = 0;
 
     strcpy(outpath, tmp);
     return outpath;

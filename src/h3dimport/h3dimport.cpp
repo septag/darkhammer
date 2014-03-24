@@ -277,7 +277,5 @@ void show_help()
             "  -zup: defines that up vector is Z (like 3dsmax)\n"
             "  -zinv: Z axis in inverted (right-handed)\n"
             "  -clips: path to clips json file\n"
-            "\n"
 			"\n");
-
 }

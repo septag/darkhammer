@@ -23,12 +23,14 @@
 #include "log.h"
 #include "hash-table.h"
 #include "mt.h"
+#include "util.h"
 
 #if defined(_FILEMON_)
 /* You'll need 3rdparty EFSW library (forked): https://bitbucket.org/sepul/efsw */
+#define EFSW_DYNAMIC
 #include "efsw/efsw.h"
+#undef EFSW_DYNAMIC
 #endif
-
 
 #define MEM_BLOCK_SIZE 4096
 #define MON_BUFFER_SIZE (256*1024)
@@ -223,13 +225,21 @@ bool_t fio_addvdir(const char* directory, bool_t monitor)
     ASSERT(directory[0] != 0);
     ASSERT(g_fio.init);
 
+    char dir[DH_PATH_MAX];
+    path_norm(dir, directory);
+
+    if (!util_pathisdir(dir)) {
+        err_printf(__FILE__, __LINE__, "directory '%s' is not valid", dir);
+        return FALSE;
+    }
+
     struct vdir* vd = (struct vdir*)arr_add(&g_fio.vdirs);
     if (vd == NULL)
         return FALSE;
 
     memset(vd, 0x00, sizeof(struct vdir));
     vd->monitor = monitor;
-    path_norm(vd->path, directory);
+    path_norm(vd->path, dir);
 
 #if defined(_FILEMON_)
     if (monitor)

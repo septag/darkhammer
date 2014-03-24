@@ -106,7 +106,7 @@ def build(bld):
         name = 'dheng',
         target = 'dheng' + bld.env.SUFFIX,
         install_path = '${PREFIX}/lib' if bld.variant != 'pymod' else pymod_path,
-        defines = ['_ENGINE_EXPORT_'],
+        defines = ['_ENGINE_EXPORT_', 'LUA_BUILD_AS_DLL'],
         lib = libs,
         cflags = cflags,
         libpath = libpath,

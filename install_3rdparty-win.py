@@ -57,7 +57,7 @@ def install_lua():
         return False
 
     # copy important files
-    shutil.copyfile('lua52.dll', libfile)
+    shutil.copyfile('lua52.dll', os.path.join(LIBDIR, 'lua52.dll'))
     shutil.copyfile('lua52.lib', os.path.join(LIBDIR, 'lua.lib'))
 
     # headers

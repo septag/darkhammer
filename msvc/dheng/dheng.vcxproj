@@ -100,7 +100,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_ENGINE_EXPORT_;_SIMD_SSE_;_WIN_;FULL_VERSION="0.5.0";_D3D_;_PROFILE_;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_ENGINE_EXPORT_;_SIMD_SSE_;_WIN_;FULL_VERSION="0.5.0";_D3D_;LUA_BUILD_AS_DLL;_PROFILE_;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)..\include\dheng;$(SolutionDir)..\3rdparty\mongoose;$(SolutionDir)..\include;$(SolutionDir)..\include\lua;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -139,7 +139,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_ENGINE_EXPORT_;_SIMD_SSE_;_WIN_;FULL_VERSION="0.5.0";_D3D_;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_ENGINE_EXPORT_;_SIMD_SSE_;_WIN_;FULL_VERSION="0.5.0";_D3D_;LUA_BUILD_AS_DLL;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)..\include\dheng;$(SolutionDir)..\3rdparty\mongoose;$(SolutionDir)..\include;$(SolutionDir)..\include\lua;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
