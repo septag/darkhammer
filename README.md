@@ -6,7 +6,7 @@ Version 0.5.0-devel
 
 ### Description
 *darkHAMMER* is a lightweight, open-source, multiplatform game engine. written in C (C99) language.
-Supports additional scripting languages like *Python* and *Lua*.  
+Supports additional scripting languages like *Python*, *C#* and *Lua*.  
 Current supported platforms are Windows (Direct3D10+, OpenGL3.3+) and Linux (OpenGL3.3+) (tested on ArchLinux 3.13), MacOS support is there, but it's incomplete and have problems in some parts of graphics and build system.
 
 ### Installation
@@ -89,6 +89,9 @@ After successful 3rdparty install, open *msvc/darkhammer.sln* in visual studio, 
 
 * Remember to define *Physx SDK* header and library path in your VC's search paths.
 * I had to use some kind of hack to integrate default data path (*SHARE_DIR* preprocessor), into file *msvc/sharedir.h* when building with visual studio in *pre-build events*, **so** if you copy the whole project to another path on your hard-drive, make sure you delete *sharedir.h* to reset that variable, or else, data files may not be found during runtime.
+
+### SharpHammer
+For C# API and some nifty tools, check out [sharphammer](https://bitbucket.org/Amin67v/sharphammer) project, currently Amin developed a tool called *DarkMotion* which is very much influenced by the *Unity's Meckanim* tool. It is used to make and edit character animattion controllers for the engine. It currently runs on windows and requires .NET runtime, but we are planning to port it to other platforms like linux too.
 
 ### Questions ?
 If you have any questions, suggestions, please post to developer's

@@ -1,0 +1,197 @@
+{
+  "reel": "soldier-animate.h3da",
+  "params": [
+    {
+      "name": "MoveDir",
+      "type": "Float",
+      "value": 0.0
+    },
+    {
+      "name": "Walk",
+      "type": "Bool",
+      "value": false
+    }
+  ],
+  "layers": [
+    {
+      "name": "Main",
+      "states": [
+        0,
+        1
+      ],
+      "bone-mask": [
+        "soldier_Hips",
+        "soldier_Spine",
+        "soldier_Spine1",
+        "soldier_Spine2",
+        "soldier_Neck",
+        "soldier_Neck1",
+        "soldier_Head",
+        "soldier_LeftShoulder",
+        "soldier_LeftArm",
+        "soldier_LeftForeArm",
+        "soldier_LeftHand",
+        "soldier_LeftHandThumb1",
+        "soldier_LeftHandThumb2",
+        "soldier_LeftHandThumb3",
+        "soldier_LeftHandMiddle1",
+        "soldier_LeftHandMiddle2",
+        "soldier_LeftHandMiddle3",
+        "soldier_LeftHandIndex1",
+        "soldier_LeftHandIndex2",
+        "soldier_LeftHandIndex3",
+        "soldier_LeftHandRing1",
+        "soldier_LeftHandRing2",
+        "soldier_LeftHandRing3",
+        "soldier_LeftHandPinky1",
+        "soldier_LeftHandPinky2",
+        "soldier_LeftHandPinky3",
+        "soldier_RightShoulder",
+        "soldier_RightHand",
+        "soldier_RightHandThumb1",
+        "soldier_RightHandThumb2",
+        "soldier_RightHandThumb3",
+        "soldier_RightHandIndex1",
+        "soldier_RightHandIndex2",
+        "soldier_RightHandIndex3",
+        "soldier_RightHandMiddle1",
+        "soldier_RightHandMiddle2",
+        "soldier_RightHandMiddle3",
+        "soldier_RightHandRing1",
+        "soldier_RightHandRing2",
+        "soldier_RightHandRing3",
+        "soldier_RightHandPinky1",
+        "soldier_RightHandPinky2",
+        "soldier_RightHandPinky3",
+        "soldier_LeftUpLeg",
+        "soldier_LeftLeg",
+        "soldier_LeftFoot",
+        "soldier_LeftToeBase",
+        "soldier_RightUpLeg",
+        "soldier_RightLeg",
+        "soldier_RightFoot",
+        "soldier_RightToeBase"
+      ],
+      "default": 0
+    },
+    {
+      "name": "layer-0",
+      "states": [
+        2
+      ],
+      "bone-mask": [
+        "soldier_RightArm",
+        "soldier_RightForeArm"
+      ],
+      "default": 2
+    }
+  ],
+  "states": [
+    {
+      "name": "Idle",
+      "speed": 1.0,
+      "transitions": [
+        0
+      ],
+      "sequence": {
+        "type": "clip",
+        "id": 0
+      }
+    },
+    {
+      "name": "Walk",
+      "speed": 1.0,
+      "transitions": [
+        1
+      ],
+      "sequence": {
+        "type": "blendtree",
+        "id": 0
+      }
+    },
+    {
+      "name": "byebye",
+      "speed": 1.0,
+      "transitions": [],
+      "sequence": {
+        "type": "clip",
+        "id": 4
+      }
+    }
+  ],
+  "blendtrees": [
+    {
+      "name": "Walk",
+      "param": 0,
+      "childs": [
+        {
+          "type": "clip",
+          "id": 1
+        },
+        {
+          "type": "clip",
+          "id": 2
+        },
+        {
+          "type": "clip",
+          "id": 3
+        }
+      ]
+    }
+  ],
+  "clips": [
+    {
+      "name": "idle"
+    },
+    {
+      "name": "walk-left"
+    },
+    {
+      "name": "walk-fwd"
+    },
+    {
+      "name": "walk-right"
+    },
+    {
+      "name": "bye-bye"
+    }
+  ],
+  "transitions": [
+    {
+      "duration": 0.1,
+      "owner": 0,
+      "target": 1,
+      "groups": [
+        {
+          "conditions": [
+            {
+              "type": "param",
+              "param": 1,
+              "predicate": "==",
+              "value-type": "Bool",
+              "value": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "duration": 0.1,
+      "owner": 1,
+      "target": 0,
+      "groups": [
+        {
+          "conditions": [
+            {
+              "type": "param",
+              "param": 1,
+              "predicate": "==",
+              "value-type": "Bool",
+              "value": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

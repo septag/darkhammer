@@ -5,7 +5,7 @@ import waflib.Logs
 
 # main global variables
 VERSION = "0.5.0"
-PROJNAME = "dark-hammer"
+PROJNAME = "darkhammer"
 PYMOD_VERSION = '2.7'
 
 top = "."
@@ -347,10 +347,10 @@ def build(bld):
     # install headers
     if bld.env.PREFIX != bld.env.ROOTDIR:
         bld.install_files('${PREFIX}', bld.path.ant_glob('include/**/*.h'), relative_trick=True)
-        bld.install_files('${PREFIX}/share/dark-hammer', bld.path.ant_glob('data/**'),
+        bld.install_files('${PREFIX}/share/darkhammer', bld.path.ant_glob('data/**'),
             relative_trick=True)
         if not bld.env.IGNORE_TUTS:
-            bld.install_files('${PREFIX}/share/dark-hammer', bld.path.ant_glob('tutorials/data/**'),
+            bld.install_files('${PREFIX}/share/darkhammer', bld.path.ant_glob('tutorials/data/**'),
                 relative_trick=True)
-            bld.install_files('${PREFIX}/share/dark-hammer', bld.path.ant_glob('tutorials/docs/**'),
+            bld.install_files('${PREFIX}/share/darkhammer', bld.path.ant_glob('tutorials/docs/**'),
                 relative_trick=True)
