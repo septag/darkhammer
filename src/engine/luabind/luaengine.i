@@ -28,7 +28,7 @@
 %}
 
 %import "luacore.i"
-%import "../../../include/core/types.h"
+%import "../../../include/dhcore/types.h"
 
 #else
 #include "luacore.i"

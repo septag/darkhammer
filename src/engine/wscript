@@ -100,13 +100,17 @@ def build(bld):
     else:    
         if sys.platform == 'linux':
             vnum = bld.env.VERSION
-        
+
+    defines = ['_ENGINE_EXPORT_']
+    if sys.platform == 'win32':
+        defines.append('LUA_BUILD_AS_DLL')
+
     bld.shlib(
         source = files,
         name = 'dheng',
         target = 'dheng' + bld.env.SUFFIX,
         install_path = '${PREFIX}/lib' if bld.variant != 'pymod' else pymod_path,
-        defines = ['_ENGINE_EXPORT_', 'LUA_BUILD_AS_DLL'],
+        defines = defines,
         lib = libs,
         cflags = cflags,
         libpath = libpath,
