@@ -86,12 +86,12 @@
     #if defined(__ARM_ARCH) && __ARM_ARCH == 6
     #define _ARM6_
     #else
-    #error "Unsupoprted ARM architecture"
+    #error "Unsupported ARM architecture"
     #endif
 #endif
 
 #if (!defined(_X86_) && !defined(_X64_) && !defined(_ARM_)) && !defined(SWIG)
-#error "CPU architecture is unknown, use either _X86_ or _X64_"
+#error "CPU architecture is unknown"
 #endif
 
 /* assume that linux, osx, bsd have posix libraries */
