@@ -100,12 +100,17 @@ def build(bld):
     else:    
         if sys.platform == 'linux':
             vnum = bld.env.VERSION
+    
+    if sys.platform != 'win32':
+        install_path = '${PREFIX}/lib' if bld.variant != 'pymod' else pymod_path
+    else:
+        install_path = '${PREFIX}/bin' if bld.variant != 'pymod' else pymod_path
         
     bld.shlib(
         source = files,
         name = 'dheng',
         target = 'dheng' + bld.env.SUFFIX,
-        install_path = '${PREFIX}/lib' if bld.variant != 'pymod' else pymod_path,
+        install_path = install_path,
         defines = ['_ENGINE_EXPORT_', 'LUA_BUILD_AS_DLL'],
         lib = libs,
         cflags = cflags,

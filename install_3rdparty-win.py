@@ -6,6 +6,7 @@ ROOTDIR = os.path.abspath(os.path.dirname(inspect.getframeinfo(inspect.currentfr
 WAFPATH = os.path.join(ROOTDIR, 'var', 'waf')
 LIBDIR = ''
 INCLUDEDIR = ''
+BINDIR = ''
 PREFIX = ROOTDIR
 ARCH = ''
 MSVC = ''
@@ -69,7 +70,7 @@ def install_lua():
         return False
 
     # copy important files
-    shutil.copyfile('lua52.dll', os.path.join(LIBDIR, 'lua52.dll'))
+    shutil.copyfile('lua52.dll', os.path.join(BINDIR, 'lua52.dll'))
     shutil.copyfile('lua52.lib', os.path.join(LIBDIR, 'lua.lib'))
 
     # headers
@@ -117,11 +118,13 @@ def install_assimp():
     # libs
     dirs = {'x64': 'assimp_release-dll_x64', 'x86': 'assimp_release-dll_win32'}
     d = dirs[ARCH]
-    libs = glob.glob(os.path.join('bin', d, '*.dll'))
-    libs.extend(glob.glob(os.path.join('lib', d, '*.lib')))
+    dlls = glob.glob(os.path.join('bin', d, '*.dll'))
+    libs = glob.glob(os.path.join('lib', d, '*.lib'))
     for lib in libs:
         shutil.copyfile(lib, os.path.join(LIBDIR, os.path.basename(lib)))
-
+    for dll in dlls:
+        shutil.copyfile(dll, os.path.join(BINDIR, os.path.basename(dll)))
+    
     # headers
     includes = os.path.join(INCLUDEDIR, 'assimp')
     headers = glob.glob('include/assimp/*')
@@ -139,7 +142,8 @@ def install_assimp():
 
 def install_glfwext():
     log('looking for glfwext...')
-    if os.path.isfile(os.path.join(LIBDIR, 'glfwext.lib')):
+    if os.path.isfile(os.path.join(LIBDIR, 'glfwext.lib')) and \
+        os.path.isfile(os.path.join(BINDIR, 'glfwext.dll')):
         log('\t\tfound\n')
         return True
     log('\t\tnot found\n')
@@ -171,9 +175,8 @@ def install_glfwext():
 
     # copy important files
     # libs
-    libs = ['lib/glfwext.dll', 'build/src/glfwext.lib']
-    for lib in libs:
-        shutil.copyfile(lib, os.path.join(LIBDIR, os.path.basename(lib)))
+    shutil.copyfile('bin/glfwext.dll', os.path.join(BINDIR, 'glfwext.dll'))
+    shutil.copyfile('build/src/glfwext.lib', os.path.join(LIBDIR, 'glfwext.lib'))
 
     # headers
     includes = os.path.join(INCLUDEDIR, 'GLFWEXT')
@@ -223,11 +226,11 @@ def install_glew():
     dirs = {'x64': 'x64', 'x86': 'Win32'}
     d = dirs[ARCH]
     # libs    
-    libs = [os.path.join('bin', 'Release', d, 'glew32.dll'), 
-        os.path.join('lib', 'Release', d, 'glew32.lib')]
-    for lib in libs:
-        shutil.copyfile(lib, os.path.join(LIBDIR, 'glew' + os.path.splitext(lib)[-1]))
-
+    shutil.copyfile(os.path.join('bin', 'Release', d, 'glew32.dll'), 
+        os.path.join(BINDIR, 'glew32.dll'))
+    shutil.copyfile(os.path.join('lib', 'Release', d, 'glew32.lib'), 
+        os.path.join(LIBDIR, 'glew.lib'))
+        
     # headers
     includes = os.path.join(INCLUDEDIR, 'GL')
     headers = glob.glob('include/GL/*.h')
@@ -240,12 +243,13 @@ def install_glew():
 
 def install_efsw():
     log('looking for efsw...')
-    if os.path.isfile(os.path.join(LIBDIR, 'efsw.lib')):
+    if os.path.isfile(os.path.join(LIBDIR, 'efsw.lib')) and \
+        os.path.isfile(os.path.join(BINDIR, 'efsw.dll')):
         log('\t\tfound\n')
         return True
     log('\t\tnot found\n')
 
-    url = 'https://bitbucket.org/sepul/efsw/get/522e8fe8d9e1.zip'
+    url = 'https://bitbucket.org/sepul/efsw/get/5de4baca1a60.zip'
     log('downloading efsw source from "https://bitbucket.org/sepul/efsw"...\n')
 
     efswdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'efsw')
@@ -275,9 +279,8 @@ def install_efsw():
         
     # copy important files
     # libs
-    libs = ['lib/efsw.dll', 'build/release/efsw.lib']
-    for lib in libs:
-        shutil.copyfile(lib, os.path.join(LIBDIR, os.path.basename(lib)))
+    shutil.copyfile('bin/efsw.dll', os.path.join(BINDIR, 'efsw.dll'))
+    shutil.copyfile('build/release/efsw.lib', os.path.join(LIBDIR, 'efsw.lib'))
 
     # headers
     includes = os.path.join(INCLUDEDIR, 'efsw')
@@ -304,10 +307,11 @@ def main():
     if not options.MSVC:
         parser.error('--msvc argument is not given')
     
-    global LIBDIR, INCLUDEDIR, PREFIX, MSVC, ARCH
+    global LIBDIR, INCLUDEDIR, PREFIX, MSVC, ARCH, BINDIR
     PREFIX = os.path.abspath(options.PREFIX)
     LIBDIR = os.path.join(PREFIX, 'lib')
     INCLUDEDIR = os.path.join(PREFIX, 'include')
+    BINDIR = os.path.join(PREFIX, 'bin')
     ARCH = options.ARCH
     MSVC = options.MSVC
 

@@ -32,6 +32,11 @@ def build(bld):
     if sys.platform != 'win32':
         libs.extend(['dl', 'stdc++'])
 
+    if sys.platform != 'win32':
+        install_path = '${PREFIX}/lib'
+    else:
+        install_path = '${PREFIX}/bin'
+
     bld.shlib(
         source = files,
         defines = ['NVTT_EXPORTS', 'NVTT_SHARED', '__SSE2__', '__SSE__', '__MMX__'],
@@ -39,5 +44,5 @@ def build(bld):
         export_includes = '.',
         lib = libs,
         name = '3rdparty_nvtt',
-        install_path = '${PREFIX}/lib',
+        install_path = install_path,
         target = 'nvtt' + bld.env.SUFFIX)

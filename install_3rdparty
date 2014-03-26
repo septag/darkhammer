@@ -279,7 +279,7 @@ def install_efsw():
         return True
     log('\t\tnot found\n', TERM_YELLOW)
 
-    url = 'https://bitbucket.org/sepul/efsw/get/522e8fe8d9e1.zip'
+    url = 'https://bitbucket.org/sepul/efsw/get/5de4baca1a60.zip'
     log('downloading efsw source from "https://bitbucket.org/sepul/efsw"...\n', TERM_GREY)
 
     efswdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'efsw')
