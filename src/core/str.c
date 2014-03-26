@@ -316,6 +316,7 @@ char* path_norm(char* outpath, const char* inpath)
 #else
     realpath(inpath, tmp);
     path_tounix(outpath, tmp);
+    size_t sz = strlen(outpath);
     if (outpath[sz-1] == '/')
         outpath[sz-1] = 0;
     return outpath;

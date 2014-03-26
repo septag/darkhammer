@@ -26,9 +26,9 @@
 #include "luabind/script-lua-common.h"
 #include "luacore.i"
 %}
-%import "../../../include/core/types.h"
-%import "../../../include/core/core-api.h"
-%import "../../../include/core/log.h"
+%import "../../../include/dhcore/types.h"
+%import "../../../include/dhcore/core-api.h"
+%import "../../../include/dhcore/log.h"
 #else
 #include "dhcore/core.h"
 #include "dhcore/vec-math.h"
