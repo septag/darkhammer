@@ -1409,14 +1409,14 @@ float anim_ctrl_updateblendtree(struct anim_pose* poses,
 
     /* updat instance */
     if (idx != ibt->seq_a)   {
-        if (idx != ibt->seq_b)
-            anim_ctrl_startseq(ctrl, inst, &bt->child_seqs[idx], tm);
+        //if (idx != ibt->seq_b)
+        //    anim_ctrl_startseq(ctrl, inst, &bt->child_seqs[idx], tm);
         ibt->seq_a = idx;
     }
 
     if (idx2 != ibt->seq_b)  {
-        if (idx != ibt->seq_a)
-            anim_ctrl_startseq(ctrl, inst, &bt->child_seqs[idx2], tm);
+        //if (idx != ibt->seq_a)
+        //    anim_ctrl_startseq(ctrl, inst, &bt->child_seqs[idx2], tm);
         ibt->seq_b = idx2;
     }
 
@@ -1547,8 +1547,9 @@ void anim_ctrl_startblendtree(const anim_ctrl ctrl, anim_ctrl_inst inst, uint bl
     const struct anim_ctrl_blendtree* bt = &ctrl->blendtrees[blendtree_idx];
     for (uint i = 0, cnt = bt->child_seq_cnt; i < cnt; i++)   {
         const struct anim_ctrl_sequence* seq = &bt->child_seqs[i];
-        if (seq->type == ANIM_CTRL_SEQUENCE_BLENDTREE)
-            anim_ctrl_startblendtree(ctrl, inst, seq->idx, start_tm);
+        //if (seq->type == ANIM_CTRL_SEQUENCE_BLENDTREE)
+        //    anim_ctrl_startblendtree(ctrl, inst, seq->idx, start_tm);
+        anim_ctrl_startseq(ctrl, inst, seq, start_tm);
     }
 }
 
