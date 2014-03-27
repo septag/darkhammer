@@ -242,7 +242,7 @@ struct anim_ctrl_param_inst
 
 struct anim_ctrl_layer_inst
 {
-    uint state_idx;   /* active state (=INVALID_INDEX if we are on transition) */
+    uint state_idx;   /* active state (=INVALID_INDEX if we are on state) */
     uint transition_idx;  /* active transition (=INVALID_INDEX if we are not on transition) */
     pfn_anim_layerblend blend_fn;
 
@@ -1408,17 +1408,8 @@ float anim_ctrl_updateblendtree(struct anim_pose* poses,
     uint idx2 = minun(idx + 1, bt->child_seq_cnt - 1);
 
     /* updat instance */
-    if (idx != ibt->seq_a)   {
-        //if (idx != ibt->seq_b)
-        //    anim_ctrl_startseq(ctrl, inst, &bt->child_seqs[idx], tm);
-        ibt->seq_a = idx;
-    }
-
-    if (idx2 != ibt->seq_b)  {
-        //if (idx != ibt->seq_a)
-        //    anim_ctrl_startseq(ctrl, inst, &bt->child_seqs[idx2], tm);
-        ibt->seq_b = idx2;
-    }
+    ibt->seq_a = idx;
+    ibt->seq_b = idx2;
 
     ibt->blend = blend;
 
@@ -1545,12 +1536,8 @@ void anim_ctrl_startblendtree(const anim_ctrl ctrl, anim_ctrl_inst inst, uint bl
 
     /* recurse for child blendtrees */
     const struct anim_ctrl_blendtree* bt = &ctrl->blendtrees[blendtree_idx];
-    for (uint i = 0, cnt = bt->child_seq_cnt; i < cnt; i++)   {
-        const struct anim_ctrl_sequence* seq = &bt->child_seqs[i];
-        //if (seq->type == ANIM_CTRL_SEQUENCE_BLENDTREE)
-        //    anim_ctrl_startblendtree(ctrl, inst, seq->idx, start_tm);
-        anim_ctrl_startseq(ctrl, inst, seq, start_tm);
-    }
+    for (uint i = 0, cnt = bt->child_seq_cnt; i < cnt; i++)
+        anim_ctrl_startseq(ctrl, inst, &bt->child_seqs[i], start_tm);
 }
 
 /*************************************************************************************************/
@@ -1979,3 +1966,56 @@ reshandle_t anim_ctrl_get_reel(const anim_ctrl_inst inst)
     return inst->reel_hdl;
 }
 
+bool_t anim_ctrl_get_curstate(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
+    char* state, float* progress)
+{
+    /* find layer */
+    for (uint i = 0; i < ctrl->layer_cnt; i++)  {
+        if (str_isequal(ctrl->layers[i].name, layer_name))  {
+            struct anim_ctrl_layer_inst* ilayer = &inst->layers[i];
+            if (ilayer->state_idx != INVALID_INDEX) {
+                uint idx = ilayer->state_idx;
+                float p;
+                if (ctrl->states[idx].seq.type == ANIM_CTRL_SEQUENCE_CLIP)
+                    p = inst->blendtrees[ctrl->states[idx].seq.idx].progress;
+                else if (ctrl->states[idx].seq.type == ANIM_CTRL_SEQUENCE_BLENDTREE)
+                    p = inst->blendtrees[ctrl->states[idx].seq.idx].progress;
+
+                if (progress)
+                    *progress = p;
+
+                strcpy(state, ctrl->states[idx].name);
+
+                return TRUE;
+            }
+
+            break;
+        }
+    }
+    return FALSE;
+}
+
+bool_t anim_ctrl_get_curtransition(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
+    char* state_a, char* state_b, OUT OPTIONAL float* progress)
+{
+    for (uint i = 0; i < ctrl->layer_cnt; i++)  {
+        if (str_isequal(ctrl->layers[i].name, layer_name))  {
+            struct anim_ctrl_layer_inst* ilayer = &inst->layers[i];
+            if (ilayer->transition_idx != INVALID_INDEX) {
+                uint idx = ilayer->transition_idx;
+                if (progress)
+                    *progress = inst->transitions[idx].blend;
+
+                if (ctrl->transitions[idx].owner_state_idx != INVALID_INDEX)
+                    strcpy(state_a, ctrl->states[ctrl->transitions[idx].owner_state_idx].name);
+                if (ctrl->transitions[idx].target_state_idx != INVALID_INDEX)
+                    strcpy(state_b, ctrl->states[ctrl->transitions[idx].target_state_idx].name);
+
+                return TRUE;
+            }
+
+            break;
+        }
+    }
+    return FALSE;
+}

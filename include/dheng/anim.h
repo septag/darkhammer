@@ -105,4 +105,10 @@ void anim_get_clipdesc(struct anim_clip_desc* desc, const anim_reel reel, uint c
 void anim_get_desc(struct anim_reel_desc* desc, const anim_reel reel);
 const char* anim_get_posebinding(const anim_reel reel, uint pose_idx);
 
+/* debugging */
+bool_t anim_ctrl_get_curstate(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
+  OUT char* state, OUT OPTIONAL float* progress);
+bool_t anim_ctrl_get_curtransition(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
+  OUT char* state_a, OUT char* state_b, OUT OPTIONAL float* progress);
+
 #endif /* __ANIM_H__ */

@@ -570,3 +570,29 @@ bool_t cmp_animchar_getparamb(cmphandle_t hdl, const char* name)
     return FALSE;
 }
 
+bool_t cmp_animchar_get_curstate(cmphandle_t hdl, const char* layer_name, char* state, 
+    float* progress)
+{
+    const struct cmp_animchar* ch = (const struct cmp_animchar*)cmp_getinstancedata(hdl);
+    if (ch->inst != NULL && ch->ctrl_hdl != INVALID_HANDLE) {
+        anim_ctrl ctrl = rs_get_animctrl(ch->ctrl_hdl);
+        if (ctrl == NULL)
+            return FALSE;
+        return anim_ctrl_get_curstate(ctrl, ch->inst, layer_name, state, progress);
+    }
+    return FALSE;
+}
+
+bool_t cmp_animchar_get_curtransition(cmphandle_t hdl, const char* layer_name, char* state_a, 
+    char* state_b, float* progress)
+{
+    const struct cmp_animchar* ch = (const struct cmp_animchar*)cmp_getinstancedata(hdl);
+    if (ch->inst != NULL && ch->ctrl_hdl != INVALID_HANDLE) {
+        anim_ctrl ctrl = rs_get_animctrl(ch->ctrl_hdl);
+        if (ctrl == NULL)
+            return FALSE;
+
+        return anim_ctrl_get_curtransition(ctrl, ch->inst, layer_name, state_a, state_b, progress);
+    }
+    return FALSE;
+}

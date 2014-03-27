@@ -74,4 +74,11 @@ ENGINE_API float cmp_animchar_getparamf(cmphandle_t hdl, const char* name);
 ENGINE_API int cmp_animchar_getparami(cmphandle_t hdl, const char* name);
 ENGINE_API bool_t cmp_animchar_getparamb(cmphandle_t hdl, const char* name);
 
+/* debugging */
+ENGINE_API bool_t cmp_animchar_get_curstate(cmphandle_t hdl, const char* layer_name, 
+    OUT char* state, OPTIONAL OUT float* progress);
+ENGINE_API bool_t cmp_animchar_get_curtransition(cmphandle_t hdl, const char* layer_name, 
+    OUT char* state_a, OUT char* state_b, OPTIONAL OUT float* progress);
+
+
 #endif /* __CMPANIMCHAR_H__ */
