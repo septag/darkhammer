@@ -1,0 +1,1 @@
+python make-shvars.py -v --haslib=../../../lib/dhcore.dll --output=../../include/dheng/gfx-shader-hashes.h ../../engine

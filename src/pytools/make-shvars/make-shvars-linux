@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+python make-shvars.py -v --hashlib=../../../lib/libdhcore.so --output=../../include/dheng/gfx-shader-hashes.h ../../engine

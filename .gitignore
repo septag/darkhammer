@@ -17,6 +17,8 @@ build
 darkhammer.sublime-workspace
 *.lnk
 ipch
+__pycache__
+*.pyc
 
 # Generated files
 docs/Doxyfile
