@@ -3,10 +3,9 @@
 def build(bld):
     bld.recurse('core')
     bld.recurse('engine')
-    if bld.variant != 'pymod':
-        if not bld.env.IGNORE_TOOLS:
-            bld.recurse('h3dimport')
-            bld.recurse('paki')
-        if not bld.env.IGNORE_TESTS:
-            bld.recurse('unit-test')
-            bld.recurse('game-test')
+    if not bld.env.IGNORE_TOOLS:
+        bld.recurse('h3dimport')
+        bld.recurse('paki')
+    if not bld.env.IGNORE_TESTS:
+        bld.recurse('unit-test')
+        bld.recurse('game-test')

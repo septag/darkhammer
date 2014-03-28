@@ -47,3 +47,20 @@ class LogCon():
             sys.stdout.write(msg + '\n')
         sys.stdout.flush()
 
+
+class Log():
+    @staticmethod
+    def msg(msg, color = TERM_DEFAULT):
+        LogCon.msg(msg, color)
+
+    @staticmethod
+    def msgline(msg, color = TERM_DEFAULT):
+        LogCon.msg(msg, color)
+
+    @staticmethod
+    def fatal(msg):
+        LogCon.fatal(msg)
+
+    @staticmethod
+    def warn(msg):
+        LogCon.warn(msg)

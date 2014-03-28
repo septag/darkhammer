@@ -75,36 +75,19 @@ def build(bld):
     libs.extend(['GLEW', 'lua', 'glfwext'])
 
     # default target name and install path
-    install_path = '${PREFIX}/lib'
-    
     cflags = []
     if sys.platform == 'win32':
         cflags = ['/TP']        
 
     # pymod variant
     vnum = ''
-    pattern = bld.env.cshlib_PATTERN
-    if bld.variant == 'pymod':
-        files.extend(bld.path.ant_glob('pybind/*.c'))
-        pymod_path = '${PREFIX}/lib/python' + bld.env.PY_VERSION
-
-        if sys.platform == 'linux':     pattern = '_%s.so'
-        elif sys.platform == 'win32':   pattern = '_%s.pyd'
-        elif sys.platform == 'darwin':  pattern = '_%s.dylib'
-
-        bld.install_as(os.path.join(pymod_path, '__init__.py'), 'pybind/dheng.py')
-        bld.install_as(os.path.join(pymod_path, ''))
-
-        libpath.append(bld.env.PY_LIBPATH)
-        includes.append(bld.env.PY_INCLUDES)
-    else:    
-        if sys.platform == 'linux':
-            vnum = bld.env.VERSION
+    if sys.platform == 'linux':
+        vnum = bld.env.VERSION
 
     if sys.platform != 'win32':
-        install_path = '${PREFIX}/lib' if bld.variant != 'pymod' else pymod_path
+        install_path = '${PREFIX}/lib'
     else:
-        install_path = '${PREFIX}/bin' if bld.variant != 'pymod' else pymod_path
+        install_path = '${PREFIX}/bin'
         
     defines = ['_ENGINE_EXPORT_']
     if sys.platform == 'win32':     defines.append('LUA_BUILD_AS_DLL')
@@ -121,8 +104,6 @@ def build(bld):
         includes = includes,
         framework = frameworks,
         linkflags = linkflags,
-        cxxshlib_PATTERN = pattern,
-        cshlib_PATTERN = pattern,
         vnum = vnum,
         use = ['dhcore', '3rdparty_mongoose'])
 

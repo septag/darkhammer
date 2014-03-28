@@ -20,9 +20,6 @@ def init(ctx):
         class DebugCtx(y):
             cmd = name + '_debug'   # command names like 'build_debug', 'clean_debug', etc
             variant = 'debug'
-        class PyModuleCtx(y):
-            cmd = name + '_pymod'
-            variant = 'pymod'
         class ReleaseCtx(y):
             # if a 'cmd' is not given, the default 'build', 'clean',
             # etc actions will be redirected to the 'release' variant dir
@@ -207,7 +204,7 @@ def compiler_setup_deps(conf):
     elif have_malloc_h:
         have_alloca = compiler_check_symbol(conf, 'alloca(0);', 'malloc.h', 'alloca')
     if not have_alloca:
-        compiler_check_symbol(conf, '_alloca(0);', '_alloca', required=True)
+        compiler_check_symbol(conf, '_alloca(0);', 'malloc.h', '_alloca', required=True)
         conf.define('alloca', '_alloca', quote=False)
 
     compiler_check_symbol(conf, 'lrintf(0.0);', 'math.h', 'lrintf', lib='m')
@@ -284,20 +281,6 @@ def compiler_setup_deps(conf):
         conf.check_cc(lib='GL')
         base_env.GFX_API = 'GL'
 
-    # Python Dev files
-    if sys.platform == 'linux':
-        pylib = 'python' + PYMOD_VERSION
-        py_env = base_env.derive()
-
-        py_env.append_unique('INCLUDES', '/usr/include/' + pylib)
-        if conf.check_cc(lib=pylib, header_name='Python.h', mandatory=False):
-            base_env.PY_AVAIL = True
-            base_env.PY_INCLUDES = '/usr/include/' + pylib
-            base_env.PY_LIBPATH = ''
-            base_env.PY_VERSION = PYMOD_VERSION
-        else:
-            base_env.PY_AVAIL = False
-
     prefix = os.path.abspath(conf.options.PREFIX)
     if prefix != ROOTDIR:
         conf.define('SHARE_DIR', os.path.join(prefix, 'share', PROJNAME).replace('\\', '\\\\'))
@@ -336,12 +319,9 @@ def configure(conf):
     compiler_setup(conf)
 
 def build(bld):
-    if bld.variant == 'pymod' and not bld.env.PY_AVAIL:
-        waflib.Logs.fatal('Python dev files not found, cannot continue')
-
     bld.recurse('3rdparty')
     bld.recurse('src')
-    if bld.variant != 'pymod' and not bld.env.IGNORE_TUTS:
+    if not bld.env.IGNORE_TUTS:
         bld.recurse('tutorials')
 
     # install headers
