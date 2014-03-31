@@ -39,7 +39,7 @@ struct frame_stats
 {
     uint64 start_tick;
     uint frame;
-    float   ft;
+    float ft;
     uint fps;
 };
 
@@ -131,6 +131,7 @@ ENGINE_API const char* eng_get_sharedir();
 _EXTERN_BEGIN_
 
 ENGINE_API const struct frame_stats* eng_get_framestats();
+ENGINE_API float eng_get_frametime();
 const struct init_params* eng_get_params();
 void eng_get_memstats(struct eng_mem_stats* stats);
 

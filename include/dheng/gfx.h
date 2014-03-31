@@ -115,15 +115,14 @@ struct gfx_rpath
 /**
  * Additional debug render callback\n
  * Note: debug render implementation automatically comes between canvas3d_begin/canvas3d_end\n
- * Do the user shouldn't be worried about those calls, he can just call gfx_canvas_XXX functions within the body of the callback
+ * Do the user shouldn't be worried about those calls, he can just call gfx_canvas_XXX functions 
+ * within the body of the callback
  * @param cmdqueue current command queue
  * @param render params @see gfx_view_params
  * @ingroup gfx
  */
 typedef void (*pfn_debug_render)(gfx_cmdqueue cmdqueue, const struct gfx_view_params* params);
 
-
-/* */
 /*************************************************************************************************
  * internal
  */
@@ -150,9 +149,6 @@ gfx_sampler gfx_get_globalsampler_low();
 void gfx_draw_fullscreenquad();
 const struct gfx_params* gfx_get_params();
 void gfx_set_previewrenderflag();
-
-
-
 void gfx_resize(uint width, uint height);
 
 /*************************************************************************************************

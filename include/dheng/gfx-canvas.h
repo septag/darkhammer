@@ -357,7 +357,8 @@ ENGINE_API void gfx_canvas_worldbounds(const struct vec3f* minpt, const struct v
 /**
  * Draws a world-aligned 3D grid on X-Z plane, which is usefull for editors and 3D space debug view
  * @param spacing Spacing between grid lines
- * @param depth_max how much grid depth will be shown to user, higher depth value will draw grid more into the horizon
+ * @param depth_max how much grid depth will be shown to user, higher depth value will draw grid 
+ * more into the horizon
  * @param cam current viewing camera
  * @ingroup gfx-canvas
  */
@@ -367,7 +368,8 @@ ENGINE_API void gfx_canvas_light_pt(const struct vec4f* pos, float atten[2]);
 ENGINE_API void gfx_canvas_light_spot(const struct mat3f* xform, float atten[4]);
 
 /**
- * Begins 3D drawing. But in some parts of engine like component debugging callbacks and gfx debug callback,
+ * Begins 3D drawing. But in some parts of engine like component debugging callbacks and gfx debug 
+ * callback,
  * It is already called, so you won't need to call this in those functions
  * @see cmp_debug_add
  * @see gfx_set_debug_renderfunc

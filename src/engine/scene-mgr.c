@@ -779,6 +779,11 @@ struct cmp_obj* scn_create_obj(uint scene_id, const char* name, enum cmp_obj_typ
 {
 	ASSERT(scene_id != 0);
 
+    if (scene_id > g_scn_mgr.scenes.item_cnt || scene_get(scene_id) == NULL)   {
+        err_printf(__FILE__, __LINE__, "creating object '%s' failed, scene does not exist", name);
+        return NULL;
+    }
+
 	struct cmp_obj* obj = (struct cmp_obj*)mem_pool_alloc(&g_scn_mgr.obj_pool);
 	if (obj == NULL)
 		return NULL;

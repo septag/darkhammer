@@ -768,3 +768,8 @@ const char* eng_get_sharedir()
 {
     return g_eng.share_dir;
 }
+
+float eng_get_frametime()
+{
+    return g_eng.frame_stats.ft;
+}

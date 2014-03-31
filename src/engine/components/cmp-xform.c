@@ -241,3 +241,22 @@ void cmp_xform_setrot_deg(struct cmp_obj* obj, float rx_deg, float ry_deg, float
     mat3_set_roteuler(&xf->mat, math_torad(rx_deg), math_torad(ry_deg), math_torad(rz_deg));
     cmp_xform_setm(obj, &xf->mat);
 }
+
+void cmp_xform_setrot_quat(struct cmp_obj* obj, const struct quat4f* q)
+{
+    struct cmp_xform* xf = (struct cmp_xform*)cmp_getinstancedata(obj->xform_cmp);
+    mat3_set_rotquat(&xf->mat, q);
+    cmp_xform_setm(obj, &xf->mat);
+}
+
+struct vec3f* cmp_xform_getpos(struct cmp_obj* obj, OUT struct vec3f* pos)
+{
+    struct cmp_xform* xf = (struct cmp_xform*)cmp_getinstancedata(obj->xform_cmp);
+    return mat3_get_trans(pos, &xf->mat);
+}
+
+struct quat4f* cmp_xform_getrot(struct cmp_obj* obj, OUT struct quat4f* q)
+{
+    struct cmp_xform* xf = (struct cmp_xform*)cmp_getinstancedata(obj->xform_cmp);
+    return mat3_get_rotquat(q, &xf->mat);
+}

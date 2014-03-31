@@ -248,6 +248,9 @@ bool_t fio_addvdir(const char* directory, bool_t monitor)
     if (monitor)
         log_print(LOG_WARNING, "File monitoring not implemented to this build");
 #endif
+
+    log_printf(LOG_INFO, "added virtual directory '%s' with file monitoring %s", dir,
+        monitor ? "ON" : "OFF");
     return TRUE;
 }
 

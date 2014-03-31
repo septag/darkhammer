@@ -311,8 +311,8 @@ void app_update()
         else
             glfwWaitEvents();
 
-        if (app->update_fn)
-            app->update_fn();
+        if (g_app->update_fn)
+            g_app->update_fn();
     }
 }
 
@@ -730,7 +730,6 @@ void glfw_window_close(GLFWwindow* wnd)
 void glfw_window_char(GLFWwindow* wnd, unsigned int ch)
 {
     if (g_app->keypress_fn != NULL) {
-
         g_app->keypress_fn(app_find_window_byhdl(wnd)->name, ch & 0xff, g_app->last_key);
         g_app->last_key = 0;
     }

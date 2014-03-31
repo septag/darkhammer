@@ -48,5 +48,8 @@ ENGINE_API void cmp_xform_setpos(struct cmp_obj* obj, const struct vec3f* pos);
 ENGINE_API void cmp_xform_setposf(struct cmp_obj* obj, float x, float y, float z);
 ENGINE_API void cmp_xform_setrot_deg(struct cmp_obj* obj, float rx_deg, float ry_deg, float rz_deg);
 ENGINE_API void cmp_xform_setrot(struct cmp_obj* obj, float rx, float ry, float rz);
+ENGINE_API void cmp_xform_setrot_quat(struct cmp_obj* obj, const struct quat4f* q);
+ENGINE_API struct vec3f* cmp_xform_getpos(struct cmp_obj* obj, OUT struct vec3f* pos);
+ENGINE_API struct quat4f* cmp_xform_getrot(struct cmp_obj* obj, OUT struct quat4f* q);
 
 #endif /* CMP_XFORM_H_ */
