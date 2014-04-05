@@ -226,7 +226,7 @@ int main(int argc, char** argv)
     if (params == NULL)
         err_sendtolog(TRUE);
     params->flags |= (ENG_FLAG_DEBUG | ENG_FLAG_DEV | ENG_FLAG_CONSOLE);
-    params->gfx.flags |= (GFX_FLAG_DEBUG | GFX_FLAG_FXAA);
+    params->gfx.flags |= (/*GFX_FLAG_DEBUG |*/ GFX_FLAG_FXAA);
     app_config_add_consolecmd(params, "showfps");
     app_config_add_consolecmd(params, "showft");
 

@@ -316,10 +316,12 @@ def main():
     MSVC = options.MSVC
 
     log('library install path: ' + LIBDIR + '\n')
+    log('library install path: ' + BINDIR + '\n')
     log('include install path: ' + INCLUDEDIR + '\n')
 
     os.makedirs(INCLUDEDIR, exist_ok=True)
     os.makedirs(LIBDIR, exist_ok=True)
+    os.makedirs(BINDIR, exist_ok=True)
 
     if not install_lua():
         log('error: could not install lua\n')
