@@ -255,5 +255,4 @@ CORE_API void fio_mon_unreg(const char* filepath);
  */
 CORE_API void fio_mon_update();
 
-
 #endif /* __FILEIO_H__*/

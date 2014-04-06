@@ -34,9 +34,9 @@ typedef struct anim_reel_data* anim_reel;
 enum anim_ctrl_paramtype
 {
     ANIM_CTRL_PARAM_UNKNOWN = 0,
-    ANIM_CTRL_PARAM_INT,
-    ANIM_CTRL_PARAM_FLOAT,
-    ANIM_CTRL_PARAM_BOOLEAN
+    ANIM_CTRL_PARAM_INT = 1,
+    ANIM_CTRL_PARAM_FLOAT = 2,
+    ANIM_CTRL_PARAM_BOOLEAN = 3
 };
 
 struct anim_reel_desc

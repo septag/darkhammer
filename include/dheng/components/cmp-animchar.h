@@ -73,6 +73,7 @@ ENGINE_API void cmp_animchar_setparamf(cmphandle_t hdl, const char* name, float 
 ENGINE_API float cmp_animchar_getparamf(cmphandle_t hdl, const char* name);
 ENGINE_API int cmp_animchar_getparami(cmphandle_t hdl, const char* name);
 ENGINE_API bool_t cmp_animchar_getparamb(cmphandle_t hdl, const char* name);
+ENGINE_API enum anim_ctrl_paramtype cmp_animchar_getparamtype(cmphandle_t hdl, const char* name);
 
 /* debugging */
 ENGINE_API bool_t cmp_animchar_get_curstate(cmphandle_t hdl, const char* layer_name, 

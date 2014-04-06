@@ -115,14 +115,17 @@ class _API:
     is_init = False
 
     @staticmethod
-    def init():
+    def init(debug = False):
         if _API.is_init:
             return
 
+        postfix = ''
+        if debug:
+            postfix = '-dbg'
         if sys.platform == 'win32':
-            shlib = 'dheng.dll'
+            shlib = 'dheng' + postfix + '.dll'
         elif sys.platform == 'linux':
-            shlib = 'libdheng.so'
+            shlib = 'libdheng' + postfix + '.so'
 
         # load library
         try:
@@ -130,6 +133,8 @@ class _API:
         except:
             dhlog.Log.fatal('could not load dynamic library %s' % shlib)
             sys.exit(-1)
+
+        dhlog.Log.msgline('module "%s" loaded' % shlib, dhlog.TERM_GREEN)
 
         # app.h
         _API.app_defaultconfig = dhenglib.app_defaultconfig
@@ -205,6 +210,9 @@ class _API:
 
         _API.eng_get_frametime = dhenglib.eng_get_frametime
         _API.eng_get_frametime.restype = c_float
+
+        _API.eng_get_sharedir = dhenglib.eng_get_sharedir
+        _API.eng_get_sharedir.restype = c_char_p
 
         # input.h
         _API.input_update = dhenglib.input_update
@@ -329,6 +337,14 @@ class _API:
         _API.cmp_value_getb.restype = c_int
         _API.cmp_value_getb.argtypes = [POINTER(c_uint), c_ulonglong, c_char_p]
 
+        _API.cmp_value_setui = dhenglib.cmp_value_setui
+        _API.cmp_value_setui.restype = c_int
+        _API.cmp_value_setui.argtypes = [c_ulonglong, c_char_p, c_uint]
+
+        _API.cmp_value_getui = dhenglib.cmp_value_getui
+        _API.cmp_value_getui.restype = c_int
+        _API.cmp_value_getui.argtypes = [POINTER(c_uint), c_ulonglong, c_char_p]        
+
         _API.cmp_value_set3f = dhenglib.cmp_value_set3f
         _API.cmp_value_set3f.restype = c_int
         _API.cmp_value_set3f.argtypes = [c_ulonglong, c_char_p, POINTER(c_float)]
@@ -367,6 +383,65 @@ class _API:
         _API.cmp_xform_getrot = dhenglib.cmp_xform_getrot
         _API.cmp_xform_getrot.restype = POINTER(Quat)
         _API.cmp_xform_getrot.argtypes = [c_void_p, POINTER(Quat)]
+
+        # cmp-anim.h
+        _API.cmp_anim_getclipname = dhenglib.cmp_anim_getclipname
+        _API.cmp_anim_getclipname.restype = c_char_p
+        _API.cmp_anim_getclipname.argtypes = [c_ulonglong, c_uint]
+
+        _API.cmp_anim_isplaying = dhenglib.cmp_anim_isplaying
+        _API.cmp_anim_isplaying.restype = c_uint
+        _API.cmp_anim_isplaying.argtypes = [c_ulonglong]
+
+        _API.cmp_anim_getclipcnt = dhenglib.cmp_anim_getclipcnt
+        _API.cmp_anim_getclipcnt.restype = c_uint
+        _API.cmp_anim_getclipcnt.argtypes = [c_ulonglong]
+
+        _API.cmp_anim_getframecnt = dhenglib.cmp_anim_getframecnt
+        _API.cmp_anim_getframecnt.restype = c_uint
+        _API.cmp_anim_getframecnt.argtypes = [c_ulonglong]
+
+        _API.cmp_anim_getfps = dhenglib.cmp_anim_getfps
+        _API.cmp_anim_getfps.restype = c_uint
+        _API.cmp_anim_getfps.argtypes = [c_ulonglong]
+
+        _API.cmp_anim_getcurframe = dhenglib.cmp_anim_getcurframe
+        _API.cmp_anim_getcurframe.restype = c_uint
+        _API.cmp_anim_getcurframe.argtypes = [c_ulonglong]
+
+        _API.cmp_anim_getbonecnt = dhenglib.cmp_anim_getbonecnt
+        _API.cmp_anim_getbonecnt.restype = c_uint
+        _API.cmp_anim_getbonecnt.argtypes = [c_ulonglong]
+
+        _API.cmp_anim_getbonename = dhenglib.cmp_anim_getbonename
+        _API.cmp_anim_getbonename.restype = c_char_p
+        _API.cmp_anim_getbonename.argtypes = [c_ulonglong, c_uint]
+
+        # cmp-animchar.h
+        _API.cmp_animchar_getparamtype = dhenglib.cmp_animchar_getparamtype
+        _API.cmp_animchar_getparamtype.restype = c_uint
+        _API.cmp_animchar_getparamtype.argtypes = [c_ulonglong, c_char_p]
+
+        _API.cmp_animchar_getparamb = dhenglib.cmp_animchar_getparamb
+        _API.cmp_animchar_getparamb.restype = c_uint
+        _API.cmp_animchar_getparamb.argtypes = [c_ulonglong, c_char_p]
+
+        _API.cmp_animchar_getparami = dhenglib.cmp_animchar_getparami
+        _API.cmp_animchar_getparami.restype = c_int
+        _API.cmp_animchar_getparami.argtypes = [c_ulonglong, c_char_p]
+
+        _API.cmp_animchar_getparamf = dhenglib.cmp_animchar_getparamf
+        _API.cmp_animchar_getparamf.restype = c_float
+        _API.cmp_animchar_getparamf.argtypes = [c_ulonglong, c_char_p]
+
+        _API.cmp_animchar_setparamb = dhenglib.cmp_animchar_setparamb
+        _API.cmp_animchar_setparamb.argtypes = [c_ulonglong, c_char_p, c_uint]
+
+        _API.cmp_animchar_setparami = dhenglib.cmp_animchar_setparami
+        _API.cmp_animchar_setparami.argtypes = [c_ulonglong, c_char_p, c_int]
+
+        _API.cmp_animchar_setparamf = dhenglib.cmp_animchar_setparamf
+        _API.cmp_animchar_setparamf.argtypes = [c_ulonglong, c_char_p, c_float]
 
         _API.is_init = True
 
@@ -494,6 +569,9 @@ class Engine:
         Component.register('camera', 0x8b72, Camera)
         Component.register('bounds', 0x8bbd, Bounds)
         Component.register('model', 0x4e9b, Model)
+        Component.register('animation', 0x068b, Animation)
+        Component.register('animator', 0x99e4, Animator)
+        Component.register('rigidbody', 0xbc2d, RigidBody)
 
         Engine.is_init = True
 
@@ -513,6 +591,10 @@ class Engine:
             scene.activate()
         else:
             Engine.__active_scene = scene
+
+    @staticmethod
+    def get_share_dir():
+        return _API.eng_get_sharedir().decode()
 
 
 class EngineCallbacks(object):
@@ -852,6 +934,142 @@ class Model(Component):
         _API.cmp_value_setb(self._cmp, to_cstr('exclude_shadows'), c_uint(excl))
     exclude_shadows = property(__get_excludeshadows, __set_excludeshadows)
 
+class Animation(Component):
+    def __init__(self, name, cmp_type, owner_obj):
+        super().__init__(name, cmp_type, owner_obj)
+
+    def __get_filepath(self):
+        s = create_string_buffer(128)
+        _API.cmp_value_gets(s, c_uint(128), self._cmp, to_cstr('filepath'))
+        return s.value.decode()
+    def __set_filepath(self, fpath):
+        r = _API.cmp_value_sets(self._cmp, to_cstr('filepath'), to_cstr(fpath))
+        if IS_FAIL(r):
+            raise Exception(Errors.last_error())
+    filepath = property(__get_filepath, __set_filepath)
+
+    def __get_playrate(self):
+        f = c_float()
+        _API.cmp_value_getf(byref(f), self._cmp, to_cstr('play_rate'))
+        return f.value
+    def __set_playrate(self, rate):
+        _API.cmp_value_setf(self._cmp, to_cstr('play_rate'), c_float(rate))
+    play_rate = property(__get_playrate, __set_playrate)
+
+    def __get_clipname(self):
+        s = create_string_buffer(128)
+        _API.cmp_value_gets(byref(s), self._cmp, to_cstr('clip_name'))
+        return s.value.decode()
+    def __set_clipname(self, clip_name):
+        _API.cmp_value_sets(self._cmp, to_cstr('clip_name'), to_cstr(clip_name))
+    clip_name = property(__get_clipname, __set_clipname)
+
+    def __get_frame(self):
+        return _API.cmp_anim_getcurframe(self._cmp)
+    def __set_frame(self, value):
+        _API.cmp_value_setui(self._cmp, to_cstr('frame_idx'), c_uint(value))
+    frame = property(__get_frame, __set_frame)
+
+    def __get_isplaying(self):
+        return bool(_API.cmp_anim_isplaying(self._cmp))
+    is_playing = property(__get_isplaying)
+
+    def __get_clips(self):
+        clip_cnt = _API.cmp_anim_getbonecnt(self._cmp)
+        clips = []
+        for i in range(0, clip_cnt):
+            clips.append(_API.cmp_anim_getclipname(self._cmp, c_uint(i)).decode())
+    clips = property(__get_clips)
+
+    def __get_bones(self):
+        bone_cnt = _API.cmp_anim_getbonecnt(self._cmp)
+        bones = []
+        for i in range(0, bone_cnt):
+            bones.append(_API.cmp_anim_getbonename(self._cmp, c_uint(i)).decode())
+    bones = property(__get_bones)
+
+    def __get_fps(self):
+        return _API.cmp_anim_getfps(self._cmp)
+    fps = property(__get_fps)
+
+    def __get_framecnt(self):
+        return _API.cmp_anim_getframecnt(self._cmp)
+    frame_count = property(__get_framecnt)
+
+class Animator(Component):
+    class ParamType:
+        UNKNOWN = 0
+        INT = 1
+        FLOAT = 2
+        BOOLEAN = 3
+
+    def __init__(self, name, cmp_type, owner_obj):
+        super().__init__(name, cmp_type, owner_obj)
+
+    def __get_filepath(self):
+        s = create_string_buffer(128)
+        _API.cmp_value_gets(s, c_uint(128), self._cmp, to_cstr('filepath'))
+        return s.value.decode()
+    def __set_filepath(self, fpath):
+        r = _API.cmp_value_sets(self._cmp, to_cstr('filepath'), to_cstr(fpath))
+        if IS_FAIL(r):
+            raise Exception(Errors.last_error())
+    filepath = property(__get_filepath, __set_filepath)
+
+    def get_param(self, name):
+        cname = to_cstr(name)
+        t = _API.cmp_animchar_getparamtype(self._cmp, cname)
+        if t == Animator.ParamType.UNKNOWN:
+            raise Exception('unknown parameter "%s"' % name)
+        if t == Animator.ParamType.INT:
+            return _API.cmp_animchar_getparami(self._cmp, cname)
+        elif t == Animator.ParamType.FLOAT:
+            return _API.cmp_animchar_getparamf(self._cmp, cname)
+        elif t == Animator.ParamType.BOOLEAN:
+            return _API.cmp_animchar_getparamb(self._cmp, cname)
+
+    def set_param(self, name, value):
+        cname = to_cstr(name)
+        t = _API.cmp_animchar_getparamtype(self._cmp, cname)
+        if t == Animator.ParamType.UNKNOWN:
+            raise Exception('unknown parameter "%s"' % name)
+        if t == Animator.ParamType.INT:
+            _API.cmp_animchar_setparami(self._cmp, cname, c_int(value))
+        elif t == Animator.ParamType.FLOAT:
+            return _API.cmp_animchar_setparamf(self._cmp, cname, c_float(value))
+        elif t == Animator.ParamType.BOOLEAN:
+            return _API.cmp_animchar_setparamb(self._cmp, cname, c_uint(value))
+
+class RigidBody(Component):
+    def __init__(self, name, cmp_type, owner_obj):
+        super().__init__(name, cmp_type, owner_obj)
+
+    def __get_filepath(self):
+        s = create_string_buffer(128)
+        _API.cmp_value_gets(s, c_uint(128), self._cmp, to_cstr('filepath'))
+        return s.value.decode()
+    def __set_filepath(self, fpath):
+        r = _API.cmp_value_sets(self._cmp, to_cstr('filepath'), to_cstr(fpath))
+        if IS_FAIL(r):
+            raise Exception(Errors.last_error())
+    filepath = property(__get_filepath, __set_filepath)
+
+    def __get_kinematic(self):
+        b = c_uint()
+        _API.cmp_value_getb(byref(b), self._cmp, to_cstr('kinematic'))
+        return bool(b.value)
+    def __set_kinematic(self, value):
+        _API.cmp_value_setb(self._cmp, to_cstr('kinematic'), c_uint(value))
+    kinematic = property(__get_kinematic, __set_kinematic)
+
+    def __get_disablegravity(self):
+        b = c_uint()
+        _API.cmp_value_getb(byref(b), self._cmp, to_cstr('disablegravity'))
+        return bool(b.value)
+    def __set_disablegravity(self, value):
+        _API.cmp_value_setb(self._cmp, to_cstr('disablegravity'), c_uint(value))
+    disable_gravity = property(__get_disablegravity, __set_disablegravity)
+
 class Behavior(metaclass=ABCMeta):
     @abstractmethod
     def init(self, game_obj):
@@ -868,8 +1086,9 @@ class OrbitCam(Behavior):
         self._xform = game_obj.transform
 
         self.target = Vec3()
+        self.sensivity = 0.2
+
         self._distance = 10
-        self._sensivity = 0.2
         self._x = 0
         self._y = 0
         self._lockpos = Vec2()
@@ -886,7 +1105,7 @@ class OrbitCam(Behavior):
                 self._leftbtn_dwn = True
                 self._lockpos = mpos.copy()    
 
-            delta_pos = (mpos - self._lockpos)*self._sensivity
+            delta_pos = (mpos - self._lockpos)*self.sensivity
             self._x += delta_pos.x
             self._y += delta_pos.y
             self._lockpos = mpos.copy()
@@ -900,7 +1119,7 @@ class OrbitCam(Behavior):
                 self._rightbtn_dwn = True
                 self._lockpos = mpos.copy()    
 
-            delta_pos = (mpos - self._lockpos)*self._sensivity
+            delta_pos = (mpos - self._lockpos)*self.sensivity
             self._distance += delta_pos.y
             self._lockpos = mpos.copy()
         else:
@@ -916,6 +1135,8 @@ class OrbitCam(Behavior):
         m = Matrix3()
         m.rotate_quat(q)
         self._xform.position = Vec3(0, 0, -self._distance)*m + self.target
+
+
 
 class GameObject:
     def __init__(self, scene, obj_name, obj_type):
@@ -1079,5 +1300,8 @@ class Scene:
     def find(name):
         return __scenes[name]
 
-_API.init()
 
+def init_api(debug=False):  
+    _API.init(debug)
+
+_API.init(debug = ('--debug' in sys.argv))

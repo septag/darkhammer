@@ -296,3 +296,4 @@ char* pak_createfilelist(struct pak_file* pak, struct allocator* alloc, OUT uint
 		strcpy(filelist + i*DH_PATH_MAX, ((struct pak_item*)pak->items.buffer)[i].filepath);
 	return filelist;
 }
+

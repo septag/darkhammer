@@ -167,7 +167,11 @@ result_t eng_init(const struct init_params* params)
 #error "must define FULL_VERSION macro"
 #endif
 
-    log_printf(LOG_TEXT, "init dark-hammer engine v%s build[%s, %s, %s, %s] ...", FULL_VERSION,
+    time_t raw_tm;
+    time(&raw_tm);
+
+    log_printf(LOG_TEXT, "init darkhammer engine v%s build[%s, %s, %s, %s], time: %s", 
+        FULL_VERSION,
 #if defined(_DEBUG_)
     		"debug"
 #else
@@ -191,7 +195,7 @@ result_t eng_init(const struct init_params* params)
 #else
     		"no-assert"
 #endif
-    		);
+            , asctime(localtime(&raw_tm)));
 
     size_t tmp_sz = params->dev.buffsize_tmp;
     size_t data_sz = data_sz = params->dev.buffsize_data;

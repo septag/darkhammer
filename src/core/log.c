@@ -23,6 +23,7 @@
 
 #include "log.h"
 #include "mt.h"
+#include "util.h"
 
 #define LINE_COUNT_FLUSH    20
 
@@ -202,7 +203,34 @@ void log_outputtext(enum log_type type, const char* text)
 
     /* message is ready, dispatch it to outputs */
     if (BIT_CHECK(g_log.outputs, OUTPUT_CONSOLE))   {
+#if !defined(_WIN_)        
+        char msg2[2060];
+        const char* color;
+        switch (type)   {
+            case LOG_ERROR:
+            color = TERM_RED;
+            break;
+            case LOG_WARNING:
+            color = TERM_YELLOW;
+            break;
+            case LOG_INFO:
+            color = TERM_DIM;
+            break;
+            case LOG_LOAD:
+            color = TERM_DIMCYAN;
+            break;
+            case LOG_TEXT:
+            color = TERM_RESET;
+            break;
+        }
+
+        strcpy(msg2, color);
+        strcat(msg2, msg);
+        strcat(msg2, TERM_RESET);
+        puts(msg2);
+#else
         puts(msg);
+#endif
     }
 
     strcat(msg, "\n");

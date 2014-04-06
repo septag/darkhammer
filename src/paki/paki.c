@@ -18,6 +18,7 @@
 #include "dhcore/core.h"
 #include "dhcore/zip.h"
 #include "dhcore/pak-file.h"
+#include "dhcore/commander.h"
 
 #if defined(_LINUX_) || defined(_OSX_)
 #include <dirent.h>
@@ -49,7 +50,6 @@ struct paki_args
 };
 
 /* fwd declarations */
-void show_help();
 result_t archive_put(struct pak_file* pak, struct paki_args* args,
                      const char* srcfilepath, const char* destfilealias);
 result_t compress_directory(struct pak_file* pak, struct paki_args* args, const char* subdir);
@@ -57,53 +57,68 @@ void save_pak(struct paki_args* args);
 void load_pak(struct paki_args* args);
 void list_pak(struct paki_args* args);
 
-//
+/* callbacks for command line parsing */
+static void cmdline_extract(command_t* self)
+{   BIT_ADD(((struct paki_args*)self->data)->usage, PAKI_USAGE_EXTRACT);    }
+static void cmdline_compress(command_t* self)
+{   BIT_ADD(((struct paki_args*)self->data)->usage, PAKI_USAGE_COMPRESS);    }
+static void cmdline_compressmode(command_t* self)    
+{   
+    struct paki_args* args = (struct paki_args*)self->data;
+    if (str_isequal_nocase(self->arg, "none"))
+        args->compress_mode = COMPRESS_NONE;
+    else if (str_isequal_nocase(self->arg, "fast"))
+        args->compress_mode = COMPRESS_FAST;
+    else if (str_isequal_nocase(self->arg, "normal"))
+        args->compress_mode = COMPRESS_NORMAL;
+    else if (str_isequal_nocase(self->arg, "best"))
+        args->compress_mode = COMPRESS_BEST;
+    else
+        args->compress_mode = COMPRESS_NORMAL;
+}
+static void cmdline_verbose(command_t* self)
+{   BIT_ADD(((struct paki_args*)self->data)->usage, PAKI_USAGE_VERBOSE);    }
+static void cmdline_list(command_t* self)
+{   BIT_ADD(((struct paki_args*)self->data)->usage, PAKI_USAGE_LIST);    }
+static void cmdline_pakfile(command_t* self)
+{   
+    struct paki_args* args = (struct paki_args*)self->data;
+    str_safecpy(args->pakfile, sizeof(args->pakfile), self->arg);
+}
+static void cmdline_path(command_t* self)
+{   
+    struct paki_args* args = (struct paki_args*)self->data;
+    str_safecpy(args->path, sizeof(args->path), self->arg);
+}
+
 int main(int argc, char** argv)
 {
     struct paki_args args;
-
-    core_init(CORE_INIT_ALL);
-    log_outputconsole(TRUE);
-
-    if (argc == 1)  {
-        core_release(FALSE);
-        return -1;
-    }
 
     // read arguments
     memset(&args, 0x00, sizeof(args));
 
     args.compress_mode = COMPRESS_NORMAL;
-    bool_t invalid_args = FALSE;
+    command_t cmd;
+    command_init(&cmd, argv[0], VERSION);
+    command_option_pos(&cmd, "pakfile", "pakfile (.pak)", 0, cmdline_pakfile);
+    command_option_pos(&cmd, "path", "path to input directory (for compress mode) or"
+        " path to a file in pakfile (for extract mode)", 1, cmdline_path);
+    command_option(&cmd, "-v", "--verbose", "enable verbose mode", cmdline_verbose);
+    command_option(&cmd, "-l", "--list", "list files in pak", cmdline_list);
+    command_option(&cmd, "-x", "--extract", "extract a file from pak", cmdline_extract);
+    command_option(&cmd, "-c", "--compress", "compress a directory into pak", cmdline_compress);
+    command_option(&cmd, "-z", "--zmode <mode>", "define compression mode, "
+        "compression modes are (none, normal, best, fast)", cmdline_compressmode);
+    cmd.data = &args;
+    command_parse(&cmd, argc, argv);
+    command_free(&cmd);
 
-    for (int i = 1; i < argc; i++)    {
-        if (str_isequal(argv[i], "-x"))      BIT_ADD(args.usage, PAKI_USAGE_EXTRACT);
-        else if(str_isequal(argv[i], "-c"))  BIT_ADD(args.usage, PAKI_USAGE_COMPRESS);
-        else if(str_isequal(argv[i], "-z0")) args.compress_mode = COMPRESS_NONE;
-        else if(str_isequal(argv[i], "-z1")) args.compress_mode = COMPRESS_FAST;
-        else if(str_isequal(argv[i], "-z2")) args.compress_mode = COMPRESS_NORMAL;
-        else if(str_isequal(argv[i], "-z3")) args.compress_mode = COMPRESS_BEST;
-        else if(str_isequal(argv[i], "-v"))  BIT_ADD(args.usage, PAKI_USAGE_VERBOSE);
-        else if(str_isequal(argv[i], "-l"))	 BIT_ADD(args.usage, PAKI_USAGE_LIST);
-        else if(str_isequal(argv[i], "-h"))  {
-        	show_help();
-        	core_release(FALSE);
-        	return 0;
-        }
-        else    {
-            if (argv[i][0] == '-' || args.path[0] != 0)  {
-                /* argument is an unknown parameter */
-                invalid_args = TRUE;
-                break;
-            }
-
-            if (args.pakfile[0] == 0)   strcpy(args.pakfile, argv[i]);
-            else                        strcpy(args.path, argv[i]);
-        }
-    }
+    core_init(CORE_INIT_ALL);
+    log_outputconsole(TRUE);
 
     /* check for arguments validity */
-    if (invalid_args || args.pakfile[0] == 0 ||
+    if (args.pakfile[0] == 0 ||
         ((BIT_CHECK(args.usage, PAKI_USAGE_EXTRACT) +
           BIT_CHECK(args.usage, PAKI_USAGE_COMPRESS) +
           BIT_CHECK(args.usage, PAKI_USAGE_LIST)) != 1))
@@ -111,6 +126,14 @@ int main(int argc, char** argv)
         printf(TERM_BOLDRED "Invalid arguments\n" TERM_RESET);
         core_release(FALSE);
         return -1;
+    }
+
+    if (BIT_CHECK(args.usage, PAKI_USAGE_EXTRACT) || BIT_CHECK(args.usage, PAKI_USAGE_COMPRESS)) {
+        if (str_isempty(args.path)) {
+            printf(TERM_BOLDRED "'path' argument is not provided\n" TERM_RESET);
+            core_release(FALSE);
+            return -1;
+        }
     }
 
     /* creating archive (-c flag) */
@@ -128,19 +151,6 @@ int main(int argc, char** argv)
     core_release(FALSE);
 #endif
     return 0;
-}
-
-/* show arguments help */
-void show_help()
-{
-    printf("paki - 'pak' file archiver for dark-hammer engine v%s\n", VERSION);
-    printf("Usage:\n"
-              "  paki [-x] [-c] [-l] [-v] [pakfile] [path]\n"
-              "  [-x]: extracts a file defined by [path] from [pak-file]\n"
-              "  [-c]: create pak file from [path] including subdirectories.\n"
-              "  [-zN]: compression mode. ([-z0]:no-compr [-z1]:fast [-z2]:normal [-z3]:best)\n"
-              "  [-l]: list files in the [packfile]\n"
-              "  [-v]: verbose mode\n\n");
 }
 
 void save_pak(struct paki_args* args)

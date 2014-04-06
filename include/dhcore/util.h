@@ -28,6 +28,7 @@
 /* terminal ANSI colors for linux console only */
 #if defined(_POSIXLIB_)
 #define TERM_RESET   "\033[0m"
+#define TERM_DIM     "\033[2m"
 #define TERM_BLACK   "\033[30m"      /* Black */
 #define TERM_GREY	 "\033[90m"		 /* Grey */
 #define TERM_RED     "\033[31m"      /* Red */
@@ -46,8 +47,17 @@
 #define TERM_BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
 #define TERM_BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define TERM_BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+#define TERM_DIMBLACK   "\033[2;30m"      /* Dim Black */
+#define TERM_DIMRED     "\033[2;31m"      /* Dim Red */
+#define TERM_DIMGREEN   "\033[2;32m"      /* Dim Green */
+#define TERM_DIMYELLOW  "\033[2;33m"      /* Dim Yellow */
+#define TERM_DIMBLUE    "\033[2;34m"      /* Dim Blue */
+#define TERM_DIMMAGENTA "\033[2;35m"      /* Dim Magenta */
+#define TERM_DIMCYAN    "\033[2;36m"      /* Dim Cyan */
+#define TERM_DIMWHITE   "\033[2;37m"      /* Dim White */
 #elif defined(_WIN_)
 #define TERM_RESET ""
+#define TERM_DIM ""
 #define TERM_BLACK ""
 #define TERM_GREY ""
 #define TERM_RED ""
@@ -66,6 +76,14 @@
 #define TERM_BOLDMAGENTA ""
 #define TERM_BOLDCYAN ""
 #define TERM_BOLDWHITE ""
+#define TERM_DIMBLACK   ""
+#define TERM_DIMRED     ""
+#define TERM_DIMGREEN   ""
+#define TERM_DIMYELLOW  ""
+#define TERM_DIMBLUE    ""
+#define TERM_DIMMAGENTA ""
+#define TERM_DIMCYAN    ""
+#define TERM_DIMWHITE   ""
 #endif
 
 /**

@@ -1,6 +1,6 @@
 # dark-hammer build tools
 
-import os, sys, platform, inspect
+import os, sys, platform, inspect, glob
 import waflib.Logs
 
 # main global variables
@@ -319,6 +319,14 @@ def configure(conf):
     compiler_setup(conf)
 
 def build(bld):
+    if sys.platform == 'linux':
+        libdir = os.path.join(bld.env.PREFIX, 'lib')
+        os.environ['LD_LIBRARY_PATH'] = libdir
+        delfiles = glob.glob(os.path.join(libdir, 'libdhcore' + bld.env.SUFFIX + '.*'))
+        delfiles.extend(glob.glob(os.path.join(libdir, 'libdheng' + bld.env.SUFFIX + '.*')))
+        for f in delfiles:
+            os.remove(f)
+
     bld.recurse('3rdparty')
     bld.recurse('src')
     if not bld.env.IGNORE_TUTS:

@@ -11,14 +11,18 @@ class _API:
     is_init = False
 
     @staticmethod 
-    def init():
+    def init(debug=False):
         if _API.is_init:
             return
 
+        postfix = ''
+        if debug:
+            postfix = '-dbg'
+
         if sys.platform == 'win32':
-            shlib = 'dhcore.dll'
+            shlib = 'dhcore' + postfix + '.dll'
         elif sys.platform == 'linux':
-            shlib = 'libdhcore.so'
+            shlib = 'libdhcore' + postfix + '.so'
 
         # load library
         try:
@@ -27,6 +31,8 @@ class _API:
             dhlog.Log.fatal('could not load dynamic library %s' % shlib)
             sys.exit(-1)
 
+        dhlog.Log.msgline('module "%s" loaded' % shlib, dhlog.TERM_GREEN)
+        
         # core.h
         _API.core_init = dhcorelib.core_init
         _API.core_init.restype = c_int
@@ -535,4 +541,4 @@ class FileIO:
         if not _API.fio_addvdir(to_cstr(path), c_uint(monitor)):
             raise Exception(Errors.last_error())
 
-_API.init()
+_API.init(debug = ('--debug' in sys.argv))

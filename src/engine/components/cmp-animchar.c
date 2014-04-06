@@ -570,6 +570,17 @@ bool_t cmp_animchar_getparamb(cmphandle_t hdl, const char* name)
     return FALSE;
 }
 
+enum anim_ctrl_paramtype cmp_animchar_getparamtype(cmphandle_t hdl, const char* name)
+{
+    const struct cmp_animchar* ch = (const struct cmp_animchar*)cmp_getinstancedata(hdl);
+    if (ch->inst != NULL && ch->ctrl_hdl != INVALID_HANDLE) {
+        anim_ctrl ctrl = rs_get_animctrl(ch->ctrl_hdl);
+        if (ctrl != NULL)
+            return anim_ctrl_get_paramtype(ctrl, ch->inst, name);
+    }
+    return ANIM_CTRL_PARAM_UNKNOWN;
+}
+
 bool_t cmp_animchar_get_curstate(cmphandle_t hdl, const char* layer_name, char* state, 
     float* progress)
 {

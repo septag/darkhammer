@@ -6,6 +6,7 @@ def build(bld):
     files = bld.path.ant_glob('*.c')
     files.extend(bld.path.ant_glob('deps/cJSON/*.c'))
     files.extend(bld.path.ant_glob('deps/miniz/*.c'))
+    files.extend(bld.path.ant_glob('deps/commander/*.c'))
 
     # platform dependent files
     if sys.platform == 'win32':

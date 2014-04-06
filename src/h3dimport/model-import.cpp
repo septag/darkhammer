@@ -234,17 +234,17 @@ void import_listmtls_node(const struct aiScene* scene, const struct aiNode* node
 
         json_additem_toobj(jmtl, "id", json_create_num((fl64)mesh->mMaterialIndex));
         if (!str_isempty(import_get_texture(filepath, mtl, aiTextureType_DIFFUSE)))
-            json_additem_toobj(jmtl, "diffuse-tex", json_create_str(filepath));
+            json_additem_toobj(jmtl, "diffuse", json_create_str(filepath));
         if (!str_isempty(import_get_texture(filepath, mtl, aiTextureType_SHININESS)))
-            json_additem_toobj(jmtl, "gloss-tex", json_create_str(filepath));
+            json_additem_toobj(jmtl, "gloss", json_create_str(filepath));
         if (!str_isempty(import_get_texture(filepath, mtl, aiTextureType_NORMALS)))
-            json_additem_toobj(jmtl, "norm-tex", json_create_str(filepath));
+            json_additem_toobj(jmtl, "norm", json_create_str(filepath));
         if (!str_isempty(import_get_texture(filepath, mtl, aiTextureType_OPACITY)))
-            json_additem_toobj(jmtl, "opacity-tex", json_create_str(filepath));
+            json_additem_toobj(jmtl, "opacity", json_create_str(filepath));
         if (!str_isempty(import_get_texture(filepath, mtl, aiTextureType_EMISSIVE)))
-            json_additem_toobj(jmtl, "emissive-tex", json_create_str(filepath));
+            json_additem_toobj(jmtl, "emissive", json_create_str(filepath));
         if (!str_isempty(import_get_texture(filepath, mtl, aiTextureType_REFLECTION)))
-            json_additem_toobj(jmtl, "reflection-tex", json_create_str(filepath));
+            json_additem_toobj(jmtl, "reflection", json_create_str(filepath));
 
         size_t jbuff_sz;
         char* jbuff = json_savetobuffer(jmtl, &jbuff_sz, TRUE);

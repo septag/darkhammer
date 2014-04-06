@@ -55,7 +55,7 @@ class Log():
 
     @staticmethod
     def msgline(msg, color = TERM_DEFAULT):
-        LogCon.msg(msg, color)
+        LogCon.msgline(msg, color)
 
     @staticmethod
     def fatal(msg):
