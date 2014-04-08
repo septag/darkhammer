@@ -635,7 +635,7 @@ void anim_update_clip_hierarchal(const anim_reel reel, uint clip_idx, float t,
 
     if (frame_force_idx == INVALID_INDEX)   {
         frame_cnt = subclip->frame_end - subclip->frame_start;
-        frame_idx = clampun((uint)(t/ft), 0, frame_cnt-1);
+        frame_idx = clampui((uint)(t/ft), 0, frame_cnt-1);
     }   else    {
         frame_cnt = reel->frame_cnt;
         frame_idx = frame_force_idx;
@@ -683,7 +683,7 @@ void anim_update_clip_skeletal(const anim_reel reel, uint clip_idx, float t,
 
     if (frame_force_idx == INVALID_INDEX)   {
         frame_cnt = subclip->frame_end - subclip->frame_start;
-        frame_idx = clampun((uint)(t/ft), 0, frame_cnt-1);
+        frame_idx = clampui((uint)(t/ft), 0, frame_cnt-1);
     }   else    {
         frame_cnt = reel->frame_cnt;
         frame_idx = frame_force_idx;
@@ -1365,7 +1365,7 @@ void anim_ctrl_calcpose(struct anim_pose* poses, const anim_reel reel, uint clip
     float ft = reel->ft;
 
     uint frame_cnt = clip->frame_end - clip->frame_start;
-    uint frame_idx = clampun((uint)(tm/ft), 0, frame_cnt - 1);
+    uint frame_idx = clampui((uint)(tm/ft), 0, frame_cnt - 1);
     uint frame_next_idx = (frame_idx + 1) % frame_cnt;
 
     float interpolate = (tm - (frame_idx*ft)) / ft;
@@ -1405,7 +1405,7 @@ float anim_ctrl_updateblendtree(struct anim_pose* poses,
     float blend = progress - idx_f;
 
     uint idx = (uint)idx_f;
-    uint idx2 = minun(idx + 1, bt->child_seq_cnt - 1);
+    uint idx2 = minui(idx + 1, bt->child_seq_cnt - 1);
 
     /* updat instance */
     ibt->seq_a = idx;

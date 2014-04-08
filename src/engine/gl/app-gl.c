@@ -188,7 +188,7 @@ result_t app_init(const char* name, const struct init_params* params,
     eng_zero();
 
     /* create application */
-    log_print(LOG_TEXT, "init app (gl) ...");
+    log_print(LOG_TEXT, "init OpenGL app ...");
 
     struct app_gl* app = (struct app_gl*)ALLOC(sizeof(struct app_gl), 0);
     ASSERT(app);
@@ -275,6 +275,7 @@ result_t app_init(const char* name, const struct init_params* params,
     app->height = height;
     app->always_active = TRUE;
     app->refresh_rate = params->gfx.refresh_rate;
+
     return RET_OK;
 }
 
@@ -485,10 +486,7 @@ void app_get_gfxinfo(struct gfx_device_info* info)
 
     if (glfwExtensionSupported("GL_ATI_meminfo"))	{
         GLint vbo_free = 0;
-        /* TODO: don't know the origin of this bug, but in windows this part corrupts the stack */
-#if defined(_LINUX_)
         glGetIntegerv(VBO_FREE_MEMORY_ATI, &vbo_free);
-#endif
         info->mem_avail = vbo_free;
     } else if (glfwExtensionSupported("GL_NVX_gpu_memory_info"))	{
         glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &info->mem_avail);
@@ -562,10 +560,8 @@ struct app_wnd* app_add_window(const char* name, uint width, uint height, uint r
     if (wnd->w != NULL) {
         wnd->ctx = glfwGetWindowContext(wnd->w);
         ASSERT(wnd->ctx);
-    }
 
-    /* callbacks */
-    if (wnd->w != NULL) {
+        /* callbacks */
         glfwSetFramebufferSizeCallback(wnd->w, glfw_window_resize);
         glfwSetWindowCloseCallback(wnd->w, glfw_window_close);
         glfwSetWindowFocusCallback(wnd->w, glfw_window_focus);

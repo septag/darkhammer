@@ -1201,7 +1201,7 @@ gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt,
     uint mipcnt = 1;
 
     if (has_mipmap) {
-        mipcnt = 1 + (uint)floorf(log10f((float)maxun(width, height))/log10f(2.0f));
+        mipcnt = 1 + (uint)floorf(log10f((float)maxui(width, height))/log10f(2.0f));
     }
 
 	glGetError();
@@ -1267,13 +1267,13 @@ GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height
             for (i = 0; i < mip_cnt; i++)   {
                 glCompressedTexImage1D((GLenum)type, (GLint)i, (GLenum)fmt, (GLsizei)w, 0,
                     (GLsizei)data[i].size, data[i].p);
-                w = maxun(1, w >> 1);
+                w = maxui(1, w >> 1);
             }
         }   else    {
             for (i = 0; i < mip_cnt; i++)   {
                 glTexImage1D((GLenum)type, (GLint)i, gl_internal, (GLsizei)w, 0,
                     gl_fmt, gl_type, data[i].p);
-                w = maxun(1, w >> 1);
+                w = maxui(1, w >> 1);
             }
         }
     case GFX_TEXTURE_2D:
@@ -1281,15 +1281,15 @@ GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height
             for (i = 0; i < mip_cnt; i++)   {
                 glCompressedTexImage2D((GLenum)type, (GLint)i, (GLenum)fmt, (GLsizei)w,
                     (GLsizei)h, 0, (GLsizei)data[i].size, data[i].p);
-                w = maxun(1, w >> 1);
-                h = maxun(1, h >> 1);
+                w = maxui(1, w >> 1);
+                h = maxui(1, h >> 1);
             }
         }   else    {
             for (i = 0; i < mip_cnt; i++)   {
                 glTexImage2D((GLenum)type, (GLint)i, gl_internal, (GLsizei)w, (GLsizei)h,
                     0, gl_fmt, gl_type, data[i].p);
-                w = maxun(1, w >> 1);
-                h = maxun(1, h >> 1);
+                w = maxui(1, w >> 1);
+                h = maxui(1, h >> 1);
             }
         }
         break;
@@ -1298,15 +1298,15 @@ GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height
             for (i = 0; i < mip_cnt; i++)   {
                 glCompressedTexImage3D((GLenum)type, (GLint)i, (GLenum)fmt, (GLsizei)w, (GLsizei)h,
                     (GLsizei)depth, 0, (GLsizei)data[i].size, data[i].p);
-                w = maxun(1, w >> 1);
-                h = maxun(1, h >> 1);
+                w = maxui(1, w >> 1);
+                h = maxui(1, h >> 1);
             }
         }   else    {
             for (i = 0; i < mip_cnt; i++)   {
                 glTexImage3D((GLenum)type, (GLint)i, gl_internal, (GLsizei)w, (GLsizei)h,
                     (GLsizei)depth, 0, gl_fmt, gl_type, data[i].p);
-                w = maxun(1, w >> 1);
-                h = maxun(1, h >> 1);
+                w = maxui(1, w >> 1);
+                h = maxui(1, h >> 1);
             }
         }
         break;
@@ -1319,8 +1319,8 @@ GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height
                     uint didx = i + c*mip_cnt;
                     glCompressedTexImage2D(cube_targets[c], (GLint)i, (GLenum)fmt, (GLsizei)w,
                         (GLsizei)h, 0, (GLsizei)data[didx].size, data[didx].p);
-                    w = maxun(1, w >> 1);
-                    h = maxun(1, h >> 1);
+                    w = maxui(1, w >> 1);
+                    h = maxui(1, h >> 1);
                 }
             }
         }   else    {
@@ -1331,8 +1331,8 @@ GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height
                     uint didx = i + c*mip_cnt;
                     glTexImage2D(cube_targets[c], (GLint)i, gl_internal,  (GLsizei)w, (GLsizei)h,
                         0, gl_fmt, gl_type, data[didx].p);
-                    w = maxun(1, w >> 1);
-                    h = maxun(1, h >> 1);
+                    w = maxui(1, w >> 1);
+                    h = maxui(1, h >> 1);
                 }
             }
         }

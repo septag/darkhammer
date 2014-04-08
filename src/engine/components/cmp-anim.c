@@ -547,7 +547,7 @@ result_t cmp_anim_modify_frame(struct cmp_obj* obj, struct allocator* alloc,
         struct anim_reel_desc desc;
         anim_get_desc(&desc, reel);
 
-        a->frame_idx = clampun(a->frame_idx, 0, desc.frame_cnt-1);
+        a->frame_idx = clampui(a->frame_idx, 0, desc.frame_cnt-1);
         a->playing = FALSE;
         cmp_updateinstance(cur_hdl);
     }  else {
@@ -575,7 +575,7 @@ uint cmp_anim_getcurframe(cmphandle_t hdl)
 
         struct anim_reel_desc desc;
         anim_get_desc(&desc, reel);
-        return clampun((uint)(a->t/desc.ft), 0, desc.frame_cnt-1);
+        return clampui((uint)(a->t/desc.ft), 0, desc.frame_cnt-1);
     }  else {
         return 0;
     }

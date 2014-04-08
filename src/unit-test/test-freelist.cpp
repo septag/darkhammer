@@ -38,13 +38,13 @@ void test_freelist()
 
     log_printf(LOG_TEXT, "allocating %d items from freelist (with hash validation)...", item_cnt);
     for (uint i = 0; i < item_cnt; i++)    {
-        int s = rand_getn(8, 1024);
+        int s = rand_geti(8, 1024);
         ASSERT(s <= 1024);
         ptrs[i] = A_ALLOC(&alloc, s, 6);
         ASSERT(ptrs[i]);
 
         if (i > 0 && rand_flipcoin(50))  {
-            uint idx_tofree = rand_getn(0, i-1);
+            uint idx_tofree = rand_geti(0, i-1);
             if (ptrs[idx_tofree] != NULL)   {
                 A_FREE(&alloc, ptrs[idx_tofree]);
                 ptrs[idx_tofree] = NULL;

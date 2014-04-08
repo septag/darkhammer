@@ -48,7 +48,7 @@ void* gfx_ringbuffer_map(gfx_cmdqueue cmdqueue, struct gfx_ringbuffer* rbuff,
 #endif
 	}
 
-	*size = minun(rbuff->seg_size, rbuff->size - rbuff->offset);
+	*size = minui(rbuff->seg_size, rbuff->size - rbuff->offset);
 	*offset = rbuff->offset;
 
 	return gfx_buffer_map(cmdqueue, rbuff->buff, *offset, *size, mode, sync);

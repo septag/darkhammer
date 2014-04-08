@@ -174,7 +174,7 @@ void* mem_freelist_alloc(struct freelist_alloc* freelist, size_t size, uint mem_
     /* no valid chunk found: throw a warning in debug mode and allocate from heap */
 #if defined(_DEBUG_)
     printf("Warning: (Performance) freelist allocator '%p' (req-size: %d, id: %d) is overloaded."
-        "Allocating from heap\n", freelist, size, mem_id);
+        "Allocating from heap\n", freelist, (uint)size, mem_id);
 #endif
     return ALLOC(size, mem_id);
 }

@@ -24,7 +24,7 @@ void test_mempool()
     struct pool_alloc pool;
     struct allocator alloc;
 
-    uint s = rand_getn(64, 1024);
+    uint s = rand_geti(64, 1024);
     mem_pool_create(mem_heap(), &pool, s, 100, 0);
     mem_pool_bindalloc(&pool, &alloc);
 

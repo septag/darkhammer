@@ -520,7 +520,7 @@ void hud_console_update()
 		float s = (float)-console->prev_y;
 		float a = -(u*u)*0.5f* s;
 		console->y -= (int)(u*t + 0.5f*a*t*t);
-		console->y = clampn(console->y, -CONSOLE_HEIGHT, 0);
+		console->y = clampi(console->y, -CONSOLE_HEIGHT, 0);
 		if (console->y >= 0)	{
 			roll_tm = 0.0f;
 			console->slide_dwn = FALSE;
@@ -533,7 +533,7 @@ void hud_console_update()
 		float s = (float)(-CONSOLE_HEIGHT - console->prev_y);
 		float a = -(u*u)*0.5f*s;
 		console->y -= (int)(u*t + 0.5f*a*t*t);
-		console->y = clampn(console->y, -CONSOLE_HEIGHT, 0);
+		console->y = clampi(console->y, -CONSOLE_HEIGHT, 0);
 		if (console->y <= -CONSOLE_HEIGHT)	{
 			roll_tm = 0.0f;
 			console->slide_up = FALSE;

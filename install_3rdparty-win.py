@@ -148,8 +148,8 @@ def install_glfwext():
         return True
     log('\t\tnot found\n')
 
-    url = 'https://github.com/septag/glfw/archive/master.zip'
-    log('downloading glfwext source from "https://github.com/septag/glfw"...\n')
+    url = 'https://github.com/septag/glfwext/archive/master.zip'
+    log('downloading glfwext source from "https://github.com/septag/glfwext"...\n')
 
     glfwdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'glfwext')
     os.makedirs(glfwdir, exist_ok=True)

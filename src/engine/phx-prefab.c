@@ -396,7 +396,7 @@ phx_obj phx_createinstance(phx_prefab prefab, struct xform3d* init_pose)
         for (uint i = 0; i < p->rigid->shape_cnt; i++)    {
             struct phx_shape_data* shape_desc = &p->rigid->shapes[i];
             phx_mtl mtls[PHX_CHILD_MAX];
-            uint mtl_cnt = minun(shape_desc->mtl_cnt, PHX_CHILD_MAX-1);
+            uint mtl_cnt = minui(shape_desc->mtl_cnt, PHX_CHILD_MAX-1);
             for (uint i = 0; i < mtl_cnt; i++)
                 mtls[i] = p->mtls[shape_desc->mtl_ids[i]];
             phx_obj shape = NULL;

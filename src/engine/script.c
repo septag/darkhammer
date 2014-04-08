@@ -395,7 +395,7 @@ void* sct_lua_alloc_callback(void* ud, void* ptr, size_t osize, size_t nsize)
             tmp = mem_alignedalloc(nsize, 16, __FILE__, __LINE__, MID_SCT);
         ASSERT(tmp);
         tmp = sct_alloc_putsize(tmp, (uint)nsize);
-        memcpy(tmp, ptr, minun((uint)nsize, sz) - sizeof(uint));
+        memcpy(tmp, ptr, minui((uint)nsize, sz) - sizeof(uint));
 
         /* free from previous allocator */
         if (a_idx2 != INVALID_INDEX) {

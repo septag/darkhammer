@@ -213,7 +213,7 @@ cmphandle_t lodmodel_switchmodel(cmphandle_t cur_hdl, cmphandle_t new_hdl, bool_
     struct cmp_model* n = (struct cmp_model*)cmp_getinstancedata(new_hdl);
 
     /* copy current transforms into new one */
-    uint xf_max = minun(cur->xform_cnt, n->xform_cnt);
+    uint xf_max = minui(cur->xform_cnt, n->xform_cnt);
     for (uint i = 1; i < xf_max; i++) {
         struct cmp_xform* xfc = (struct cmp_xform*)cmp_getinstancedata(cur->xforms[i]);
         struct cmp_xform* xfn = (struct cmp_xform*)cmp_getinstancedata(n->xforms[i]);
@@ -227,11 +227,11 @@ cmphandle_t lodmodel_switchmodel(cmphandle_t cur_hdl, cmphandle_t new_hdl, bool_
     ASSERT(cur_inst);
     struct gfx_model_instance* inst = n->model_inst;
     ASSERT(inst);
-    uint pose_max = minun(inst->pose_cnt, cur_inst->pose_cnt);
+    uint pose_max = minui(inst->pose_cnt, cur_inst->pose_cnt);
     for (uint i = 0; i < pose_max; i++)   {
         if (inst->poses[i] != NULL) {
             memcpy(inst->poses[i]->mats, cur_inst->poses[i]->mats,
-                sizeof(struct mat3f)*minun(inst->poses[i]->mat_cnt, cur_inst->poses[i]->mat_cnt));
+                sizeof(struct mat3f)*minui(inst->poses[i]->mat_cnt, cur_inst->poses[i]->mat_cnt));
         }
     }
 

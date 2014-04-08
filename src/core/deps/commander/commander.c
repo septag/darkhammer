@@ -79,7 +79,7 @@ command_help(command_t *self) {
   }
 
   if (self->pos_count > 0)  {
-    printf("\n  Positional arguments:\n");
+    printf("\n  Positional arguments:\n\n");
     for (i = 0; i < self->pos_count; i++) {
       command_option_pos_t* pos = &self->poss[i];
       printf("    %-24s %s%s\n", 

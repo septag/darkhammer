@@ -23,11 +23,11 @@
 #include "dhcore/mt.h"
 #include "dhcore/hash-table.h"
 #include "dhcore/hash.h"
+#include "dhcore/hwinfo.h"
 
 #include "phx-device.h"
 #include "mem-ids.h"
 #include "engine.h"
-#include "hwinfo.h"
 #include "gfx-device.h"
 #include "gfx-canvas.h"
 #include "init-params.h"
@@ -456,7 +456,7 @@ result_t phx_initdev(const struct init_params* params)
 
     /* dispatch through cpu cores */
     const struct hwinfo* hinfo = eng_get_hwinfo();
-    int core_cnt = clampn((int)hinfo->cpu_core_cnt - 2, 1, 4);
+    int core_cnt = clampi((int)hinfo->cpu_core_cnt - 2, 1, 4);
     g_phxdev.dispatcher = PxDefaultCpuDispatcherCreate((PxU32)core_cnt);
     if (g_phxdev.dispatcher == NULL)   {
         err_print(__FILE__, __LINE__, "phx-device init failed: could not create Physx dispatcher");
@@ -805,7 +805,7 @@ phx_shape_box phx_create_boxshape(phx_obj rigid_obj,
     ASSERT(rigid_obj->type == PHX_OBJ_RIGID_ST || rigid_obj->type == PHX_OBJ_RIGID_DYN);
 
     PxMaterial* pxmtls[PHX_CHILD_MAX];
-    mtl_cnt = minun(PHX_CHILD_MAX, mtl_cnt);
+    mtl_cnt = minui(PHX_CHILD_MAX, mtl_cnt);
 
     for (uint i = 0; i < mtl_cnt; i++)
         pxmtls[i] = (PxMaterial*)mtls[i]->api_obj;
@@ -853,7 +853,7 @@ phx_shape_sphere phx_create_sphereshape(phx_obj rigid_obj,
     ASSERT(rigid_obj->type == PHX_OBJ_RIGID_ST || rigid_obj->type == PHX_OBJ_RIGID_DYN);
 
     PxMaterial* pxmtls[PHX_CHILD_MAX];
-    mtl_cnt = minun(PHX_CHILD_MAX, mtl_cnt);
+    mtl_cnt = minui(PHX_CHILD_MAX, mtl_cnt);
 
     for (uint i = 0; i < mtl_cnt; i++)
         pxmtls[i] = (PxMaterial*)mtls[i]->api_obj;
@@ -902,7 +902,7 @@ phx_shape_capsule phx_create_capsuleshape(phx_obj rigid_obj,
     ASSERT(rigid_obj->type == PHX_OBJ_RIGID_ST || rigid_obj->type == PHX_OBJ_RIGID_DYN);
 
     PxMaterial* pxmtls[PHX_CHILD_MAX];
-    mtl_cnt = minun(PHX_CHILD_MAX, mtl_cnt);
+    mtl_cnt = minui(PHX_CHILD_MAX, mtl_cnt);
 
     for (uint i = 0; i < mtl_cnt; i++)
         pxmtls[i] = (PxMaterial*)mtls[i]->api_obj;
@@ -985,7 +985,7 @@ phx_shape_convex phx_create_convexshape(phx_obj rigid_obj,
     ASSERT(rigid_obj->type == PHX_OBJ_RIGID_ST || rigid_obj->type == PHX_OBJ_RIGID_DYN);
 
     PxMaterial* pxmtls[PHX_CHILD_MAX];
-    mtl_cnt = minun(PHX_CHILD_MAX-1, mtl_cnt);
+    mtl_cnt = minui(PHX_CHILD_MAX-1, mtl_cnt);
 
     for (uint i = 0; i < mtl_cnt; i++)
         pxmtls[i] = (PxMaterial*)mtls[i]->api_obj;
@@ -1039,7 +1039,7 @@ phx_shape_tri phx_create_trishape(phx_rigid_st rigid_st,
     ASSERT(rigid_st->type == PHX_OBJ_RIGID_ST || rigid_st->type == PHX_OBJ_RIGID_DYN);
 
     PxMaterial* pxmtls[PHX_CHILD_MAX];
-    mtl_cnt = minun(PHX_CHILD_MAX-1, mtl_cnt);
+    mtl_cnt = minui(PHX_CHILD_MAX-1, mtl_cnt);
 
     for (uint i = 0; i < mtl_cnt; i++)
         pxmtls[i] = (PxMaterial*)mtls[i]->api_obj;

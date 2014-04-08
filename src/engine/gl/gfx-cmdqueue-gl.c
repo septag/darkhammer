@@ -114,7 +114,7 @@ void gfx_buffer_update(gfx_cmdqueue cmdqueue, gfx_buffer buffer, const void* dat
 {
 	ASSERT(buffer->type == GFX_OBJ_BUFFER);
 
-	uint s = minun(size, buffer->desc.buff.size);
+	uint s = minui(size, buffer->desc.buff.size);
     GLuint target = (GLenum)buffer->desc.buff.type;
     glBindBuffer(target, (GLuint)buffer->api_obj);
     void* dest = glMapBufferRange(target, 0, s, GL_MAP_INVALIDATE_BUFFER_BIT|GL_MAP_WRITE_BIT);

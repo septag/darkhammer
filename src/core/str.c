@@ -148,7 +148,7 @@ char* str_widetomb(char* outstr, const wchar* instr, uint outstr_size)
 {
 #if defined(_WIN_)
     int outsize = WideCharToMultiByte(CP_UTF8, 0, instr, -1, NULL, 0, NULL, NULL);
-    outsize = minn(outstr_size, outsize);
+    outsize = mini(outstr_size, outsize);
     outstr[0] = 0;
     WideCharToMultiByte(CP_UTF8, 0, instr, -1, outstr, outsize, NULL, NULL);
     return outstr;
@@ -162,7 +162,7 @@ wchar* str_mbtowide(wchar* outstr, const char* instr, uint outstr_size)
 {
 #if defined(_WIN_)
     int outsize = MultiByteToWideChar(CP_UTF8, 0, instr, -1, NULL, 0);
-    outsize = minn(outstr_size, outsize);
+    outsize = mini(outstr_size, outsize);
     outstr[0] = 0;
     MultiByteToWideChar(CP_UTF8, 0, instr, -1, outstr, outsize);
     return outstr;

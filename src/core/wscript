@@ -30,7 +30,13 @@ def build(bld):
     elif sys.platform == 'win32':
         linkflags.extend(['/NODEFAULTLIB:"LIBCMTD.LIB"', '/NODEFAULTLIB:"LIBCMT.LIB"'])
         libs.extend(['ws2_32', 'Shell32', 'Advapi32', 'User32'])
-    libs.append('efsw')
+
+    defines = ['_CORE_EXPORT_']
+
+    # turn on file monitoring (+efsw lib)
+    if bld.env.DFILEMON:
+        libs.append('efsw')
+        defines.append('_FILEMON_')
     
     cflags = []
     if sys.platform == 'win32':
@@ -60,6 +66,6 @@ def build(bld):
         name = 'dhcore',
         export_includes = os.path.join(bld.env.ROOTDIR, 'include'),
         install_path = install_path,
-        defines = ['_CORE_EXPORT_', '_FILEMON_'],
+        defines = defines,
         vnum = vnum)
 

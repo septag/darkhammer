@@ -114,8 +114,8 @@ gfx_texture dds_create_texture(struct allocator* tmp_alloc, uint first_mipidx, b
 	uint width = header->width;
 	uint height = header->height;
 	uint depth = header->depth;
-	uint mip_cnt = maxun(1, header->mip_cnt);
-	uint first_mip = minun(first_mipidx, mip_cnt-1);
+	uint mip_cnt = maxui(1, header->mip_cnt);
+	uint first_mip = minui(first_mipidx, mip_cnt-1);
 	uint target_mip_cnt = mip_cnt - first_mipidx;
 	const uint cubemap_all = DDS_CUBEMAP_ALLFACES;
 	enum gfx_texture_type type;
@@ -180,8 +180,8 @@ gfx_texture dds_create_texture(struct allocator* tmp_alloc, uint first_mipidx, b
 		uint mip_idx = 0;
 
 		for (uint k = 0; k  < mip_cnt; k++)        {
-            int w = maxn(1, (int)floorf(width/powf(2.0f, (float)k)));
-            int h = maxn(1, (int)floorf(height/powf(2.0f, (float)k)));
+            int w = maxi(1, (int)floorf(width/powf(2.0f, (float)k)));
+            int h = maxi(1, (int)floorf(height/powf(2.0f, (float)k)));
 
             dds_get_surfaceinfo(w, h, surface_fmt, &bytes_cnt, &rowbyte_cnt, &row_cnt);
 
@@ -200,8 +200,8 @@ gfx_texture dds_create_texture(struct allocator* tmp_alloc, uint first_mipidx, b
 	}
 
 	/* shrink width, height to match first_mip */
-    int w = maxn(1, (int)floorf(width/powf(2.0f, (float)first_mipidx)));
-    int h = maxn(1, (int)floorf(height/powf(2.0f, (float)first_mipidx)));
+    int w = maxi(1, (int)floorf(width/powf(2.0f, (float)first_mipidx)));
+    int h = maxi(1, (int)floorf(height/powf(2.0f, (float)first_mipidx)));
 
 	/* gfx texture creation */
 	gfx_texture tex = gfx_create_texture(type,
@@ -340,8 +340,8 @@ void dds_get_surfaceinfo(uint width, uint height, enum gfx_format fmt,
     if (bc)    {
         uint blocks_wide = 0;
         uint blocks_high = 0;
-        if (width > 0)      blocks_wide = maxun(1, width / 4);
-        if (height > 0)     blocks_high = maxun(1, height / 4);
+        if (width > 0)      blocks_wide = maxui(1, width / 4);
+        if (height > 0)     blocks_high = maxui(1, height / 4);
         rowbytes_cnt = blocks_wide * bytes_per_block;
         row_cnt = blocks_high;
     }    else    {

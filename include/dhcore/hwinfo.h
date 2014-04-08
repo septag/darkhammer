@@ -12,20 +12,19 @@
  *   and/or other materials provided with the distribution.
  *
  ***********************************************************************************/
+
 #ifndef __HWINFO_H__
 #define __HWINFO_H__
 
-#include "dhcore/types.h"
-#include "engine-api.h"
-#include "gfx-types.h"
+#include "types.h"
+#include "core-api.h"
 
 enum hwinfo_flags
 {
     HWINFO_MEMORY = (1<<0),
-    HWINFO_GPU = (1<<1),
     HWINFO_CPU = (1<<2),
     HWINFO_OS = (1<<3),
-    HWINFO_ALL = (HWINFO_MEMORY|HWINFO_GPU|HWINFO_CPU|HWINFO_OS)
+    HWINFO_ALL = 0xFFFFFFFF
 };
 
 /**
@@ -89,11 +88,9 @@ struct hwinfo
     uint cpu_caps; /**< Combination of known CPU Caps (@see hwinfo_cpu_ext) */
     enum hwinfo_cpu_type cpu_type; /**< CPU Type (@see hwinfo_cpu_type) */
     enum hwinfo_os_type os_type;    /**< OS Type (@see hwinfo_os_type) */
-    struct gfx_device_info gpu_info;    /**< GPU related info */
 };
 
-ENGINE_API void hw_getinfo(struct hwinfo* info, uint flags);
-ENGINE_API void hw_printinfo(const struct hwinfo* info, uint flags);
-
+CORE_API void hw_getinfo(struct hwinfo* info, uint flags);
+CORE_API void hw_printinfo(const struct hwinfo* info, uint flags);
 
 #endif /* __HWINFO_H__ */

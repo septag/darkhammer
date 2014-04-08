@@ -1036,7 +1036,7 @@ void gfx_cb_setiv(struct gfx_cblock* cb, uint name_hash, const int* ns, uint cnt
     const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
     ASSERT(c);
     ASSERT(c->type == GFX_CONSTANT_INT);
-    cnt = minun(c->arr_size, cnt);
+    cnt = minui(c->arr_size, cnt);
     for (uint i = 0; i < cnt; i++)    {
         *((int*)(cb->cpu_buffer + c->offset + c->arr_stride*i)) = ns[i];
     }
@@ -1056,7 +1056,7 @@ void gfx_cb_set3mv(struct gfx_cblock* cb, uint name_hash, const struct mat3f* mv
 	ASSERT(c);
 	ASSERT(c->type == GFX_CONSTANT_MAT4x3);
 
-	uint mat_cnt = minun(c->arr_size, cnt);
+	uint mat_cnt = minui(c->arr_size, cnt);
     uint8* buff = cb->cpu_buffer + c->offset;
 	for (uint i = 0; i < mat_cnt; i++)	{
         struct mat3f_cm* mcm = (struct mat3f_cm*)buff + i;
@@ -1080,7 +1080,7 @@ void gfx_cb_set3mv_offset(struct gfx_cblock* cb, uint name_hash, const struct ma
         ASSERT(c);
         ASSERT(c->type == GFX_CONSTANT_STRUCT);
 
-        mat_cnt = minun(c->arr_size, mat_cnt);
+        mat_cnt = minui(c->arr_size, mat_cnt);
         uint8* buff = cb->cpu_buffer + c->offset + offset;
         for (uint i = 0; i < mat_cnt; i++)    {
             struct mat3f_cm* mcm = (struct mat3f_cm*)buff + i;
@@ -1096,7 +1096,7 @@ void gfx_cb_set3mvp(struct gfx_cblock* cb, uint name_hash, const struct mat3f** 
 	ASSERT(c);
 	ASSERT(c->type == GFX_CONSTANT_MAT4x3);
 
-	uint mat_cnt = minun(c->arr_size, cnt);
+	uint mat_cnt = minui(c->arr_size, cnt);
     uint8* buff = cb->cpu_buffer + c->offset;
 	for (uint i = 0; i < mat_cnt; i++)	{
         struct mat3f_cm* mcm = (struct mat3f_cm*)buff + i;
@@ -1110,7 +1110,7 @@ void gfx_cb_set4mv(struct gfx_cblock* cb, uint name_hash, const struct mat4f* mv
 	ASSERT(c);
 	ASSERT(c->type == GFX_CONSTANT_MAT4x4);
 
-	uint mat_cnt = minun(c->arr_size, cnt);
+	uint mat_cnt = minui(c->arr_size, cnt);
     uint8* buff = cb->cpu_buffer + c->offset;
 	for (uint i = 0; i < mat_cnt; i++)	{
         struct mat4f_cm* mcm = (struct mat4f_cm*)buff + i;
@@ -1123,7 +1123,7 @@ void gfx_cb_set4fv(struct gfx_cblock* cb, uint name_hash, const struct vec4f* vv
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
 	ASSERT(c->type == GFX_CONSTANT_FLOAT4);
-	cnt = minun(c->arr_size, cnt);
+	cnt = minui(c->arr_size, cnt);
 	for (uint i = 0; i < cnt; i++)	{
         float* v = (float*)(cb->cpu_buffer + c->offset + c->arr_stride*i);
         v[0] = vv[i].x;
@@ -1139,7 +1139,7 @@ void gfx_cb_setp(struct gfx_cblock* cb, uint name_hash, const void* sdata, uint 
     ASSERT(c);
     ASSERT(c->type == GFX_CONSTANT_STRUCT);
 
-    uint s = minun(size, c->arr_stride*c->arr_size);
+    uint s = minui(size, c->arr_stride*c->arr_size);
     memcpy(cb->cpu_buffer + c->offset, sdata, s);
 }
 
@@ -1156,7 +1156,7 @@ void gfx_cb_setpv_offset(struct gfx_cblock* cb, uint name_hash, const void* sdat
         ASSERT(c);
         ASSERT(c->type == GFX_CONSTANT_STRUCT);
 
-        uint s = minun(size, c->elem_size);
+        uint s = minui(size, c->elem_size);
         memcpy(cb->cpu_buffer + c->offset + offset, sdata, s);
         cb->end_offset = offset + s;
     }
@@ -1169,15 +1169,15 @@ void gfx_cb_setpv(struct gfx_cblock* cb, uint name_hash, const void* sdata, uint
     ASSERT(c);
     ASSERT(c->type == GFX_CONSTANT_STRUCT);
 
-    uint s = minun(size, c->elem_size);
-    cnt = minun(cnt, c->arr_size);
+    uint s = minui(size, c->elem_size);
+    cnt = minui(cnt, c->arr_size);
     for (uint i = 0; i < cnt; i++)
         memcpy(cb->cpu_buffer + c->offset + c->arr_stride*i, (const uint8*)sdata + i*size, s);
 }
 
 void gfx_cb_set_endoffset(struct gfx_cblock* cb, uint offset)
 {
-    cb->end_offset = minun(offset, cb->buffer_size);
+    cb->end_offset = minui(offset, cb->buffer_size);
 }
 
 struct gfx_shader* gfx_shader_get(uint shader_id)

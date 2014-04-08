@@ -278,7 +278,7 @@ result_t rs_initmgr(uint flags, uint load_thread_cnt)
 
     /* get maximum number of threads available for threaded loading */
     if (BIT_CHECK(flags, RS_FLAG_PREPARE_BGLOAD))   {
-        g_rs.load_threads_max = maxun(load_thread_cnt, 1);
+        g_rs.load_threads_max = maxui(load_thread_cnt, 1);
         g_rs.job_params.load_items = (struct rs_load_data**)ALLOC(
             sizeof(struct rs_load_data*)*load_thread_cnt, MID_RES);
         g_rs.job_result.ptrs = (void**)ALLOC(sizeof(void*)*load_thread_cnt, MID_RES);

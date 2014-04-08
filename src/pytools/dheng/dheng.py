@@ -572,6 +572,7 @@ class Engine:
         Component.register('animation', 0x068b, Animation)
         Component.register('animator', 0x99e4, Animator)
         Component.register('rigidbody', 0xbc2d, RigidBody)
+        Component.register('light', 0x4e0e, Light)
 
         Engine.is_init = True
 
@@ -603,15 +604,6 @@ class EngineCallbacks(object):
     @abstractmethod
     def draw_debug(self):
         pass
-
-class GameObjectType:
-    MODEL = (1<<0)
-    PARTICLE = (1<<1)
-    LIGHT = (1<<2)
-    DECAL = (1<<3)
-    CAMERA = (1<<4)
-    TRIGGER = (1<<5)
-    ENV = (1<<6)
 
 class Key:
     ESC = 0
@@ -807,7 +799,7 @@ class Component:
             _API.cmp_destroy_instance(self._cmp)
             self_cmp = INVALID_HANDLE
 
-    def debug(self, dbg):
+    def debug(self, dbg = True):
         if dbg:        _API.cmp_debug_add(self._cmp)
         else:          _API.cmp_debug_remove(self._cmp)
 
@@ -848,7 +840,8 @@ class Bounds(Component):
         super().__init__(name, cmp_type, owner_obj)
 
     def __set_sphere(self, s):
-        sf = c_float*4
+        sft = c_float*4
+        sf = sft()
         sf[0].value = s.x
         sf[1].value = s.y
         sf[2].value = s.z
@@ -1070,6 +1063,82 @@ class RigidBody(Component):
         _API.cmp_value_setb(self._cmp, to_cstr('disablegravity'), c_uint(value))
     disable_gravity = property(__get_disablegravity, __set_disablegravity)
 
+class Light(Component):
+    class Type:
+        POINT = 2
+        SPOT = 3
+
+    def __init__(self, name, cmp_type, owner_obj):
+        super().__init__(name, cmp_type, owner_obj)
+
+    def __get_type(self):
+        n = c_uint()
+        _API.cmp_value_getui(byref(n), self._cmp, to_cstr('type'))
+        return n.value
+    def __set_type(self, t):
+        _API.cmp_value_setui(self._cmp, to_cstr('type'), c_uint(t))
+    type = property(__get_type, __set_type)
+
+    def __get_color(self):
+        fv = c_float*4
+        _API.cmp_value_get4f(fv, self._cmp, to_cstr('color'))
+        return Color(fv[0].value, fv[1].value, fv[2].value, fv[3].value)
+    def __set_color(self, c):
+        fvt = c_float*4
+        fv = fvt()
+        fv[0] = c.r
+        fv[1] = c.g
+        fv[2] = c.b
+        fv[3] = c.a
+        _API.cmp_value_set4f(self._cmp, to_cstr('color'), fv)
+    color = property(__get_color, __set_color)
+
+    def __get_intensity(self):
+        f = c_float()
+        _API.cmp_value_getf(byref(f), self._cmp, to_cstr('intensity'))
+        return f.value
+    def __set_intensity(self, f):
+        _API.cmp_value_setf(self._cmp, to_cstr('intensity'), c_float(f))
+    intensity = property(__get_intensity, __set_intensity)
+
+    def __get_attennear(self):
+        f = c_float()
+        _API.cmp_value_getf(byref(f), self._cmp, to_cstr('atten_near'))
+    def __set_attennear(self, n):
+        _API.cmp_value_setf(self._cmp, to_cstr('atten_near'), c_float(n))
+    atten_near = property(__get_attennear, __set_attennear)
+
+    def __get_attenfar(self):
+        f = c_float()
+        _API.cmp_value_getf(byref(f), self._cmp, to_cstr('atten_far'))
+    def __set_attenfar(self, n):
+        _API.cmp_value_setf(self._cmp, to_cstr('atten_far'), c_float(n))
+    atten_far = property(__get_attenfar, __set_attenfar)
+
+    def __get_attennarrow(self):
+        f = c_float()
+        _API.cmp_value_getf(byref(f), self._cmp, to_cstr('atten_narrow'))
+    def __set_attennarrow(self, n):
+        _API.cmp_value_setf(self._cmp, to_cstr('atten_narrow'), c_float(n))
+    atten_narrow = property(__get_attennarrow, __set_attennarrow)
+
+    def __get_attenfar(self):
+        f = c_float()
+        _API.cmp_value_getf(byref(f), self._cmp, to_cstr('atten_far'))
+    def __set_attenfar(self, n):
+        _API.cmp_value_setf(self._cmp, to_cstr('atten_far'), c_float(n))
+    atten_far = property(__get_attenfar, __set_attenfar)
+
+    def __get_lodscheme(self):
+        s = create_string_buffer(128)
+        _API.cmp_value_gets(s, c_uint(128), self._cmp, to_cstr('lod_scheme'))
+        return s.value.decode()
+    def __set_lodscheme(self, fpath):
+        r = _API.cmp_value_sets(self._cmp, to_cstr('lod_scheme'), to_cstr(fpath))
+        if IS_FAIL(r):
+            raise Exception(Errors.last_error())
+    lod_scheme = property(__get_lodscheme, __set_lodscheme)
+
 class Behavior(metaclass=ABCMeta):
     @abstractmethod
     def init(self, game_obj):
@@ -1136,9 +1205,16 @@ class OrbitCam(Behavior):
         m.rotate_quat(q)
         self._xform.position = Vec3(0, 0, -self._distance)*m + self.target
 
-
-
 class GameObject:
+    class Type:
+        MODEL = (1<<0)
+        PARTICLE = (1<<1)
+        LIGHT = (1<<2)
+        DECAL = (1<<3)
+        CAMERA = (1<<4)
+        TRIGGER = (1<<5)
+        ENV = (1<<6)
+
     def __init__(self, scene, obj_name, obj_type):
         self.__name = obj_name
         self.__cmps = dict()
@@ -1155,11 +1231,11 @@ class GameObject:
         self.add_component('transform')
         self.add_component('bounds')
 
-        if obj_type == GameObjectType.CAMERA:
+        if obj_type == GameObject.Type.CAMERA:
             self.add_component('camera')
-        elif obj_type == GameObjectType.MODEL:
+        elif obj_type == GameObject.Type.MODEL:
             self.add_component('model')
-        elif obj_type == GameObjectType.LIGHT:
+        elif obj_type == GameObject.Type.LIGHT:
             self.add_component('light')
 
     def destroy(self, scene_caller=False):
@@ -1249,7 +1325,7 @@ class Scene:
         if self.__id == 0:
             raise Exception('scene is not valid')
 
-        return self.create_object(name, GameObjectType.MODEL)
+        return self.create_object(name, GameObject.Type.MODEL)
 
     def update_objects(self, dt):
         for obj in self.__objs.values():
@@ -1299,7 +1375,6 @@ class Scene:
     @staticmethod
     def find(name):
         return __scenes[name]
-
 
 def init_api(debug=False):  
     _API.init(debug)

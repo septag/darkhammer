@@ -2,12 +2,12 @@
 
 import os
 def build(bld):
-    files = bld.path.ant_glob('*.c*', excl='test-efsw.c')
+    files = bld.path.ant_glob('*.c*')
 
     bld.program(
         source = files,
         target = 'unittest' + bld.env.SUFFIX,
         install_path = '${PREFIX}/bin' if (bld.env.PREFIX == bld.env.ROOTDIR) else \
             '${PREFIX}/bin/dark-hammer',
-        use = ['dhcore', 'dheng'])
+        use = ['dhcore'])
 

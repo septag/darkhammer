@@ -144,7 +144,7 @@ def compiler_setup(conf):
         conf.env.append_unique('DEFINES', '_OSX_')
 
     # general lib/include path
-    conf.env.append_unique('INCLUDES', os.path.join(conf.env.PREFIX, 'include'))
+    conf.env.append_unique('INCLUDES', os.path.join(conf.env.ROOTDIR, 'include'))
     conf.env.append_unique('LIBPATH', os.path.join(conf.env.PREFIX, 'lib'))
 
     # build specific
@@ -174,10 +174,6 @@ def compiler_setup(conf):
     conf.env.append_unique('CXXFLAGS', cflags)
     conf.env.append_unique('DEFINES', 'NDEBUG')
     conf.env.SUFFIX = ''
-
-    # pymod (same as release)
-    conf.setenv('pymod', env=conf.env.derive())
-    conf.env.append_unique('DEFINES', '_PYMOD_')
 
 def compiler_print_opts(conf):
     conf.start_msg('C flags:')

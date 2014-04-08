@@ -94,8 +94,8 @@ bool_t import_anim(const struct import_params* params)
         const struct aiAnimation* anim = scene->mAnimations[i];
         channel_cnt += anim->mNumChannels;
         for (uint k = 0; k < anim->mNumChannels; k++) {
-            frame_cnt = maxun(frame_cnt, maxun(anim->mChannels[k]->mNumPositionKeys,
-                maxun(anim->mChannels[k]->mNumRotationKeys, anim->mChannels[k]->mNumScalingKeys)));
+            frame_cnt = maxui(frame_cnt, maxui(anim->mChannels[k]->mNumPositionKeys,
+                maxui(anim->mChannels[k]->mNumRotationKeys, anim->mChannels[k]->mNumScalingKeys)));
         }
     }
 
@@ -308,8 +308,8 @@ struct h3d_anim_clip* import_loadclips(const char* json_filepath, uint frame_cnt
         json_t jclip = json_getarr_item(jclips, i);
 
         strcpy(clips[i].name, json_gets_child(jclip, "name", "[noname]"));
-        clips[i].start = minun(json_geti_child(jclip, "start", 0), frame_cnt-1);
-        clips[i].end = minun(json_geti_child(jclip, "end", frame_cnt), frame_cnt);
+        clips[i].start = minui(json_geti_child(jclip, "start", 0), frame_cnt-1);
+        clips[i].end = minui(json_geti_child(jclip, "end", frame_cnt), frame_cnt);
         clips[i].looped = json_getb_child(jclip, "looped", FALSE);
     }
 

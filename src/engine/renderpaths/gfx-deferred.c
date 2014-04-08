@@ -1428,7 +1428,7 @@ void deferred_renderlocallights(gfx_cmdqueue cmdqueue, const struct gfx_view_par
         gfx_shader_bindconstants(cmdqueue, shader);
 
         /* setup tile data */
-        int max_i = minn(g_deferred->tiles.cnt, i + DEFERRED_LIGHTS_TILES_MAX);
+        int max_i = mini(g_deferred->tiles.cnt, i + DEFERRED_LIGHTS_TILES_MAX);
         gfx_cb_setp(g_deferred->cb_light, SHADER_NAME(c_tiles), &g_deferred->tiles.light_lists[i],
             sizeof(struct deferred_shader_tile) * (max_i-i));
         gfx_shader_updatecblock(cmdqueue, g_deferred->cb_light);

@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "dhcore/core.h"
 #include "dhcore/task-mgr.h"
+#include "dhcore/hwinfo.h"
 
 #include "gfx.h"
 #include "gfx-device.h"
@@ -34,7 +35,6 @@
 #include "console.h"
 #include "gfx-occ.h"
 #include "gfx-billboard.h"
-#include "hwinfo.h"
 #include "res-mgr.h"
 #include "app.h"
 #include "world-mgr.h"
@@ -123,6 +123,8 @@ struct gfx_renderer
 
     reshandle_t tex_blank_black;
     bool_t preview_render;
+
+    struct gfx_device_info info;
 };
 
 /*************************************************************************************************
@@ -347,6 +349,32 @@ result_t gfx_init(const struct gfx_params* params)
 
     log_print(LOG_TEXT, "init gfx ...");
 	memcpy(&g_gfx.params, params, sizeof(struct gfx_params));
+
+    /* print info */
+    app_get_gfxinfo(&g_gfx.info);
+    const struct gfx_device_info* info = &g_gfx.info;
+    log_print(LOG_INFO, "  graphics:");
+    char ver[32];
+    switch (app_get_gfxver())        {
+        case GFX_HWVER_D3D10_0:     strcpy(ver, "d3d10.0");     break;
+        case GFX_HWVER_D3D10_1:     strcpy(ver, "d3d10.1");     break;
+        case GFX_HWVER_D3D11_0:     strcpy(ver, "d3d11.0");     break;
+        case GFX_HWVER_GL3_2:       strcpy(ver, "GL3.2");       break;
+        case GFX_HWVER_GL3_3:       strcpy(ver, "GL3.3");       break;
+        case GFX_HWVER_GL4_0:       strcpy(ver, "GL4.0");       break;
+        case GFX_HWVER_GL4_1:       strcpy(ver, "GL4.1");       break;
+        case GFX_HWVER_GL4_2:       strcpy(ver, "GL4.2");       break;
+        default:                    strcpy(ver, "unknown");     break;
+    }
+
+    log_printf(LOG_INFO, "\tdriver: %s", info->desc);
+    log_printf(LOG_INFO, "\tavailable video memory: %d(mb)",
+        info->mem_avail/1024);
+    log_printf(LOG_INFO, "\tgfx concurrent-creates: %s",
+        info->threading.concurrent_create ? "yes" : "no");
+    log_printf(LOG_INFO, "\tgfx concurrent-cmdqueues: %s",
+        info->threading.concurrent_cmdlist ? "yes" : "no");
+    log_printf(LOG_INFO, "\tgfx driver feature: %s", ver);       
 
 	/* initialize device and cmd-queue */
 	r = gfx_initdev(params);
@@ -605,7 +633,7 @@ void gfx_render()
 
     PRF_CLOSESAMPLE();
 
-    //gfx_blb_render(cmdqueue, &params);
+    gfx_blb_render(cmdqueue, &params);
 
     /* debug render */
     PRF_OPENSAMPLE("debug-render");
@@ -1216,7 +1244,7 @@ void gfx_renderpass_additem_transparent(struct scn_render_query* query, enum cmp
 	uint i = item_cnt - 1;
 
 	while (i > 0 && items[idxs[i-1]].z < items[idxs[i]].z)	{
-		swapun(&idxs[i-1], &idxs[i]);
+		swapui(&idxs[i-1], &idxs[i]);
 		i--;
 	}
 }

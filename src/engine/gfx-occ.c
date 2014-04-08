@@ -16,8 +16,10 @@
 #error "Non-SSE version is not implemented yet"
 #endif
 
-#include "dhcore/core.h"
 #include <stdio.h>
+
+#include "dhcore/core.h"
+#include "dhcore/hwinfo.h"
 
 #include "gfx.h"
 #include "gfx-types.h"
@@ -33,7 +35,6 @@
 #include "engine.h"
 #include "console.h"
 #include "debug-hud.h"
-#include "hwinfo.h"
 
 #define STEPX_SIZE 4
 #define STEPY_SIZE 1
@@ -123,12 +124,12 @@ INLINE float occ_calc_area(const struct vec3f* a, const struct vec3f* b, const s
 
 INLINE int min3(int n1, int n2, int n3)
 {
-    return minn(n1, minn(n2, n3));
+    return mini(n1, mini(n2, n3));
 }
 
 INLINE int max3(int n1, int n2, int n3)
 {
-    return maxn(n1, maxn(n2, n3));
+    return maxi(n1, maxi(n2, n3));
 }
 
 /*************************************************************************************************/
@@ -467,10 +468,10 @@ void occ_drawtri(const struct vec3f* v0, const struct vec3f* v1, const struct ve
     maxpt.x = (maxpt.x + align - 1) & ~(align - 1);
 
     /* clip (clamp box) */
-    minpt.x = maxn(minpt.x, 0);
-    minpt.y = maxn(minpt.y, 0);
-    maxpt.x = minn(maxpt.x, w-1);
-    maxpt.y = minn(maxpt.y, h-1);
+    minpt.x = maxi(minpt.x, 0);
+    minpt.y = maxi(minpt.y, 0);
+    maxpt.x = mini(maxpt.x, w-1);
+    maxpt.y = mini(maxpt.y, h-1);
 
     /* construct edge values */
     struct vec2i p;
@@ -746,10 +747,10 @@ float occ_testtri(const struct vec3f* v0, const struct vec3f* v1, const struct v
     maxpt.x = (maxpt.x + align - 1) & ~(align - 1);
 
     /* clip (clamp box) */
-    minpt.x = maxn(minpt.x, 0);
-    minpt.y = maxn(minpt.y, 0);
-    maxpt.x = minn(maxpt.x, w-1);
-    maxpt.y = minn(maxpt.y, h-1);
+    minpt.x = maxi(minpt.x, 0);
+    minpt.y = maxi(minpt.y, 0);
+    maxpt.x = mini(maxpt.x, w-1);
+    maxpt.y = mini(maxpt.y, h-1);
 
     /* construct edge values */
     struct vec2i p;
@@ -883,10 +884,10 @@ void occ_drawtri_amd(const struct vec3f* v0, const struct vec3f* v1, const struc
     maxpt.x = (maxpt.x + align - 1) & ~(align - 1);
 
     /* clip (clamp box) */
-    minpt.x = maxn(minpt.x, 0);
-    minpt.y = maxn(minpt.y, 0);
-    maxpt.x = minn(maxpt.x, w-1);
-    maxpt.y = minn(maxpt.y, h-1);
+    minpt.x = maxi(minpt.x, 0);
+    minpt.y = maxi(minpt.y, 0);
+    maxpt.x = mini(maxpt.x, w-1);
+    maxpt.y = mini(maxpt.y, h-1);
 
     /* construct edge values */
     struct vec2i p;
@@ -987,10 +988,10 @@ float occ_testtri_amd(const struct vec3f* v0, const struct vec3f* v1, const stru
     maxpt.x = (maxpt.x + align - 1) & ~(align - 1);
 
     /* clip (clamp box) */
-    minpt.x = maxn(minpt.x, 0);
-    minpt.y = maxn(minpt.y, 0);
-    maxpt.x = minn(maxpt.x, w-1);
-    maxpt.y = minn(maxpt.y, h-1);
+    minpt.x = maxi(minpt.x, 0);
+    minpt.y = maxi(minpt.y, 0);
+    maxpt.x = mini(maxpt.x, w-1);
+    maxpt.y = mini(maxpt.y, h-1);
 
     /* construct edge values */
     struct vec2i p;

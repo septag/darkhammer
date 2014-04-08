@@ -171,7 +171,7 @@ result_t cmp_attachment_modifydockslot(struct cmp_obj* obj, struct allocator* al
     if (att->dock_hdl == INVALID_HANDLE)
         return RET_FAIL;
 
-    att->dock_slot = clampun(att->dock_slot, 0, CMP_ATTACHDOCK_MAX-1);
+    att->dock_slot = clampui(att->dock_slot, 0, CMP_ATTACHDOCK_MAX-1);
 
     struct cmp_obj* target = scn_getobj(obj->scene_id, att->target_obj_id);
     cmphandle_t dock_hdl = target->attachdock_cmp;

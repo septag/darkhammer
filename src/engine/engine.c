@@ -23,10 +23,10 @@
 #include "dhcore/pak-file.h"
 #include "dhcore/freelist-alloc.h"
 #include "dhcore/task-mgr.h"
+#include "dhcore/hwinfo.h"
 
 #include "mem-ids.h"
 #include "gfx.h"
-#include "hwinfo.h"
 #include "dhcore/file-io.h"
 #include "dhcore/stack-alloc.h"
 #include "res-mgr.h"
@@ -152,7 +152,7 @@ result_t eng_init(const struct init_params* params)
 
     memcpy(&g_eng.params, params, sizeof(struct init_params));
 
-    hw_getinfo(&g_eng.hwinfo, HWINFO_CPU);
+    hw_getinfo(&g_eng.hwinfo, HWINFO_ALL);
 
     /* console (before anything else) */
     if (BIT_CHECK(params->flags, ENG_FLAG_CONSOLE))	{
@@ -196,6 +196,9 @@ result_t eng_init(const struct init_params* params)
     		"no-assert"
 #endif
             , asctime(localtime(&raw_tm)));
+
+    /* hardware info */
+    hw_printinfo(&g_eng.hwinfo, HWINFO_ALL);
 
     size_t tmp_sz = params->dev.buffsize_tmp;
     size_t data_sz = data_sz = params->dev.buffsize_data;
@@ -271,8 +274,7 @@ result_t eng_init(const struct init_params* params)
     }
 
     /* task manager */
-    hw_getinfo(&g_eng.hwinfo, HWINFO_CPU);
-    uint thread_cnt = maxun(g_eng.hwinfo.cpu_core_cnt - 1, 1);
+    uint thread_cnt = maxui(g_eng.hwinfo.cpu_core_cnt - 1, 1);
     r = tsk_initmgr(thread_cnt, 0, tmp_sz, 0);
     if (IS_FAIL(r)) {
         err_print(__FILE__, __LINE__, "engine init failed: could not init task-mgr");
@@ -374,10 +376,6 @@ result_t eng_init(const struct init_params* params)
     if (gfx_check_feature(GFX_FEATURE_THREADED_CREATES))
         rs_add_flags(RS_FLAG_BGLOADING);
     log_print(LOG_TEXT, "init ok: ready.");
-
-    /* hardware info */
-    hw_getinfo(&g_eng.hwinfo, HWINFO_ALL);
-    hw_printinfo(&g_eng.hwinfo, HWINFO_ALL);
 
     /* init world vars */
     eng_world_regvars();
@@ -753,7 +751,7 @@ result_t eng_console_lockfps(uint argc, const char** argv, void* param)
     if (argc != 1)
         return RET_INVALIDARG;
 
-    g_eng.fps_lock = clampun(str_toint32(argv[0]), 0, 1000);
+    g_eng.fps_lock = clampui(str_toint32(argv[0]), 0, 1000);
     return RET_OK;
 }
 

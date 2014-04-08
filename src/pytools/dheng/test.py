@@ -38,21 +38,30 @@ else:
 
     s = Scene('main')
     s.activate()
-    obj = s.create_object('main_cam', GameObjectType.CAMERA)
+    obj = s.create_object('main_cam', GameObject.Type.CAMERA)
 
     obj.add_behavior(OrbitCam(), 'cam')
     obj.camera.active = True
     obj.transform.position = Vec3(0, 5, 0)
     obj.get_behavior('cam').target = Vec3(0, 1, 0)
 
-    obj = s.create_object('ground', GameObjectType.MODEL)
+    obj = s.create_object('ground', GameObject.Type.MODEL)
     obj.model.filepath = 'plane.h3dm'
 
-    obj = s.create_object('soldier', GameObjectType.MODEL)
+    obj = s.create_object('soldier', GameObject.Type.MODEL)
     obj.model.filepath = 'soldier.h3dm'
     obj.add_component('animator')
     obj.animator.filepath = 'controller1.json'
     obj.add_behavior(SoldierCtrl(), 'soldier_ctrl')
+    obj.bounds.debug(True)
+
+    light = s.create_object('light', GameObject.Type.LIGHT)
+    light.transform.position = Vec3(1, 1, 1)
+    light.light.color = Color(1, 1, 0)
+
+    light = s.create_object('light2', GameObject.Type.LIGHT)
+    light.transform.position = Vec3(-1, 1, 1)
+    light.light.color = Color(1, 0, 0)
 
     Engine.run()
     s.destroy()

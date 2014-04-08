@@ -1,6 +1,6 @@
 #include "dhcore/core.h"
 #include "dhcore/task-mgr.h"
-#include "dheng/hwinfo.h"
+#include "dhcore/hwinfo.h"
 
 void task_run(void* params, void* result, uint thread_id, uint job_id, uint worker_idx)
 {
@@ -19,7 +19,7 @@ void test_taskmgr()
 
     //tsk_zero();
     log_printf(LOG_TEXT, "Intiating %d threads ...", info.cpu_core_cnt - 1);
-    tsk_initmgr(maxun(info.cpu_core_cnt - 1, 1), 0, 0, 0);
+    tsk_initmgr(maxui(info.cpu_core_cnt - 1, 1), 0, 0, 0);
 
     log_print(LOG_TEXT, "Dispatching tasks #1 ...");
     uint task_id = tsk_dispatch(task_run, TSK_CONTEXT_ALL_NO_MAIN, TSK_THREADS_ALL, NULL, NULL);

@@ -39,7 +39,7 @@ float randFloat(float min, float max)
 
 int randInt(int min, int max)
 {
-    return rand_getn(min, max);
+    return rand_geti(min, max);
 }
 
 

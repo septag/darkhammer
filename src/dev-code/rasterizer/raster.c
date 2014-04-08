@@ -18,12 +18,12 @@ struct raster_state g_rs;
 /* inlines */
 INLINE int min3(int n1, int n2, int n3)
 {
-    return minn(n1, minn(n2, n3));
+    return mini(n1, mini(n2, n3));
 }
 
 INLINE int max3(int n1, int n2, int n3)
 {
-    return maxn(n1, maxn(n2, n3));
+    return maxi(n1, maxi(n2, n3));
 }
 
 INLINE int orient2d(const struct vec2i* a, const struct vec2i* b, const struct vec2i* c)
@@ -67,8 +67,8 @@ void rs_setrendertarget(void* buffer, int width, int height)
     ASSERT(buffer);
 
     g_rs.buff = buffer;
-    g_rs.buff_width = maxn(width, 1);
-    g_rs.buff_height = maxn(height, 1);
+    g_rs.buff_width = maxi(width, 1);
+    g_rs.buff_height = maxi(height, 1);
 
     ASSERT(width % 4 == 0);
     ASSERT(height % 4 == 0);
@@ -91,10 +91,10 @@ void rs_drawtri2d_1(const struct vec2i* v0, const struct vec2i* v1, const struct
     maxpt.y = max3(v0->y, v1->y, v2->y);
 
     /* clip (clamp box) */
-    minpt.x = maxn(minpt.x, 0);
-    minpt.y = maxn(minpt.y, 0);
-    maxpt.x = minn(maxpt.x, w-1);
-    maxpt.y = minn(maxpt.y, h-1);
+    minpt.x = maxi(minpt.x, 0);
+    minpt.y = maxi(minpt.y, 0);
+    maxpt.x = mini(maxpt.x, w-1);
+    maxpt.y = mini(maxpt.y, h-1);
 
     struct vec2i p;
     for (p.y = minpt.y; p.y < maxpt.y; p.y++)   {
@@ -128,10 +128,10 @@ void rs_drawtri2d_2(const struct vec2i* v0, const struct vec2i* v1, const struct
     maxpt.y = max3(v0->y, v1->y, v2->y);
 
     /* clip (clamp box) */
-    minpt.x = maxn(minpt.x, 0);
-    minpt.y = maxn(minpt.y, 0);
-    maxpt.x = minn(maxpt.x, w-1);
-    maxpt.y = minn(maxpt.y, h-1);
+    minpt.x = maxi(minpt.x, 0);
+    minpt.y = maxi(minpt.y, 0);
+    maxpt.x = mini(maxpt.x, w-1);
+    maxpt.y = mini(maxpt.y, h-1);
 
     /* triangle setup */
     int A01 = v0->y - v1->y;
@@ -225,10 +225,10 @@ void rs_drawtri2d_3(const struct vec2i* v0, const struct vec2i* v1, const struct
      maxpt.x = (maxpt.x + align - 1) & ~(align - 1);
 
     /* clip (clamp box) */
-    minpt.x = maxn(minpt.x, 0);
-    minpt.y = maxn(minpt.y, 0);
-    maxpt.x = minn(maxpt.x, w-1);
-    maxpt.y = minn(maxpt.y, h-1);
+    minpt.x = maxi(minpt.x, 0);
+    minpt.y = maxi(minpt.y, 0);
+    maxpt.x = mini(maxpt.x, w-1);
+    maxpt.y = mini(maxpt.y, h-1);
 
     struct vec2i p;
     struct edge e01, e12, e20;
@@ -376,10 +376,10 @@ void rs_drawtri(const struct vec3f* v0, const struct vec3f* v1, const struct vec
     maxpt.x = (maxpt.x + align - 1) & ~(align - 1);
 
     /* clip (clamp box) */
-    minpt.x = maxn(minpt.x, 0);
-    minpt.y = maxn(minpt.y, 0);
-    maxpt.x = minn(maxpt.x, w-1);
-    maxpt.y = minn(maxpt.y, h-1);
+    minpt.x = maxi(minpt.x, 0);
+    minpt.y = maxi(minpt.y, 0);
+    maxpt.x = mini(maxpt.x, w-1);
+    maxpt.y = mini(maxpt.y, h-1);
 
     /* construct edge values */
     struct vec2i p;
@@ -477,10 +477,10 @@ float rs_testtri(const struct vec3f* v0, const struct vec3f* v1, const struct ve
     maxpt.x = (maxpt.x + align - 1) & ~(align - 1);
 
     /* clip (clamp box) */
-    minpt.x = maxn(minpt.x, 0);
-    minpt.y = maxn(minpt.y, 0);
-    maxpt.x = minn(maxpt.x, w-1);
-    maxpt.y = minn(maxpt.y, h-1);
+    minpt.x = maxi(minpt.x, 0);
+    minpt.y = maxi(minpt.y, 0);
+    maxpt.x = mini(maxpt.x, w-1);
+    maxpt.y = mini(maxpt.y, h-1);
 
     /* construct edge values */
     struct vec2i p;

@@ -39,7 +39,7 @@ INLINE void fill_buffer(void* buffer, size_t size)
     int* ibuf = (int*)buffer;
 
     for (uint i = 0; i < int_cnt; i++)    {
-        ibuf[i] = rand_getn(1, 100);
+        ibuf[i] = rand_geti(1, 100);
     }
 }
 

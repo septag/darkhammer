@@ -54,7 +54,7 @@ CORE_API bool_t rand_flipcoin(uint prob);
  * get a random value between two integer values , range = [min, max]
  * @ingroup num
  */
-CORE_API int rand_getn(int min, int max);
+CORE_API int rand_geti(int min, int max);
 
 /**
  * get a random value between two floating-point values, range = [min, max]
@@ -66,7 +66,7 @@ CORE_API float rand_getf(float min, float max);
  * powers an integer value (base) to n
  * @ingroup num
  */
-INLINE int pown(int base, int n)
+INLINE int powi(int base, int n)
 {
     if (n == 0)
         return 1;
@@ -92,7 +92,7 @@ INLINE float clampf(float value, float min_value, float max_value)
  * clamp input integer value to [min_value, max_value]
  * @ingroup num
  */
-INLINE int clampn(int value, int min_value, int max_value)
+INLINE int clampi(int value, int min_value, int max_value)
 {
     if (value < min_value)      return min_value;
     else if (value > max_value) return max_value;
@@ -103,7 +103,7 @@ INLINE int clampn(int value, int min_value, int max_value)
  * clamp input unsigned integer value to [min_value, max_value]
  * @ingroup num
  */
-INLINE uint clampun(uint value, uint min_value, uint max_value)
+INLINE uint clampui(uint value, uint min_value, uint max_value)
 {
     if (value < min_value)      return min_value;
     else if (value > max_value) return max_value;
@@ -134,7 +134,7 @@ INLINE float minf(float n1, float n2)
  * return minimum of two integer values
  * @ingroup num
  */
-INLINE int minn(int n1, int n2)
+INLINE int mini(int n1, int n2)
 {
     return (n1 < n2) ? n1 : n2;
 }
@@ -143,7 +143,7 @@ INLINE int minn(int n1, int n2)
  * return minimum of two unsigned integer values
  * @ingroup num
  */
-INLINE uint minun(uint n1, uint n2)
+INLINE uint minui(uint n1, uint n2)
 {
     return (n1 < n2) ? n1 : n2;
 }
@@ -161,7 +161,7 @@ INLINE float maxf(float n1, float n2)
  * return maximum of two integer values
  * @ingroup num
  */
-INLINE int maxn(int n1, int n2)
+INLINE int maxi(int n1, int n2)
 {
     return (n1 > n2) ? n1 : n2;
 }
@@ -170,7 +170,7 @@ INLINE int maxn(int n1, int n2)
  * return maximum of two unsigned integer values
  * @ingroup num
  */
-INLINE uint maxun(uint n1, uint n2)
+INLINE uint maxui(uint n1, uint n2)
 {
     return (n1 > n2) ? n1 : n2;
 }
@@ -190,7 +190,7 @@ INLINE void swapf(float* n1, float* n2)
  * swap two integer values with each other
  * @ingroup num
  */
-INLINE void swapn(int* n1, int* n2)
+INLINE void swapi(int* n1, int* n2)
 {
     register int tmp = *n1;
     *n1 = *n2;
@@ -201,7 +201,7 @@ INLINE void swapn(int* n1, int* n2)
  * swap two unsigned integer values with each other
  * @ingroup num
  */
-INLINE void swapun(uint* n1, uint* n2)
+INLINE void swapui(uint* n1, uint* n2)
 {
     register uint tmp = *n1;
     *n1 = *n2;

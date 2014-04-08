@@ -25,10 +25,10 @@ void rand_seed()
 
 bool_t rand_flipcoin(uint prob)
 {
-    return ((uint)rand_getn(0, 100) <= prob);
+    return ((uint)rand_geti(0, 100) <= prob);
 }
 
-int rand_getn(int min, int max)
+int rand_geti(int min, int max)
 {
     int r = rand();
     return ((r % (max-min+1)) + min);

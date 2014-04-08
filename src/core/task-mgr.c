@@ -266,7 +266,7 @@ uint tsk_dispatch(pfn_tsk_run run_fn, enum tsk_run_context ctx, uint thread_cnt,
 {
     /* look for available threads based on specified context mode */
     uint tsk_thread_cnt = g_tsk.thread_cnt;
-    thread_cnt = maxun(minun(thread_cnt, tsk_thread_cnt+1), 1);
+    thread_cnt = maxui(minui(thread_cnt, tsk_thread_cnt+1), 1);
     uint cnt = 0;
     uint* thread_idxs = g_tsk.thread_idxs;
 
@@ -304,7 +304,7 @@ uint tsk_dispatch(pfn_tsk_run run_fn, enum tsk_run_context ctx, uint thread_cnt,
 uint tsk_dispatch_exclusive(pfn_tsk_run run_fn, const uint* thread_idxs, uint thread_cnt,
                               void* params, void* result)
 {
-    thread_cnt = minun(thread_cnt, g_tsk.thread_cnt);
+    thread_cnt = minui(thread_cnt, g_tsk.thread_cnt);
     uint job_id = tsk_job_create(run_fn, params, result, thread_idxs, thread_cnt);
     if (job_id == 0)
         return 0;

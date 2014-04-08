@@ -218,7 +218,7 @@ void gfx_blb_render(gfx_cmdqueue cmdqueue, const struct gfx_view_params* params)
         uint sz;
 
         void* gverts = gfx_ringbuffer_map(cmdqueue, &g_blb.rbuff, &offset, &sz);
-        memcpy(gverts, g_blb.buff, minun(sz, idx*sizeof(struct blb_vertex)));
+        memcpy(gverts, g_blb.buff, minui(sz, idx*sizeof(struct blb_vertex)));
         gfx_ringbuffer_unmap(cmdqueue, &g_blb.rbuff, sz);
     }
 
@@ -238,7 +238,7 @@ void gfx_blb_render(gfx_cmdqueue cmdqueue, const struct gfx_view_params* params)
 
     struct mat3f mi;
     struct gfx_cblock* cb_frame = g_blb.cb_frame;
-    uint cnt = minun(BILLBOARDS_BUFF_SIZE, g_blb.blb_cnt);
+    uint cnt = minui(BILLBOARDS_BUFF_SIZE, g_blb.blb_cnt);
 
     mat3_setidentity(&mi);
     gfx_shader_set3m(shader, SHADER_NAME(c_world), &mi);

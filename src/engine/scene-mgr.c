@@ -207,7 +207,7 @@ INLINE struct scn_data* scene_get(uint scene_id)
 INLINE int scene_test_occ_addobj(INOUT struct cmp_obj** objs, uint* bound_idxs, uint idx,
     int vis_idx)
 {
-    swapun(&bound_idxs[vis_idx], &bound_idxs[idx]);
+    swapui(&bound_idxs[vis_idx], &bound_idxs[idx]);
     objs[vis_idx] = objs[idx];
     return vis_idx + 1;
 }
@@ -836,7 +836,7 @@ void scn_destroy_obj(struct cmp_obj* obj)
     struct cmp_obj** objs = (struct cmp_obj**)objarr->buffer;
     if (idx < (objarr->item_cnt-1))    {
         struct cmp_obj* last_obj = objs[objarr->item_cnt - 1];
-        swapun(&obj->id, &last_obj->id);
+        swapui(&obj->id, &last_obj->id);
         swapptr((void**)&objs[obj->id-1], (void**)&objs[last_obj->id-1]);
     }
 
@@ -1837,7 +1837,7 @@ void scene_grid_debug(struct scn_grid* grid, const struct camera* cam)
     uint screen_height = gfx_get_params()->height;
 
     float aspect = (float)grid->col_cnt / (float)grid->row_cnt;
-    uint width = maxun(screen_width/3, 128);
+    uint width = maxui(screen_width/3, 128);
     uint height = (uint)ceilf((float)width/aspect);
 
     struct rect2di rc;
@@ -1970,7 +1970,7 @@ struct color* scene_get_densitycolor(struct color* c, const struct linked_list* 
     float cmax = grid->cell_size*3.0f;
 
     /* resolve density color */
-    int d = minn((int)(cnt*765.0f/cmax), 765);
+    int d = mini((int)(cnt*765.0f/cmax), 765);
     return color_muls(c, &cs[d/255], ((float)(d % 256))/255.0f);
 }
 

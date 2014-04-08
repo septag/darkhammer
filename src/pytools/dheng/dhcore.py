@@ -325,7 +325,7 @@ class Vec4(Structure):
         return 'Vec4: %f, %f, %f, %f' % (self.x, self.y, self.z, self.w)
 
 
-class Color4(Structure):
+class Color(Structure):
     _fields_ = [('r', c_float), ('g', c_float), ('b', c_float), ('a', c_float)]
 
     def __init__(self, _r = 0, _g = 0, _b = 0, _a = 1):
@@ -338,18 +338,18 @@ class Color4(Structure):
         return Color(self.r, self.g, self.b, self.a)
 
     def __mul__(a, b):
-        return Color4(a.r*b, a.g*b, a.g*b, a.a)
+        return Color(a.r*b, a.g*b, a.g*b, a.a)
 
     def __mul__(a, b):
-        return Color4(a.r*b.r, a.g*b.g, a.g*b.b, min(a.a, b.a))
+        return Color(a.r*b.r, a.g*b.g, a.g*b.b, min(a.a, b.a))
 
     def __add__(a, b):
-        return Color4(a.r+b.r, a.g+b.g, a.b+b.b, max(a.a, b.a))
+        return Color(a.r+b.r, a.g+b.g, a.b+b.b, max(a.a, b.a))
 
     @staticmethod
     def lerp(c1, c2, t):
         tinv = 1 - t
-        return Color4(
+        return Color(
             c1.r*t + c2.r*tinv,
             c1.g*t + c2.g*tinv,
             c1.b*t + c2.b*tinv,

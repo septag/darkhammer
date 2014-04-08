@@ -908,7 +908,7 @@ INLINE result_t pfx_tonemap_creatert(struct gfx_pfx_tonemap* pfx, uint width, ui
     /* mipmapped luminance buffer */
     enum shading_quality sh_quality = gfx_get_params()->shading_quality;
     uint divider = sh_quality == SHADING_QUALITY_HIGH ? 3 : 4;
-    int lum_texsz = maxn(width/divider, height/divider);
+    int lum_texsz = maxi(width/divider, height/divider);
     pfx->lum_tex = gfx_create_texturert(lum_texsz, lum_texsz, GFX_FORMAT_R32_FLOAT, TRUE);
     if (pfx->lum_tex == NULL)
         return RET_FAIL;

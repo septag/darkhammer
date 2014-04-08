@@ -1167,7 +1167,7 @@ const struct vec2f* canvas_get_alignpos(struct vec2f* r,
         return vec2f_setf(r, (float)p0->x, (float)p0->y);
 
     r->y = BIT_CHECK(flags, GFX_TEXT_VERTICALALIGN) ?
-        (float)clampn(p0->y + (p1->y - p0->y)/2 - font->line_height/2, p0->y, p1->y) : (float)p0->y;
+        (float)clampi(p0->y + (p1->y - p0->y)/2 - font->line_height/2, p0->y, p1->y) : (float)p0->y;
 
     if (BIT_CHECK(flags, GFX_TEXT_CENTERALIGN))	{
         if (BIT_CHECK(flags, GFX_TEXT_RTL))
@@ -1386,7 +1386,7 @@ bool_t canvas_stream_rectborder(struct canvas_vertex2d* verts, uint quad_cnt,
     vec2f_setf(&pts[4], p0.x, p1.y);    vec2f_setv(&pts[5], &pts[3]);       /* edge #3 */
     vec2f_setv(&pts[6], &p0);           vec2f_setv(&pts[7], &pts[4]);       /* edge #4 */
 
-    uint num = minn(quad_cnt, 4);
+    uint num = mini(quad_cnt, 4);
     float d = (float)item->width * 0.5f;
 
     for (uint i = 0; i < num; i++)    {
@@ -1468,8 +1468,8 @@ gfx_buffer canvas_create_solidsphere(uint horz_seg_cnt, uint vert_seg_cnt)
 {
     /* in solid sphere we have horozontal segments and vertical segments
      * horizontal  */
-    uint horz_cnt = clampn(horz_seg_cnt, 4, 30);
-    uint vert_cnt = clampn(vert_seg_cnt, 3, 30);
+    uint horz_cnt = clampi(horz_seg_cnt, 4, 30);
+    uint vert_cnt = clampi(vert_seg_cnt, 3, 30);
     if (horz_cnt % 2 != 0)        horz_cnt ++;        /* horozontal must be even number */
     if (vert_cnt % 2 == 0)        vert_cnt ++;        /* vertical must be odd number */
 
@@ -1566,7 +1566,7 @@ gfx_buffer canvas_create_solidsphere(uint horz_seg_cnt, uint vert_seg_cnt)
 
 gfx_buffer canvas_create_boundsphere(uint seg_cnt)
 {
-    seg_cnt = clampn(seg_cnt, 4, 35);
+    seg_cnt = clampi(seg_cnt, 4, 35);
     const uint vertex_cnt = seg_cnt * 2;
 
     /* create buffer and fill it with data */
@@ -1745,8 +1745,8 @@ gfx_buffer canvas_create_capsule(uint horz_seg_cnt, uint vert_seg_cnt, uint* hal
 {
     /* in solid sphere we have horozontal segments and vertical segments */
     /* horizontal  */
-    uint horz_cnt = clampn(horz_seg_cnt, 4, 30);
-    uint vert_cnt = clampn(vert_seg_cnt, 3, 30);
+    uint horz_cnt = clampi(horz_seg_cnt, 4, 30);
+    uint vert_cnt = clampi(vert_seg_cnt, 3, 30);
     if (horz_cnt % 2 != 0)        horz_cnt ++;        /* horozontal must be even number */
     if (vert_cnt % 2 == 0)        vert_cnt ++;        /* vertical must be odd number */
 

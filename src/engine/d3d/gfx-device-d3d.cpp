@@ -36,7 +36,6 @@
 #include "gfx-cmdqueue.h"
 #include "mem-ids.h"
 #include "gfx.h"
-#include "hwinfo.h"
 #include "gfx-texture.h"
 #include "app.h"
 
@@ -513,7 +512,7 @@ gfx_sampler gfx_create_sampler(const struct gfx_sampler_desc* desc)
     d3d_desc.AddressV = (D3D11_TEXTURE_ADDRESS_MODE)(desc->address_v);
     d3d_desc.AddressW = (D3D11_TEXTURE_ADDRESS_MODE)(desc->address_w);
     d3d_desc.MipLODBias = 0.0f;
-    d3d_desc.MaxAnisotropy = clampun(desc->aniso_max, 1, 16);
+    d3d_desc.MaxAnisotropy = clampui(desc->aniso_max, 1, 16);
     d3d_desc.ComparisonFunc = (D3D11_COMPARISON_FUNC)(desc->cmp_func);
     d3d_desc.BorderColor[0] = desc->border_color[0];
     d3d_desc.BorderColor[1] = desc->border_color[1];
@@ -763,7 +762,7 @@ gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt, b
     bool_t is_depth = texture_is_depth(fmt);
     uint mipcnt = 1;
     if (has_mipmap) {
-        mipcnt = 1 + (uint)floorf(log10f((float)maxun(width, height))/log10f(2.0f));
+        mipcnt = 1 + (uint)floorf(log10f((float)maxui(width, height))/log10f(2.0f));
     }
 
     D3D11_TEXTURE2D_DESC d3d_desc;

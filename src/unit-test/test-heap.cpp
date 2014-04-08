@@ -27,7 +27,7 @@ void test_heap()
 
     log_printf(LOG_TEXT, "allocating %d items from heap...", item_cnt);
     for (uint i = 0; i < item_cnt; i++)    {
-        ptrs[i] = A_ALLOC(mem_heap(), rand_getn(16, 1024), 0);
+        ptrs[i] = A_ALLOC(mem_heap(), rand_geti(16, 1024), 0);
         ASSERT(ptrs[i]);
     }
 

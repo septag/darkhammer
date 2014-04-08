@@ -459,7 +459,7 @@ void cmp_destroy_instance(cmphandle_t hdl)
          */
         uint last_ridx = c->indexes[last_idx];
         struct cmp_instance_desc* last_instance = &c->instances[last_ridx];
-        swapun(&c->indexes[last_idx], &c->indexes[idx]);
+        swapui(&c->indexes[last_idx], &c->indexes[idx]);
 
         /* handle of the last instance, should be replaced with current handle
          * check and swap in debug list too */
@@ -830,7 +830,7 @@ result_t cmp_value_setsvp(cmphandle_t hdl, const char* name, uint cnt, const cha
     uint8* data = cmp_get_valuedata(hdl, name, &host, &mod_fn, &cval);
     if (data != NULL)   {
         ASSERT(cval->type == CMP_VALUE_STRINGARRAY);
-        cnt = minun(cval->elem_cnt, cnt);
+        cnt = minui(cval->elem_cnt, cnt);
         for (uint i = 0; i < cnt; i++)
             str_safecpy((char*)data + cval->offset + i*cval->stride, cval->stride, values[i]);
     }
