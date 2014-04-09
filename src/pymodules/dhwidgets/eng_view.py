@@ -31,7 +31,7 @@ class qEngineView(QtGui.QWidget):
     def set_cam(self, cam):
         name = str(self.winId().__hex__())
         dheng.app_set_rendertarget(name)
-        dheng.app_resize_window(name, self.width(), self.height())
+        dheng.app_window_resize(name, self.width(), self.height())
         if cam != None:
             dheng.wld_set_cam(cam)
             dheng.cam_set_viewsize(cam, self.width(), self.height())
@@ -48,7 +48,7 @@ class qEngineView(QtGui.QWidget):
     def resize(self):
         if not self.cam:
             return
-        dheng.app_resize_window(str(self.winId().__hex__()), self.width(), self.height())
+        dheng.app_window_resize(str(self.winId().__hex__()), self.width(), self.height())
         dheng.cam_set_viewsize(self.cam, self.width(), self.height())
 
     def keyPressEvent(self, e):

@@ -18,6 +18,8 @@
 #include "dhcore/task-mgr.h"
 #include "dhcore/hwinfo.h"
 
+#include "dhapp/app.h"
+
 #include "gfx.h"
 #include "gfx-device.h"
 #include "gfx-cmdqueue.h"
@@ -36,7 +38,6 @@
 #include "gfx-occ.h"
 #include "gfx-billboard.h"
 #include "res-mgr.h"
-#include "app.h"
 #include "world-mgr.h"
 
 #include "renderpaths/gfx-fwd.h"
@@ -243,106 +244,6 @@ void gfx_zero()
     g_gfx.tex_blank_black = INVALID_HANDLE;
 }
 
-void gfx_parseparams(struct gfx_params* params, json_t j)
-{
-    memset(params, 0x00, sizeof(struct gfx_params));
-
-    /* graphics */
-    json_t gfx = json_getitem(j, "gfx");
-    if (gfx != NULL)   {
-        if (json_getb_child(gfx, "fullscreen", FALSE))
-            BIT_ADD(params->flags, GFX_FLAG_FULLSCREEN);
-
-        if (json_getb_child(gfx, "vsync", FALSE))
-            BIT_ADD(params->flags, GFX_FLAG_VSYNC);
-
-        if (json_getb_child(gfx, "debug", FALSE))
-            BIT_ADD(params->flags, GFX_FLAG_DEBUG);
-
-        if (json_getb_child(gfx, "fxaa", FALSE))
-            BIT_ADD(params->flags, GFX_FLAG_FXAA);
-
-        if (json_getb_child(gfx, "rebuild-shaders", FALSE))
-            BIT_ADD(params->flags, GFX_FLAG_REBUILDSHADERS);
-
-        int msaa = json_geti_child(gfx, "msaa", 0);
-        switch (msaa)   {
-        case 2: params->msaa = MSAA_2X; break;
-        case 4: params->msaa = MSAA_4X; break;
-        case 8: params->msaa = MSAA_8X; break;
-        default: params->msaa = MSAA_NONE;  break;
-        }
-
-        const char* texq = json_gets_child(gfx, "texture-quality", "highest");
-        if (str_isequal_nocase(texq, "high"))
-        	params->tex_quality = TEXTURE_QUALITY_HIGH;
-        else if(str_isequal_nocase(texq, "normal"))
-        	params->tex_quality = TEXTURE_QUALITY_NORMAL;
-        else if(str_isequal_nocase(texq, "low"))
-        	params->tex_quality = TEXTURE_QUALITY_LOW;
-        else
-        	params->tex_quality = TEXTURE_QUALITY_HIGHEST;
-
-        const char* texf = json_gets_child(gfx, "texture-filter", "trilinear");
-        if (str_isequal_nocase(texf, "trilinear"))
-        	params->tex_filter = TEXTURE_FILTER_TRILINEAR;
-        else if(str_isequal_nocase(texf, "bilinear"))
-        	params->tex_filter = TEXTURE_FILTER_BILINEAR;
-        else if(str_isequal_nocase(texf, "aniso2x"))
-        	params->tex_filter = TEXTURE_FILTER_ANISO2X;
-        else if(str_isequal_nocase(texf, "aniso4x"))
-            params->tex_filter = TEXTURE_FILTER_ANISO4X;
-        else if(str_isequal_nocase(texf, "aniso8x"))
-        	params->tex_filter = TEXTURE_FILTER_ANISO8X;
-        else if(str_isequal_nocase(texf, "aniso16x"))
-        	params->tex_filter = TEXTURE_FILTER_ANISO16X;
-        else
-        	params->tex_filter = TEXTURE_FILTER_TRILINEAR;
-
-        const char* shq = json_gets_child(gfx, "shading-quality", "high");
-        if (str_isequal_nocase(shq, "normal"))
-        	params->shading_quality = SHADING_QUALITY_NORMAL;
-        else if(str_isequal_nocase(shq, "low"))
-        	params->shading_quality = SHADING_QUALITY_LOW;
-        else
-        	params->shading_quality = SHADING_QUALITY_HIGH;
-
-        const char* ver = json_gets_child(gfx, "hw-version", "");
-        if (str_isequal_nocase(ver, "d3d10"))
-        	params->hwver = GFX_HWVER_D3D10_0;
-        else if (str_isequal_nocase(ver, "d3d10.1"))
-        	params->hwver = GFX_HWVER_D3D10_1;
-        else if (str_isequal_nocase(ver, "d3d11"))
-        	params->hwver = GFX_HWVER_D3D11_0;
-        else if (str_isequal_nocase(ver, "d3d11.1"))
-            params->hwver = GFX_HWVER_D3D11_1;
-        else if (str_isequal_nocase(ver, "gl3.2"))
-        	params->hwver = GFX_HWVER_GL3_2;
-        else if (str_isequal_nocase(ver, "gl3.3"))
-        	params->hwver = GFX_HWVER_GL3_3;
-        else if (str_isequal_nocase(ver, "gl4.0"))
-            params->hwver = GFX_HWVER_GL4_0;
-        else if (str_isequal_nocase(ver, "gl4.1"))
-            params->hwver = GFX_HWVER_GL4_1;
-        else if (str_isequal_nocase(ver, "gl4.2"))
-        	params->hwver = GFX_HWVER_GL4_2;
-        else if (str_isequal_nocase(ver, "gl4.3"))
-            params->hwver = GFX_HWVER_GL4_3;
-        else if (str_isequal_nocase(ver, "gl4.4"))
-            params->hwver = GFX_HWVER_GL4_4;
-        else
-        	params->hwver = GFX_HWVER_UNKNOWN;
-
-        params->adapter_id = json_geti_child(gfx, "adapter-id", 0);
-        params->width = json_geti_child(gfx, "width", 1280);
-        params->height = json_geti_child(gfx, "height", 720);
-        params->refresh_rate = json_geti_child(gfx, "refresh-rate", 60);
-    }	else	{
-    	params->width = 1280;
-    	params->height = 720;
-    }
-}
-
 result_t gfx_init(const struct gfx_params* params)
 {
 	result_t r;
@@ -350,12 +251,19 @@ result_t gfx_init(const struct gfx_params* params)
     log_print(LOG_TEXT, "init gfx ...");
 	memcpy(&g_gfx.params, params, sizeof(struct gfx_params));
 
+	/* initialize device and cmd-queue */
+	r = gfx_initdev(params);
+	if (IS_FAIL(r))	{
+		err_print(__FILE__, __LINE__, "gfx-init failed: could not initilialize device");
+		return RET_FAIL;
+	}
+
     /* print info */
-    app_get_gfxinfo(&g_gfx.info);
+    gfx_get_devinfo(&g_gfx.info);
     const struct gfx_device_info* info = &g_gfx.info;
     log_print(LOG_INFO, "  graphics:");
     char ver[32];
-    switch (app_get_gfxver())        {
+    switch (gfx_get_hwver())        {
         case GFX_HWVER_D3D10_0:     strcpy(ver, "d3d10.0");     break;
         case GFX_HWVER_D3D10_1:     strcpy(ver, "d3d10.1");     break;
         case GFX_HWVER_D3D11_0:     strcpy(ver, "d3d11.0");     break;
@@ -376,12 +284,6 @@ result_t gfx_init(const struct gfx_params* params)
         info->threading.concurrent_cmdlist ? "yes" : "no");
     log_printf(LOG_INFO, "\tgfx driver feature: %s", ver);       
 
-	/* initialize device and cmd-queue */
-	r = gfx_initdev(params);
-	if (IS_FAIL(r))	{
-		err_print(__FILE__, __LINE__, "gfx-init failed: could not initilialize device");
-		return RET_FAIL;
-	}
 
     /* shader cache/manager */
     bool_t disable_cache = BIT_CHECK(params->flags, GFX_FLAG_DEBUG) &&
@@ -394,7 +296,7 @@ result_t gfx_init(const struct gfx_params* params)
     /* default cmdqueue */
     g_gfx.cmdqueue = gfx_create_cmdqueue();
 	if (g_gfx.cmdqueue == NULL ||
-        IS_FAIL(gfx_initcmdqueue(g_gfx.cmdqueue, app_get_mainctx())))
+        IS_FAIL(gfx_initcmdqueue(g_gfx.cmdqueue, app_gfx_getcontext())))
     {
 		err_print(__FILE__, __LINE__, "gfx-init failed: could not initilialize command-queue");
 		return RET_FAIL;
@@ -447,6 +349,7 @@ result_t gfx_init(const struct gfx_params* params)
         err_print(__FILE__, __LINE__, "gfx-init failed: could not create tonemap postfx");
         return RET_FAIL;
     }
+
     if (BIT_CHECK(params->flags, GFX_FLAG_FXAA))    {
         g_gfx.fxaa = gfx_pfx_fxaa_create(params->width, params->height);
         if (g_gfx.fxaa == NULL) {
@@ -675,6 +578,12 @@ void gfx_set_rtvsize(uint width, uint height)
 
     g_gfx.params.width = width;
     g_gfx.params.height = height;
+}
+
+void gfx_get_rtvsize(OUT uint* width, OUT uint* height)
+{
+    *width = g_gfx.params.width;
+    *height = g_gfx.params.height;
 }
 
 gfx_cmdqueue gfx_get_cmdqueue(uint id)
@@ -1384,8 +1293,11 @@ int gfx_hud_rendercullinfo(gfx_cmdqueue cmdqueue, int x, int y, int line_stride,
 
 void gfx_resize(uint width, uint height)
 {
+    gfx_set_rtvsize(width, height);
+
     if (g_gfx.params.width == width && g_gfx.params.height == height)
         return;
+    
     if (g_gfx.rpaths.item_cnt == 0)
         return;
 

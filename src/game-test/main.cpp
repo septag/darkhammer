@@ -18,19 +18,20 @@
  */
 
 #include <stdio.h>
-#include "dhcore/core.h"
-#include "dheng/app.h"
-#include "dheng/engine.h"
 
+#include "dhcore/core.h"
 #include "dhcore/pak-file.h"
 #include "dhcore/timer.h"
 #include "dhcore/vec-math.h"
 
+#include "dhapp/app.h"
+#include "dhapp/input.h"
+
+#include "dheng/engine.h"
 #include "dheng/camera.h"
 #include "dheng/scene-mgr.h"
 #include "dheng/script.h"
 #include "dheng/gfx-canvas.h"
-#include "dheng/input.h"
 #include "dheng/gfx.h"
 #include "dheng/world-mgr.h"
 #include "dheng/debug-hud.h"
@@ -135,7 +136,7 @@ void update_camera()
     struct vec2i mpos;
     input_mouse_getpos(&mpos);
 
-    if (app_isactive() && !hud_console_isactive())   {
+    if (app_window_isactive() && !hud_console_isactive())   {
         /* alter camera movement speed */
         if (input_kb_getkey(INPUT_KEY_LSHIFT, FALSE) || input_kb_getkey(INPUT_KEY_RSHIFT, FALSE))
             cam_fps_set_movespeed(&g_cam, 0.3f*5.0f);
@@ -151,7 +152,7 @@ void update_camera()
     prev_y = mpos.y;
 }
 
-void keypress_callback(const char* wnd_name, char c, uint vkey)
+void keypress_callback(char c, uint vkey)
 {
     eng_send_guimsgs(c, vkey);
 }
@@ -161,10 +162,11 @@ void update_callback()
     input_update();
     update_camera();
     eng_update();
+    app_window_swapbuffers();
 }
 
 /* pause/resume engine, on app activation/deactivation */
-void activate_callback(const char* wnd_name, bool_t active)
+void activate_callback(bool_t active)
 {
     if (active)
         eng_resume();
@@ -172,17 +174,19 @@ void activate_callback(const char* wnd_name, bool_t active)
         eng_pause();
 }
 
-void resize_callback(const char* wnd_name, uint width, uint height)
+void resize_callback(uint width, uint height)
 {
+    app_window_resize(width, height);
+    gfx_resize(width, height);
     cam_set_viewsize(&g_cam.c, (float)width, (float)height);
 }
 
-void mousedown_callback(const char* wnd_name, int x, int y, enum app_mouse_key key)
+void mousedown_callback(int x, int y, enum app_mouse_key key)
 {
     input_mouse_lockcursor(x, y);
 }
 
-void mouseup_callback(const char* wnd_name, int x, int y, enum app_mouse_key key)
+void mouseup_callback(int x, int y, enum app_mouse_key key)
 {
     input_mouse_unlockcursor();
 }
@@ -209,10 +213,10 @@ int main(int argc, char** argv)
      * --display-modes: enumerate all gpus and display modes, print them as json
      */
     if (argc > 1 && str_isequal_nocase(argv[1], "--display-modes")) {
-        char* json_modes = app_query_displaymodes();
+        char* json_modes = app_display_querymodes();
         if (json_modes != NULL) {
             puts(json_modes);
-            app_free_displaymodes(json_modes);
+            app_display_freemodes(json_modes);
         }   else    {
             puts("Error: could not enumerate modes");
         }
@@ -222,16 +226,16 @@ int main(int argc, char** argv)
 
     /* Initialize engine application framework, This is the first thing we should do */
     /* load config, and initialize application */
-    params = app_defaultconfig();
+    params = app_config_default();
     if (params == NULL)
         err_sendtolog(TRUE);
     params->flags |= (ENG_FLAG_DEBUG | ENG_FLAG_DEV | ENG_FLAG_CONSOLE);
-    params->gfx.flags |= (/*GFX_FLAG_DEBUG |*/ GFX_FLAG_FXAA);
-    app_config_add_consolecmd(params, "showfps");
-    app_config_add_consolecmd(params, "showft");
+    params->gfx.flags |= (GFX_FLAG_DEBUG | GFX_FLAG_FXAA);
+    app_config_addconsolecmd(params, "showfps");
+    app_config_addconsolecmd(params, "showft");
 
     /* note: application name will also, be the name of the main window */
-    r = app_init("darkHAMMER: test", params, 0);
+    r = app_init("darkHAMMER: test", params);
     if (IS_FAIL(r)) {
         puts(err_getstring());
         goto cleanup;
@@ -250,25 +254,25 @@ int main(int argc, char** argv)
     }
 
     /* set callbacks */
-    app_set_updatefunc(update_callback);
-    app_set_keypressfunc(keypress_callback);
-    app_set_activefunc(activate_callback);
-    app_set_mousedownfunc(mousedown_callback);
-    app_set_mouseupfunc(mouseup_callback);
+    app_window_setupdatefn(update_callback);
+    app_window_setkeypressfn(keypress_callback);
+    app_window_setactivefn(activate_callback);
+    app_window_setmousedownfn(mousedown_callback);
+    app_window_setmouseupfn(mouseup_callback);
     gfx_set_debug_renderfunc(debug_view_callback);
     //gfx_set_gridcallback();
 
     /* initialize ok: show the main window */
-    app_show_window(NULL);
+    app_window_show();
 
     /* enter message loop and update engine */
-    app_update();
+    app_window_run();
 
 cleanup:
     unload_props();
 
     if (params != NULL)
-        app_unload_config(params);
+        app_config_unload(params);
 
     /* message loop finished, release application */
     eng_release();

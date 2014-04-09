@@ -20,7 +20,7 @@
 #include "dhcore/prims.h"
 #include "dhcore/color.h"
 #include "engine-api.h"
-#include "init-params.h"
+#include "dhapp/init-params.h"
 
 _EXTERN_BEGIN_
 

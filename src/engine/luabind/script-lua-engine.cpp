@@ -27,7 +27,7 @@
 #include "phx-device.h"
 #include "phx.h"
 #include "res-mgr.h"
-#include "input.h"
+#include "dhapp/input.h"
 #include "engine.h"
 #include "world-mgr.h"
 

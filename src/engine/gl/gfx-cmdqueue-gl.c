@@ -16,7 +16,10 @@
 #if defined(_GL_)
 
 #include "GL/glew.h"
+ 
 #include "dhcore/core.h"
+
+#include "dhapp/app.h"
 
 #include "gfx-cmdqueue.h"
 #include "mem-ids.h"
@@ -24,7 +27,6 @@
 #include "gfx.h"
 #include "gfx-shader.h"
 #include "engine.h"
-#include "app.h"
 
 #define BUFFER_OFFSET(offset) ((uint8*)NULL + (offset))
 
@@ -492,7 +494,9 @@ void gfx_output_setrendertarget(gfx_cmdqueue cmdqueue, OPTIONAL gfx_rendertarget
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		glDrawBuffers(1, def_binding);
 
-		gfx_set_rtvsize(app_get_wndwidth(), app_get_wndheight());
+        uint width, height;
+        gfx_get_rtvsize(&width, &height);
+		gfx_set_rtvsize(width, height);
 	}
 
 	cmdqueue->stats.rtchange_cnt ++;
@@ -562,13 +566,7 @@ void gfx_cmdqueue_resetsrvs(gfx_cmdqueue cmdqueue)
 void gfx_output_clearrendertarget(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
     const float color[4], float depth, uint8 stencil, uint flags)
 {
-    if (rt == NULL) {
-        app_clear_rendertarget(color, depth, stencil, flags);
-        return;
-    }
-
-    if (rt->desc.rt.ds_texture != NULL &&
-        (BIT_CHECK(flags, GFX_CLEAR_DEPTH) || BIT_CHECK(flags, GFX_CLEAR_STENCIL)))
+    if (BIT_CHECK(flags, GFX_CLEAR_DEPTH) || BIT_CHECK(flags, GFX_CLEAR_STENCIL))
     {
         glClearDepth(depth);
         glClearStencil(stencil);

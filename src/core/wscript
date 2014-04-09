@@ -37,10 +37,10 @@ def build(bld):
     if bld.env.DFILEMON:
         libs.append('efsw')
         defines.append('_FILEMON_')
-    
+
     cflags = []
     if sys.platform == 'win32':
-        cflags = ['/TP']    
+        cflags.append('/TP')
         
     vnum = ''
     if sys.platform == 'linux':

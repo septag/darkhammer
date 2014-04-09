@@ -150,7 +150,7 @@ INLINE bool_t texture_is_depth(enum gfx_format fmt)
 INLINE const char* shader_get_target(enum gfx_shader_type type)
 {
     static char target[32];
-    enum gfx_hwver hwver = app_get_gfxver();
+    enum gfx_hwver hwver = gfx_get_hwver();
 
     switch (type)   {
     case GFX_SHADER_VERTEX:

@@ -28,15 +28,29 @@
 #define __APP_H__
 
 #include "dhcore/types.h"
-#include "engine-api.h"
+#include "app-api.h"
 #include "init-params.h"
 
 /* fwd */
 struct gfx_device_info;
 
-/* */
-typedef void* app_t;
-typedef void* wnd_t;
+/* platform dependent types */
+#if defined(_WIN_)
+#include "win.h"
+typedef HWND wnd_t;
+#elif defined(_LINUX_)
+#include "X11/Xlib.h"
+typedef Window wnd_t;
+#elif defined(_OSX_)
+  #if defined(__OBJC__)
+    #import <Cocoa/Cocoa.h>
+  #else
+    typedef void* id;
+  #endif
+typedef id wnd_t;
+#else
+  #error "specific window type is not implemented for this platform"
+#endif
 
 enum app_mouse_key
 {
@@ -50,35 +64,35 @@ enum app_mouse_key
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_create)(const char* wnd_name);
+typedef void (*pfn_app_create)();
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_destroy)(const char* wnd_name);
+typedef void (*pfn_app_destroy)();
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_resize)(const char* wnd_name, uint width, uint height);
+typedef void (*pfn_app_resize)(uint width, uint height);
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_active)(const char* wnd_name, bool_t active);
+typedef void (*pfn_app_active)(bool_t active);
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_keypress)(const char* wnd_name, char charcode, uint vkeycode);
+typedef void (*pfn_app_keypress)(char charcode, uint vkeycode);
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_mousedown)(const char* wnd_name, int x, int y, enum app_mouse_key key);
+typedef void (*pfn_app_mousedown)(int x, int y, enum app_mouse_key key);
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_mouseup)(const char* wnd_name, int x, int y, enum app_mouse_key key);
+typedef void (*pfn_app_mouseup)(int x, int y, enum app_mouse_key key);
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_mousemove)(const char* wnd_name, int x, int y);
+typedef void (*pfn_app_mousemove)(int x, int y);
 /**
  * @ingroup app
  */
@@ -89,56 +103,56 @@ typedef void (*pfn_app_update)();
  * Loads configurations from json file
  * @param cfg_jsonfile JSON configuration file
  * @return init_params structure, or NULL if error occured during json load
- * @see app_unload_config
+ * @see app_config_unload
  * @see init_params
  * @ingroup app
  */
-ENGINE_API struct init_params* app_load_config(const char* cfg_jsonfile);
+APP_API struct init_params* app_config_load(const char* cfg_jsonfile);
 
 /**
  * Loads default configuration, use this function to get a valid configuration structure and then
  * override the stuff you want.
  * @return A valid init_params structures
- * @see app_unload_config
+ * @see app_config_unload
  * @see init_params
  * @ingroup app
  */
-ENGINE_API struct init_params* app_defaultconfig();
+APP_API struct init_params* app_config_default();
 
 /**
  * Adds console command to config
  * @ingroup app
  */
-ENGINE_API void app_config_add_consolecmd(struct init_params* cfg, const char* cmd);
+APP_API void app_config_addconsolecmd(struct init_params* cfg, const char* cmd);
 
 /**
  * Unloads configuration structure from memory
  * @param cfg Valid configuration structure, must not be NULL
- * @see app_load_config
- * @see app_defaultconfig
+ * @see app_config_load
+ * @see app_config_default
  * @see init_params
  * @ingroup app
  */
-ENGINE_API void app_unload_config(struct init_params* cfg);
+APP_API void app_config_unload(struct init_params* cfg);
 
 /**
  * Receives JSON data string of supported display modes for the device\n
  * Applications can parse the json string and choose a proper resolution for app initialization
  * @return Null-terminated JSON string, consisting of all adapters and their display modes
- * @see app_free_displaymodes
- * @see app_load_config
- * @see app_defaultconfig
+ * @see app_display_freemodes
+ * @see app_config_load
+ * @see app_config_default
  * @see init_params
  * @ingroup app
  */
-ENGINE_API char* app_query_displaymodes();
+APP_API char* app_display_querymodes();
 
 /**
- * Frees json string returned by @e app_query_displaymodes
- * @see app_query_displaymodes
+ * Frees json string returned by @e app_display_querymodes
+ * @see app_display_querymodes
  * @ingroup app
  */
-ENGINE_API void app_free_displaymodes(char* dispmodes);
+APP_API void app_display_freemodes(char* dispmodes);
 
 /**
  * Initializes application and 3D device
@@ -149,15 +163,14 @@ ENGINE_API void app_free_displaymodes(char* dispmodes);
  * @see init_params
  * @ingroup app
  */
-ENGINE_API result_t app_init(const char* name, const struct init_params* params,
-    OPTIONAL wnd_t wnd_override);
+APP_API result_t app_init(const char* name, const struct init_params* params);
 
 /**
  * Releases the application and 3D device, must be called after engine is released
  * @see app_init
  * @ingroup app
  */
-ENGINE_API void app_release();
+APP_API void app_release();
 
 /**
  * Enters application's event loop and updates until exit signal is called.\n
@@ -165,139 +178,101 @@ ENGINE_API void app_release();
  * @see app_init
  * @ingroup app
  */
-ENGINE_API void app_update();
+APP_API void app_window_run();
 
 /**
  * Adjuts application window, to match the client size.\n
  * For example if you set 800x600, the client area of the window will be that exact size.
  * @ingroup app
  */
-ENGINE_API void app_readjust(uint client_width, uint client_height);
+APP_API void app_window_readjust(uint client_width, uint client_height);
 
 /**
  * Sets if application should always be active and running, no matter if it loses focus or not
  * @ingroup app
  */
-ENGINE_API void app_set_alwaysactive(bool_t active);
-
-/**
- * Changes render target of the application, render target for the application is the actual target
- * window that you want to render to. You can have multiple windows and draw to them different stuff.
- * @param wnd_name Name of the target window, set this parameter to NULL if you want to draw to the
- * main window created with @e app_init
- * @see app_add_rendertarget
- * @see app_init
- * @ingroup app
- */
-ENGINE_API void app_set_rendertarget(OPTIONAL const char* wnd_name);
+APP_API void app_window_alwaysactive(bool_t active);
 
 /**
  * Swaps render buffers and presents the render data to the window.\n
  * Use this function to manually present renders to your own custom windows.
  * @ingroup app
  */
-ENGINE_API void app_swapbuffers();
-
-/**
- * Clears render target (target window)
- * @ingroup app
- */
-ENGINE_API void app_clear_rendertarget(const float color[4], float depth, uint8 stencil, uint flags);
-
-/**
- * Adds a new render target to your. This function is useful for creating editor and tools, in which
- * you want to render to multiple views.
- * @param wnd_name Window name (alias), future calls to change targets, will require this name
- * @param wnd Valid window handle, This is an OS dependent value
- * @param width Width of the render-target in pixels
- * @param height Height of the render-target in pixels
- * @see app_set_rendertarget
- * @ingroup app
- */
-ENGINE_API result_t app_add_rendertarget(const char* wnd_name, OPTIONAL wnd_t wnd,
-                                         uint width, uint height);
-
-/**
- * Removes added render target (and it's window)
- * @param wnd_name Window name that used to create the render-target view
- * @see app_add_rendertarget
- * @ingroup app
- */
-ENGINE_API void app_remove_rendertarget(const char* wnd_name);
+APP_API void app_window_swapbuffers();
 
 /**
  * Returns TRUE if application has focus
  * @ingroup app
  */
-ENGINE_API bool_t app_isactive();
+APP_API bool_t app_window_isactive();
 
 /**
  * Returns applications main render-target width, in pixels
  * @ingroup app
  */
-ENGINE_API uint app_get_wndwidth();
+APP_API uint app_window_getwidth();
 
 /**
  * Returns applications main render-target height, in pixels
  * @ingroup app
  */
-ENGINE_API uint app_get_wndheight();
+APP_API uint app_window_getheight();
 
 /**
  * Sets @e create callback function. Triggers when application's window is created.\n
  * Doesn't work for overrided windows.
  * @ingroup app
  */
-ENGINE_API void app_set_createfunc(pfn_app_create fn);
+APP_API void app_window_setcreatefn(pfn_app_create fn);
 
 /**
  * Sets @e destroy callback function. Triggers when application's main window is destroyed.\n
  * Doesn't work for overrided windows.
  * @ingroup app
  */
-ENGINE_API void app_set_destroyfunc(pfn_app_destroy fn);
+APP_API void app_window_setdestroyfn(pfn_app_destroy fn);
 
 /**
  * Sets @e resize callback function. Triggers when application's main window is resized.\n
  * Doesn't work for overrided windows
  * @ingroup app
  */
-ENGINE_API void app_set_resizefunc(pfn_app_resize fn);
+APP_API void app_window_setresizefn(pfn_app_resize fn);
 
 /**
  * Sets @e active callback function, Triggers when application's main window loses or gains focus.\n
  * Doesn't work for overrided windows
  * @ingroup app
  */
-ENGINE_API void app_set_activefunc(pfn_app_active fn);
+APP_API void app_window_setactivefn(pfn_app_active fn);
 
 /**
  * Sets @e keypress callback function, Triggers when application's main window receives keyboard input
  * Doesn't work for overrided windows
  * @ingroup app
  */
-ENGINE_API void app_set_keypressfunc(pfn_app_keypress fn);
+APP_API void app_window_setkeypressfn(pfn_app_keypress fn);
 
 /**
  * Sets @e mouse key down callback function
  * Doesn't work for overrided windows
  * @ingroup app
  */
-ENGINE_API void app_set_mousedownfunc(pfn_app_mousedown fn);
+APP_API void app_window_setmousedownfn(pfn_app_mousedown fn);
 
 /**
  * Sets @e mouse key up function
  * Doesn't work for overrided windows
  * @ingroup app
  */
-ENGINE_API void app_set_mouseupfunc(pfn_app_mouseup fn);
+APP_API void app_window_setmouseupfn(pfn_app_mouseup fn);
 
 /**
  * Sets @e mouse move function
  * Doesn't work for overrided windows
  * @ingroup app
  */
-ENGINE_API void app_set_mousemovefunc(pfn_app_mousemove fn);
+APP_API void app_window_setmousemovefn(pfn_app_mousemove fn);
 
 /**
  * Sets @e update callback function, Triggers when application needs update during main event loop.\n
@@ -307,64 +282,43 @@ ENGINE_API void app_set_mousemovefunc(pfn_app_mousemove fn);
  * update function
  * @ingroup app
  */
-ENGINE_API void app_set_updatefunc(pfn_app_update fn);
-
-/**
- * Returns name string for graphics device and initialized driver
- * @ingroup app
- */
-ENGINE_API const char* app_get_gfxdriverstr();
-
-/**
- * Fetches GPU info
- * @see gfx_device_info
- * @ingroup app
- */
-ENGINE_API void app_get_gfxinfo(struct gfx_device_info* info);
-
-/**
- * Returns @e actual supported graphics hardware level
- * @see gfx_hwver
- * @ingroup app
- */
-ENGINE_API enum gfx_hwver app_get_gfxver();
+APP_API void app_window_setupdatefn(pfn_app_update fn);
 
 
-ENGINE_API void* app_get_mainwnd();
-ENGINE_API void* app_get_mainctx();
+APP_API wnd_t app_window_gethandle();
+APP_API void* app_gfx_getcontext();
 
 /**
  * Shows application window. \n
  * @param wnd_name Valid window name, set this parameter to NULL to show main window
  * @ingroup app
  */
-ENGINE_API void app_show_window(OPTIONAL const char* wnd_name);
+APP_API void app_window_show();
 
 /**
  * Hides application window. \n
  * @param wnd_name Valid window name, set this parameter to NULL to hide main window
  * @ingroup app
  */
-ENGINE_API void app_hide_window(OPTIONAL const char* wnd_name);
+APP_API void app_window_hide();
 
 /**
  * Returns application's name
  * @see app_init
  * @ingroup app
  */
-ENGINE_API const char* app_get_name();
+APP_API const char* app_getname();
 
 /**
  * Manually resizes the window and internal buffers.\n
  * This function should be used with applications that overrided windows. If app framework owns the
  * window, then you shouldn't call this as it is called internally by app's window event handlers.
- * @param name Name (alias) of the target window. Set this parameter to NULL if you want to resize the main window
  * @param width Width of the window client area, in pixels
  * @param height Height of the window client area, in pixels
  * @return RET_OK if process if successful, or RET_FAIL on error
  * @see app_init
  * @ingroup app
  */
-ENGINE_API result_t app_resize_window(OPTIONAL const char* name, uint width, uint height);
+APP_API result_t app_window_resize(uint width, uint height);
 
 #endif /* __APP_H__ */

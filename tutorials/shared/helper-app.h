@@ -16,7 +16,7 @@
 #ifndef __HELPERAPP_H__
 #define __HELPERAPP_H__
 
-#include "dheng/init-params.h"
+#include "dhapp/init-params.h"
 
 /**
  * Sets data directory to [tutorials]/data

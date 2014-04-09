@@ -12,7 +12,7 @@ top = "."
 out = "build"
 ROOTDIR = os.path.dirname(inspect.getfile(inspect.currentframe()))
 
-# setup variant builds (debug/release/retail/pymodule)
+# setup variant builds (debug/release)
 def init(ctx):
     from waflib.Build import BuildContext, CleanContext, InstallContext, UninstallContext
     for y in (BuildContext, CleanContext, InstallContext, UninstallContext):
@@ -301,6 +301,7 @@ def configure(conf):
     conf.env.IGNORE_TUTS = conf.options.IGNORE_TUTS
     conf.env.IGNORE_TOOLS = conf.options.IGNORE_TOOLS
     conf.env.IGNORE_TESTS = conf.options.IGNORE_TESTS
+    conf.env.DFILEMON = True
 
     conf.start_msg('Processor')
     conf.end_msg(conf.env.DEST_CPU)
@@ -320,6 +321,7 @@ def build(bld):
         os.environ['LD_LIBRARY_PATH'] = libdir
         delfiles = glob.glob(os.path.join(libdir, 'libdhcore' + bld.env.SUFFIX + '.*'))
         delfiles.extend(glob.glob(os.path.join(libdir, 'libdheng' + bld.env.SUFFIX + '.*')))
+        delfiles = glob.glob(os.path.join(libdir, 'libdhapp' + bld.env.SUFFIX + '.*'))
         for f in delfiles:
             os.remove(f)
 

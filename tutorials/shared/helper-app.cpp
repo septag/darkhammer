@@ -16,7 +16,8 @@
 #include "dhcore/core.h"
 #include "dhcore/file-io.h"
 
-#include "dheng/app.h"
+#include "dhapp/app.h"
+
 #include "dheng/engine.h"
 
 #include "helper-app.h"
@@ -46,10 +47,10 @@ init_params* load_config(const char* cfg_filename)
     char datadir[DH_PATH_MAX];
     path_join(datadir, util_getexedir(datadir), "data", cfg_filename, NULL);
 
-    init_params* params = app_load_config(cfg_filename);
+    init_params* params = app_config_load(cfg_filename);
     if (params == NULL) {
         err_sendtolog(TRUE);
-        return app_defaultconfig();
+        return app_config_default();
     }
     return params;
 }

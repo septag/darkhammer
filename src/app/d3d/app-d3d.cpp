@@ -160,7 +160,7 @@ static LRESULT CALLBACK msg_callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
             uint height = HIWORD(lparam);
             ASSERT(width != 0);
             ASSERT(height != 0);
-            app_resize_window(app_get_wndname(hwnd), width, height);
+            app_window_resize(app_get_wndname(hwnd), width, height);
             if (g_app->resize_fn != NULL)
                 g_app->resize_fn(app_get_wndname(hwnd), width, height);
         }
@@ -230,7 +230,7 @@ static LRESULT CALLBACK msg_callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
     return 0;
 }
 
-result_t app_init(const char* name, const struct init_params* params, OPTIONAL wnd_t wnd_override)
+result_t app_init(const char* name, const struct init_params* params)
 {
     ASSERT(g_app == NULL);
     if (g_app != NULL)  {
@@ -386,7 +386,7 @@ void app_release()
     g_app = NULL;
 }
 
-void app_update()
+void app_window_run()
 {
     ASSERT(g_app);
     struct app_win* wapp = g_app;
@@ -423,7 +423,7 @@ void app_update()
     }
 }
 
-void app_readjust(uint client_width, uint client_height)
+void app_window_readjust(uint client_width, uint client_height)
 {
     ASSERT(g_app);
 
@@ -447,71 +447,71 @@ void app_readjust(uint client_width, uint client_height)
 }
 
 
-void app_set_alwaysactive(bool_t active)
+void app_window_alwaysactive(bool_t active)
 {
     g_app->always_active = active;
 }
 
 
-uint app_get_wndwidth()
+uint app_window_getwidth()
 {
     return g_app->width;
 }
 
-uint app_get_wndheight()
+uint app_window_getheight()
 {
     return g_app->height;
 }
 
-void app_set_createfunc(pfn_app_create fn)
+void app_window_setcreatefn(pfn_app_create fn)
 {
     ASSERT(g_app);
     g_app->create_fn = fn;
 }
 
-void app_set_destroyfunc(pfn_app_destroy fn)
+void app_window_setdestroyfn(pfn_app_destroy fn)
 {
     ASSERT(g_app);
     g_app->destroy_fn = fn;
 }
 
-void app_set_resizefunc(pfn_app_resize fn)
+void app_window_setresizefn(pfn_app_resize fn)
 {
     ASSERT(g_app);
     g_app->resize_fn = fn;
 }
 
-void app_set_activefunc(pfn_app_active fn)
+void app_window_setactivefn(pfn_app_active fn)
 {
     ASSERT(g_app);
     g_app->active_fn = fn;
 }
 
-void app_set_keypressfunc(pfn_app_keypress fn)
+void app_window_setkeypressfn(pfn_app_keypress fn)
 {
     ASSERT(g_app);
     g_app->keypress_fn = fn;
 }
 
-void app_set_updatefunc(pfn_app_update fn)
+void app_window_setupdatefn(pfn_app_update fn)
 {
     ASSERT(g_app);
     g_app->update_fn = fn;
 }
 
-void app_set_mousedownfunc(pfn_app_mousedown fn)
+void app_window_setmousedownfn(pfn_app_mousedown fn)
 {
     ASSERT(g_app);
     g_app->mousedown_fn = fn;
 }
 
-void app_set_mouseupfunc(pfn_app_mouseup fn)
+void app_window_setmouseupfn(pfn_app_mouseup fn)
 {
     ASSERT(g_app);
     g_app->mouseup_fn = fn;
 }
 
-void app_set_mousemovefunc(pfn_app_mousemove fn)
+void app_window_setmousemovefn(pfn_app_mousemove fn)
 {
     ASSERT(g_app);
     g_app->mousemove_fn = fn;
@@ -784,7 +784,7 @@ void app_remove_swapchain(const char* name)
 
 }
 
-result_t app_resize_window(OPTIONAL const char* name, uint width, uint height)
+result_t app_window_resize(OPTIONAL const char* name, uint width, uint height)
 {
     ASSERT(g_app);
     struct app_win* app = g_app;
@@ -906,7 +906,7 @@ void app_set_rendertarget(OPTIONAL const char* wnd_name)
     }
 }
 
-void app_swapbuffers()
+void app_window_swapbuffers()
 {
     ASSERT(g_app);
     struct app_win* app = g_app;
@@ -915,7 +915,7 @@ void app_swapbuffers()
     app->render_target->sc->Present(app->render_target->vsync ? 1 : 0, 0);
 }
 
-const char* app_get_gfxdriverstr()
+const char* gfx_get_driverstr()
 {
     static char info[256];
 
@@ -945,7 +945,7 @@ const char* app_get_gfxdriverstr()
     return info;
 }
 
-void app_get_gfxinfo(struct gfx_device_info* info)
+void gfx_get_devinfo(struct gfx_device_info* info)
 {
     struct app_win* app = g_app;
 
@@ -977,14 +977,14 @@ void app_get_gfxinfo(struct gfx_device_info* info)
     info->threading.concurrent_create = d3d_thr.DriverConcurrentCreates;
 }
 
-enum gfx_hwver app_get_gfxver()
+enum gfx_hwver gfx_get_hwver()
 {
     ASSERT(g_app);
 
     return g_app->d3dver;
 }
 
-void* app_get_mainctx()
+void* app_gfx_getcontext()
 {
     ASSERT(g_app);
     return (void*)g_app->main_ctx;
@@ -1012,7 +1012,7 @@ ID3D11Device* app_d3d_getdev()
     return g_app->dev;
 }
 
-void app_show_window(OPTIONAL const char* wnd_name)
+void app_window_show(OPTIONAL const char* wnd_name)
 {
     struct app_swapchain* sc = wnd_name != NULL ? app_find_swapchain(wnd_name) :
         g_app->render_target;
@@ -1020,7 +1020,7 @@ void app_show_window(OPTIONAL const char* wnd_name)
         ShowWindow(sc->hwnd, SW_SHOW);
 }
 
-void app_hide_window(OPTIONAL const char* wnd_name)
+void app_window_hide(OPTIONAL const char* wnd_name)
 {
     struct app_swapchain* sc = wnd_name != NULL ? app_find_swapchain(wnd_name) :
         g_app->render_target;
@@ -1028,22 +1028,22 @@ void app_hide_window(OPTIONAL const char* wnd_name)
         ShowWindow(sc->hwnd, SW_HIDE);
 }
 
-const char* app_get_name()
+const char* app_getname()
 {
     return g_app->name;
 }
 
-bool_t app_isactive()
+bool_t app_window_isactive()
 {
     return g_app->active;
 }
 
-_EXTERN_ void* app_get_mainwnd()
+_EXTERN_ void* app_window_gethandle()
 {
     return g_app->hwnd;
 }
 
-void app_clear_rendertarget(const float color[4], float depth, uint8 stencil, uint flags)
+void app_window_clear(const float color[4], float depth, uint8 stencil, uint flags)
 {
     ASSERT(g_app);
     struct app_win* app = g_app;
@@ -1057,7 +1057,7 @@ void app_clear_rendertarget(const float color[4], float depth, uint8 stencil, ui
         app->main_ctx->ClearRenderTargetView(sc->rtv, color);
 }
 
-char* app_query_displaymodes()
+char* app_display_querymodes()
 {
     IDXGIFactory* factory;
     if (FAILED(CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory)))
@@ -1135,7 +1135,7 @@ char* app_query_displaymodes()
     return r;
 }
 
-void app_free_displaymodes(char* dispmodes)
+void app_display_freemodes(char* dispmodes)
 {
     ASSERT(dispmodes);
     json_deletebuffer(dispmodes);

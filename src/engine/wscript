@@ -31,7 +31,7 @@ def build(bld):
             'PhysX3Vehicle',
             'PhysX3Cooking',
             'RepX3'])
-    else:
+    elif sys.platform == 'win32':
         rel_suffix = ''
         if '_DEBUG_' in bld.env.DEFINES:    rel_suffix = 'DEBUG'
         if bld.env.DEST_CPU == 'amd64' or bld.env.DEST_CPU == 'x86_64':  arch_suffix = '_x64'
@@ -44,24 +44,21 @@ def build(bld):
             'PhysXProfileSDK' + rel_suffix])
 
     if sys.platform == 'win32':
-        files.extend(bld.path.ant_glob('platform/win/*.c', excl='platform/win/input-win.c'))
         linkflags.extend(['/NODEFAULTLIB:"LIBCMTD.LIB"', '/NODEFAULTLIB:"LIBCMT.LIB"'])
-    elif sys.platform == 'linux':
-        files.extend(bld.path.ant_glob('platform/linux/*.c'))
     elif sys.platform == 'darwin':
-        files.extend(bld.path.ant_glob('platform/osx/*.c'))
         frameworks.extend(['Cocoa', 'CoreFoundation', 'CoreVideo', 'IOKit', 'OpenGL'])
 
     if bld.env.GFX_API == 'D3D':
         files.extend(bld.path.ant_glob('d3d/*.c*'))
         if bld.env.DX_LIBPATH != '':        libpath.append(bld.env.DX_LIBPATH)
         if bld.env.DX_INCLUDES != '':       includes.append(bld.env.DX_INCLUDES)
-        libs.extend(['d3dcompiler', 'dxguid', 'd3d11', 'dxgi'])
+        libs.extend(['d3dcompiler', 'dxguid', 'd3d11'])
         files.append('platform/win/input-win.c')
     elif bld.env.GFX_API == 'GL':
         files.extend(bld.path.ant_glob('gl/*.c'))
         if sys.platform == 'linux':            libs.append('GL')
         elif sys.platform == 'win32':          libs.append('OpenGL32')
+        libs.append('GLEW')
 
     includes.extend([\
         os.path.join(bld.env.ROOTDIR, 'build'),
@@ -71,15 +68,14 @@ def build(bld):
 
     libpath.append(bld.env.PHYSX_LIBPATH)
     
-    # 3rdparty
-    libs.extend(['GLEW', 'lua', 'glfwext'])
+    # other 3rdparty
+    libs.append('lua')
 
     # default target name and install path
     cflags = []
     if sys.platform == 'win32':
-        cflags = ['/TP']        
+        cflags.append('/TP')
 
-    # pymod variant
     vnum = ''
     if sys.platform == 'linux':
         vnum = bld.env.VERSION
@@ -105,5 +101,5 @@ def build(bld):
         framework = frameworks,
         linkflags = linkflags,
         vnum = vnum,
-        use = ['dhcore', '3rdparty_mongoose'])
+        use = ['dhcore', 'dhapp', '3rdparty_mongoose'])
 

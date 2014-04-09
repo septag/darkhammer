@@ -1,5 +1,6 @@
 import sys
 from dhcore import *
+from dhapp import *
 from dheng import *
 import dhlog
 
@@ -23,15 +24,29 @@ class SoldierCtrl(Behavior):
         except:
             pass
 
+class Events(AppEvents):
+    def on_update(self):
+        Engine.update()
+        App.swapbuffers()
+
+    def on_keypress(self, ch, vkey):
+        Engine.send_keys(ch, vkey)
+
+    def on_resize(self, width, height):
+        super().on_resize(width, height)
+        Engine.resize_view(width, height)
+
 Core.init()
 Log().console_output = True
 conf = Config()
 conf.engine_flags |= EngFlags.DEV | EngFlags.CONSOLE
 
 try:
-    Engine.init('test', conf)
-except:
-    dhlog.Log.fatal(Errors.last_error())
+    App.init('test', conf)
+    Engine.init(conf)
+    App.set_events(Events())
+except Exception as e:
+    dhlog.Log.fatal(str(e))
 else:
     testdata_path = os.path.join(Engine.get_share_dir(), 'test-data')
     FileIO.add_virtual_path(testdata_path)
@@ -63,9 +78,10 @@ else:
     light.transform.position = Vec3(-1, 1, 1)
     light.light.color = Color(1, 0, 0)
 
-    Engine.run()
+    App.run()
     s.destroy()
 
-Engine.release()
 del conf
+Engine.release()
+App.release()
 Core.release()

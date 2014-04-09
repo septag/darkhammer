@@ -28,7 +28,7 @@
 #include "dhcore/types.h"
 #include "engine-api.h"
 #include "dhcore/allocator.h"
-#include "init-params.h"
+#include "dhapp/init-params.h"
 
 /* fwd */
 struct file_mgr;
@@ -53,8 +53,6 @@ struct eng_mem_stats
     size_t tmp0_max;    /* maximum memory allocated by main temp allocator */
     uint tmp0_max_frameid;
 };
-
-void eng_zero();
 
 /**
  * Initializes the engine using init parameters\n

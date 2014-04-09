@@ -24,7 +24,6 @@
 
 #include "mem-ids.h"
 #include "engine.h"
-#include "app.h"
 
 #include "gfx-shader.h"
 #include "gfx-device.h"
@@ -228,7 +227,7 @@ result_t gfx_shader_initmgr(bool_t disable_cache)
 	}
 
     /* save driver version string hash */
-    const char* driver_info = app_get_gfxdriverstr();
+    const char* driver_info = gfx_get_driverstr();
     g_shader_mgr.cur_driver_hash = hash_str(driver_info);
 
     if (!disable_cache)	{

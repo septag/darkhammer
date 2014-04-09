@@ -76,12 +76,12 @@ initialization parameters.
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-init_params* params = app_defaultconfig();
+init_params* params = app_config_default();
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Creates default parameters, After this you can add your own custom parameters
 and pass it to app and engine for initialization. You can also use json files
-for loading config by using `app_load_config` function.
+for loading config by using `app_config_load` function.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 params->flags |= ENG_FLAG_CONSOLE | ENG_FLAG_DEV;
@@ -111,9 +111,9 @@ initialization should come before engine init, because graphics device (GL/D3D)
 and main rendering window will be created by *app*.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-app_init(APP_NAME, params, NULL)
+app_init(APP_NAME, params)
 eng_init(params)
-app_unload_config(params)
+app_config_unload(params)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After successful initialization of the engine, we can free *init_params* and
@@ -152,9 +152,9 @@ To receive events from window system and update the frame, we have to define
 callback functions and set them by *app_set_XXXXfunc* functions.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-app_set_updatefunc(update_callback);
-app_set_keypressfunc(keypress_callback);
-app_set_activefunc(activate_callback);
+app_window_setupdatefn(update_callback);
+app_window_setkeypressfn(keypress_callback);
+app_window_setactivefn(activate_callback);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   *Update* callback is called on every frame in event loop. In update loop we
@@ -248,10 +248,10 @@ We set the update callback earlier, so in order to initiate the event loop and
 run the engine, we have to run the following function:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-app_update();
+app_window_run();
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*app_update* runs the even loop of the window and calls our own update callback
+*app_window_run* runs the even loop of the window and calls our own update callback
 on every frame. In update callback (*update_callback* function), first we update
 the input system, and camera, then call the engine's *eng_update* function to
 process and render the frame.

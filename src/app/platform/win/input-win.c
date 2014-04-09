@@ -18,7 +18,7 @@
 #include "dhcore/core.h"
 #include "dhcore/win.h"
 #include "win-keycodes.h"
-#include "input.h"
+#include "dhapp/input.h"
 
 void input_make_keymap_platform(uint keymap[INPUT_KEY_CNT])
 {

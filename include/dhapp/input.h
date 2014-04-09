@@ -22,7 +22,7 @@
 
 #include "dhcore/types.h"
 #include "dhcore/vec-math.h"
-#include "engine-api.h"
+#include "app-api.h"
 
 /**
  * mouse key enumerator
@@ -153,14 +153,14 @@ enum input_key	{
  * @see eng_update
  * @ingroup input
  */
-ENGINE_API void input_update();
+APP_API void input_update();
 
 /**
  * Returns mouse position relative to client area of window
  * @ingroup input
  * @see input_update
  */
-ENGINE_API struct vec2i* input_mouse_getpos(struct vec2i* pos);
+APP_API struct vec2i* input_mouse_getpos(struct vec2i* pos);
 
 /**
  * Checks if specified mouse key is pressed
@@ -170,7 +170,7 @@ ENGINE_API struct vec2i* input_mouse_getpos(struct vec2i* pos);
  * @see input_mouse_key
  * @see input_update
  */
-ENGINE_API bool_t input_mouse_getkey(enum input_mouse_key mkey, bool_t once);
+APP_API bool_t input_mouse_getkey(enum input_mouse_key mkey, bool_t once);
 
 /**
  * Receives keyboard hit state
@@ -178,7 +178,7 @@ ENGINE_API bool_t input_mouse_getkey(enum input_mouse_key mkey, bool_t once);
  * @return TRUE if specified key in `keycode` parameter is pressed
  * @ingroup input
  */
-ENGINE_API bool_t input_kb_getkey(enum input_key key, bool_t once);
+APP_API bool_t input_kb_getkey(enum input_key key, bool_t once);
 
 /**
  * Translates os-dependant keycode to familiat engine key enum
@@ -186,7 +186,7 @@ ENGINE_API bool_t input_kb_getkey(enum input_key key, bool_t once);
  * @return Engine's own key enumerator
  * @ingroup input
  */
-ENGINE_API enum input_key input_kb_translatekey(uint vkey);
+APP_API enum input_key input_kb_translatekey(uint vkey);
 
 /**
  * Smooths mouse movement (x, y)
@@ -200,54 +200,54 @@ ENGINE_API enum input_key input_kb_translatekey(uint vkey);
  * @param dt Delta-time from the last @e input_mouse_smooth call, in seconds
  * @ingroup input
  */
-ENGINE_API void input_mouse_smooth(INOUT float* rx, INOUT float* ry, float real_x, float real_y,
+APP_API void input_mouse_smooth(INOUT float* rx, INOUT float* ry, float real_x, float real_y,
                                    float springiness, float dt);
 
 /**
  * Locks mouse cursor position to specified X, Y position
  * @ingroup input
  */
-ENGINE_API void input_mouse_lockcursor(int x, int y);
+APP_API void input_mouse_lockcursor(int x, int y);
 
 /**
  * Unlocks mouse cursor
  * @ingroup input
  */
-ENGINE_API void input_mouse_unlockcursor();
+APP_API void input_mouse_unlockcursor();
 
 /**
  * @see input_get_kbhit
  * @ingroup input
  */
-ENGINE_API void input_kb_lockkey(enum input_key key, bool_t pressed);
+APP_API void input_kb_lockkey(enum input_key key, bool_t pressed);
 
 /**
  * @see input_get_kbhit
  * @ingroup input
  */
-ENGINE_API void input_kb_unlockkey(enum input_key key);
+APP_API void input_kb_unlockkey(enum input_key key);
 
 /**
  * @ingroup input
  */
-ENGINE_API void input_kb_resetlocks();
-
-/**
- * @see input_get_mouse
- * @ingroup input
- */
-ENGINE_API void input_mouse_lockkey(enum input_mouse_key key, bool_t pressed);
+APP_API void input_kb_resetlocks();
 
 /**
  * @see input_get_mouse
  * @ingroup input
  */
-ENGINE_API void input_mouse_unlockkey(enum input_mouse_key key);
+APP_API void input_mouse_lockkey(enum input_mouse_key key, bool_t pressed);
+
+/**
+ * @see input_get_mouse
+ * @ingroup input
+ */
+APP_API void input_mouse_unlockkey(enum input_mouse_key key);
 
 /**
  * @ingroup input
  */
-ENGINE_API void input_mouse_resetlocks();
+APP_API void input_mouse_resetlocks();
 
 /* internal */
 void input_zero();

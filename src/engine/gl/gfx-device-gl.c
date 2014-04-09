@@ -32,7 +32,6 @@
 #include "mem-ids.h"
 #include "gfx.h"
 #include "gfx-texture.h"
-#include "app.h"
 
 #ifndef APIENTRY
 #define APIENTRY
@@ -41,6 +40,17 @@
 #ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
 #endif
+
+/* amd info */
+#define VBO_FREE_MEMORY_ATI 0x87FB
+#define TEXTURE_FREE_MEMORY_ATI 0x87FC
+#define RENDERBUFFER_FREE_MEMORY_ATI 0x87FD
+#define TOTAL_PHYSICAL_MEMORY_ATI 0x87FE
+
+/* nvidia info */
+#define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX 0x9047
+#define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX 0x9048
+#define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX 0x9049 
 
 /*************************************************************************************************
  * Types
@@ -114,12 +124,14 @@ struct gfx_device
     mt_event objcreate_event;
     struct array objcreate_signals; /* item: gfx_dev_delayed_signal */
     bool_t release_delayed;
+
+    enum gfx_hwver ver;
 };
 
 /*************************************************************************************************
  * Globals
  */
-struct gfx_device g_dev;
+static struct gfx_device g_gfxdev;
 
 /*************************************************************************************************
  * Fwd declarations
@@ -150,12 +162,18 @@ void gfx_delayed_releaseitem(struct gfx_dev_delayed_item* citem);
 struct gfx_dev_delayed_signal* gfx_delayed_getsignal(uint thread_id);
 struct gfx_dev_delayed_signal* gfx_delayed_createsignal(uint thread_id);
 
+void APIENTRY gfx_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
+    GLsizei length, const GLchar* message, GLvoid* user_param);
+const char* gfx_debug_getseverity(GLenum severity);
+const char* gfx_debug_getsource(GLenum source);
+const char* gfx_debug_gettype(GLenum type);
+
 /*************************************************************************************************
  * inlines
  */
 INLINE struct gfx_obj_data* create_obj(uptr_t api_obj, enum gfx_obj_type type)
 {
-	struct gfx_obj_data* obj = (struct gfx_obj_data*)mem_pool_alloc(&g_dev.obj_pool);
+	struct gfx_obj_data* obj = (struct gfx_obj_data*)mem_pool_alloc(&g_gfxdev.obj_pool);
     ASSERT(obj != NULL);
     memset(obj, 0x00, sizeof(struct gfx_obj_data));
     obj->api_obj = (uptr_t)api_obj;
@@ -166,7 +184,7 @@ INLINE struct gfx_obj_data* create_obj(uptr_t api_obj, enum gfx_obj_type type)
 INLINE void destroy_obj(struct gfx_obj_data* obj)
 {
     obj->type = GFX_OBJ_NULL;
-    mem_pool_free(&g_dev.obj_pool, obj);
+    mem_pool_free(&g_gfxdev.obj_pool, obj);
 }
 
 INLINE void shader_output_error(GLuint shader)
@@ -219,33 +237,85 @@ INLINE const struct gfx_input_element* get_elem(enum gfx_input_element_id id)
 	return NULL;
 }
 
+INLINE enum gfx_hwver gfx_get_glver(const struct version_info* v)
+{
+    if (v->major == 3)  {
+        if (v->minor == 2)
+            return GFX_HWVER_GL3_2;
+        else if (v->minor >= 3)
+            return GFX_HWVER_GL3_3;
+    }   else if (v->major == 4) {
+        if (v->minor==0)
+            return GFX_HWVER_GL4_0;
+        else if (v->minor==1)
+            return GFX_HWVER_GL4_1;
+        else if (v->minor >= 2)
+            return GFX_HWVER_GL4_2;
+    }
+
+    return GFX_HWVER_UNKNOWN;
+}
+
 /*************************************************************************************************/
 void gfx_zerodev()
 {
-	memset(&g_dev, 0x00, sizeof(struct gfx_device));
+	memset(&g_gfxdev, 0x00, sizeof(struct gfx_device));
 }
 
 result_t gfx_initdev(const struct gfx_params* params)
 {
 	result_t r;
 
-	memcpy(&g_dev.params, params, sizeof(struct gfx_params));
+	memcpy(&g_gfxdev.params, params, sizeof(struct gfx_params));
 
     log_print(LOG_INFO, "  init gfx-device ...");
 
+    /* init GL functions */
+    GLenum glew_ret = glewInit();
+    if (glew_ret != GLEW_OK)   {
+        err_printf(__FILE__, __LINE__, "gl-app init failed: could not init GLEW: %s",
+            glewGetString(glew_ret));
+        return RET_FAIL;
+    }    
+
+    /* recheck the version */
+    struct version_info final_ver;
+    glGetIntegerv(GL_MAJOR_VERSION, &final_ver.major);
+    glGetIntegerv(GL_MINOR_VERSION, &final_ver.minor);
+
+    if (final_ver.major < 3 || (final_ver.major == 3 && final_ver.minor < 2))    {
+        err_printf(__FILE__, __LINE__, "OpenGL context version does not meet the"
+            " requested requirements (GL ver: %d.%d)", final_ver.major, final_ver.minor);
+        return RET_FAIL;
+    }
+
+    g_gfxdev.ver = gfx_get_glver(&final_ver);
+
+    /* set debug callback */
+    if (GLEW_ARB_debug_output)  {
+        glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+        /* turn shader compiler errors off, I will catch them myself */
+        glDebugMessageControlARB(GL_DEBUG_SOURCE_SHADER_COMPILER, GL_DONT_CARE, GL_DONT_CARE,
+            0, NULL, GL_FALSE);
+        /* turn API 'other' errors (they are just info for nvidia drivers) off, don't need them */
+        glDebugMessageControlARB(GL_DEBUG_SOURCE_API_ARB, GL_DEBUG_TYPE_OTHER_ARB, GL_DONT_CARE,
+            0, NULL, GL_FALSE);
+        glDebugMessageCallbackARB(gfx_debug_callback, NULL);
+    }    
+
 	/* object pool */
-	r = mem_pool_create(mem_heap(), &g_dev.obj_pool, sizeof(struct gfx_obj_data),
+	r = mem_pool_create(mem_heap(), &g_gfxdev.obj_pool, sizeof(struct gfx_obj_data),
 			200, MID_GFX);
 	if (IS_FAIL(r))
 		return RET_OUTOFMEMORY;
 
-    glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, (GLint*)&g_dev.buffer_alignment);
-    glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, (GLint*)&g_dev.buffer_uniform_max);
+    glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, (GLint*)&g_gfxdev.buffer_alignment);
+    glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, (GLint*)&g_gfxdev.buffer_uniform_max);
 
     /* threaded object creation */
-    mt_mutex_init(&g_dev.objcreate_mtx);
-    g_dev.objcreate_event = mt_event_create(mem_heap());
-    r = arr_create(mem_heap(), &g_dev.objcreate_signals, sizeof(struct gfx_dev_delayed_signal),
+    mt_mutex_init(&g_gfxdev.objcreate_mtx);
+    g_gfxdev.objcreate_event = mt_event_create(mem_heap());
+    r = arr_create(mem_heap(), &g_gfxdev.objcreate_signals, sizeof(struct gfx_dev_delayed_signal),
         16, 16, MID_GFX);
     if (IS_FAIL(r))
         return RET_OUTOFMEMORY;
@@ -257,23 +327,23 @@ void gfx_releasedev()
 {
     gfx_delayed_release();
 
-    for (uint i = 0; i < g_dev.objcreate_signals.item_cnt; i++)   {
+    for (uint i = 0; i < g_gfxdev.objcreate_signals.item_cnt; i++)   {
         struct gfx_dev_delayed_signal* s = &((struct gfx_dev_delayed_signal*)
-            g_dev.objcreate_signals.buffer)[i];
+            g_gfxdev.objcreate_signals.buffer)[i];
         if (s->stream_pbo != 0)
             glDeleteBuffers(1, &s->stream_pbo);
     }
 
-    mt_mutex_release(&g_dev.objcreate_mtx);
-    mt_event_destroy(g_dev.objcreate_event);
-    arr_destroy(&g_dev.objcreate_signals);
+    mt_mutex_release(&g_gfxdev.objcreate_mtx);
+    mt_event_destroy(g_gfxdev.objcreate_event);
+    arr_destroy(&g_gfxdev.objcreate_signals);
 
     /* detect leaks and delete remaining objects */
-    uint leaks_cnt = mem_pool_getleaks(&g_dev.obj_pool);
+    uint leaks_cnt = mem_pool_getleaks(&g_gfxdev.obj_pool);
     if (leaks_cnt > 0)
         log_printf(LOG_WARNING, "gfx-device: total %d leaks found", leaks_cnt);
 
-    mem_pool_destroy(&g_dev.obj_pool);
+    mem_pool_destroy(&g_gfxdev.obj_pool);
 
 	gfx_zerodev();
 }
@@ -323,12 +393,12 @@ gfx_inputlayout gfx_delayed_createinputlayout(const struct gfx_input_vbuff_desc*
     citem->params.il.itype = itype;
     citem->params.il.idxbuffer = idxbuffer;
 
-    mt_mutex_lock(&g_dev.objcreate_mtx);
+    mt_mutex_lock(&g_gfxdev.objcreate_mtx);
     struct gfx_dev_delayed_signal* s = gfx_delayed_createsignal(thread_id);
     s->pending_cnt ++;
     citem->signal = s;
-    list_add(&g_dev.objcreates, &citem->lnode, citem);
-    mt_mutex_unlock(&g_dev.objcreate_mtx);
+    list_add(&g_gfxdev.objcreates, &citem->lnode, citem);
+    mt_mutex_unlock(&g_gfxdev.objcreate_mtx);
 
     return obj;
 }
@@ -552,7 +622,7 @@ void shader_make_defines(char* define_code,
 {
     char version[32];
 	char line[128];
-    enum gfx_hwver gfxver = app_get_gfxver();
+    enum gfx_hwver gfxver = gfx_get_hwver();
 
     /* make version preprocessor */
     switch (gfxver)   {
@@ -623,10 +693,10 @@ void gfx_destroy_program(gfx_program prog)
 /* runs in main thread */
 void gfx_delayed_createobjects()
 {
-    if (!mt_mutex_try(&g_dev.objcreate_mtx))
+    if (!mt_mutex_try(&g_gfxdev.objcreate_mtx))
         return;
 
-    struct linked_list* lnode = g_dev.objcreates;
+    struct linked_list* lnode = g_gfxdev.objcreates;
     while (lnode != NULL)   {
         struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)lnode->data;
         struct gfx_obj_data* obj = citem->obj;
@@ -691,21 +761,21 @@ void gfx_delayed_createobjects()
         if (s->waiting && (s->err_cnt + s->creates_cnt) == s->pending_cnt)    {
             s->pending_cnt = s->creates_cnt = s->err_cnt = 0;
             s->waiting = FALSE;
-            mt_event_trigger(g_dev.objcreate_event, s->signal_id);
+            mt_event_trigger(g_gfxdev.objcreate_event, s->signal_id);
         }
 
         lnode = lnode->next;
     }
 
-    mt_mutex_unlock(&g_dev.objcreate_mtx);
+    mt_mutex_unlock(&g_gfxdev.objcreate_mtx);
 }
 
 /* runs in loader thread */
 void gfx_delayed_fillobjects(uint thread_id)
 {
-    mt_mutex_lock(&g_dev.objcreate_mtx);
+    mt_mutex_lock(&g_gfxdev.objcreate_mtx);
 
-    struct linked_list* lnode = g_dev.objcreates;
+    struct linked_list* lnode = g_gfxdev.objcreates;
     while (lnode != NULL)  {
         struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)lnode->data;
         struct gfx_obj_data* obj = citem->obj;
@@ -727,22 +797,22 @@ void gfx_delayed_fillobjects(uint thread_id)
                 }
             }
 
-            list_remove(&g_dev.objcreates, lnode);
-            list_add(&g_dev.objunmaps, lnode, citem);
+            list_remove(&g_gfxdev.objcreates, lnode);
+            list_add(&g_gfxdev.objunmaps, lnode, citem);
         }
         lnode = lnext;
     }
 
-    mt_mutex_unlock(&g_dev.objcreate_mtx);
+    mt_mutex_unlock(&g_gfxdev.objcreate_mtx);
 }
 
 /* runs in main thread, final stage: unmaps objects and finalize creation, also does cleanup */
 void gfx_delayed_finalizeobjects()
 {
-    if (!mt_mutex_try(&g_dev.objcreate_mtx))
+    if (!mt_mutex_try(&g_gfxdev.objcreate_mtx))
         return;
 
-    struct linked_list* lnode = g_dev.objunmaps;
+    struct linked_list* lnode = g_gfxdev.objunmaps;
     while (lnode != NULL)   {
         struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)lnode->data;
         struct gfx_obj_data* obj = citem->obj;
@@ -797,36 +867,36 @@ void gfx_delayed_finalizeobjects()
 
         }
 
-        list_remove(&g_dev.objunmaps, lnode);
+        list_remove(&g_gfxdev.objunmaps, lnode);
         FREE(citem);
         lnode = lnext;
     }
 
-    mt_mutex_unlock(&g_dev.objcreate_mtx);
+    mt_mutex_unlock(&g_gfxdev.objcreate_mtx);
 }
 
 /* runs in loader thread */
 void gfx_delayed_waitforobjects(uint thread_id)
 {
-    mt_mutex_lock(&g_dev.objcreate_mtx);
-    if (g_dev.release_delayed)   {
-        mt_mutex_unlock(&g_dev.objcreate_mtx);
+    mt_mutex_lock(&g_gfxdev.objcreate_mtx);
+    if (g_gfxdev.release_delayed)   {
+        mt_mutex_unlock(&g_gfxdev.objcreate_mtx);
         return;
     }
 
     struct gfx_dev_delayed_signal* s = gfx_delayed_getsignal(thread_id);
     ASSERT(s);
     s->waiting = TRUE;
-    mt_mutex_unlock(&g_dev.objcreate_mtx);
-    mt_event_wait(g_dev.objcreate_event, s->signal_id, MT_TIMEOUT_INFINITE);
+    mt_mutex_unlock(&g_gfxdev.objcreate_mtx);
+    mt_event_wait(g_gfxdev.objcreate_event, s->signal_id, MT_TIMEOUT_INFINITE);
 }
 
 /* runs in main thread */
 void gfx_delayed_release()
 {
     /* cleanup threaded pending object creates */
-    mt_mutex_lock(&g_dev.objcreate_mtx);
-    struct linked_list* lnode = g_dev.objcreates;
+    mt_mutex_lock(&g_gfxdev.objcreate_mtx);
+    struct linked_list* lnode = g_gfxdev.objcreates;
     while (lnode != NULL)   {
         struct linked_list* lnext = lnode->next;
         struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)lnode->data;
@@ -834,7 +904,7 @@ void gfx_delayed_release()
         lnode = lnext;
     }
 
-    lnode = g_dev.objunmaps;
+    lnode = g_gfxdev.objunmaps;
     while (lnode != NULL)   {
         struct linked_list* lnext = lnode->next;
         struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)lnode->data;
@@ -842,15 +912,15 @@ void gfx_delayed_release()
         lnode = lnext;
     }
 
-    g_dev.objcreates = NULL;
-    g_dev.release_delayed = TRUE;
-    mt_mutex_unlock(&g_dev.objcreate_mtx);
+    g_gfxdev.objcreates = NULL;
+    g_gfxdev.release_delayed = TRUE;
+    mt_mutex_unlock(&g_gfxdev.objcreate_mtx);
 
-    for (uint i = 0; i < g_dev.objcreate_signals.item_cnt; i++)   {
+    for (uint i = 0; i < g_gfxdev.objcreate_signals.item_cnt; i++)   {
         struct gfx_dev_delayed_signal* s =
-            &((struct gfx_dev_delayed_signal*)g_dev.objcreate_signals.buffer)[i];
+            &((struct gfx_dev_delayed_signal*)g_gfxdev.objcreate_signals.buffer)[i];
         s->waiting = TRUE;
-        mt_event_trigger(g_dev.objcreate_event, s->signal_id);
+        mt_event_trigger(g_gfxdev.objcreate_event, s->signal_id);
     }
 }
 
@@ -878,7 +948,7 @@ void gfx_delayed_releaseitem(struct gfx_dev_delayed_item* citem)
         }
         break;
     default:
-        ASSERT(0);
+        break;
     }
 
     FREE(citem);
@@ -911,10 +981,10 @@ gfx_buffer gfx_create_buffer(enum gfx_buffer_type type, enum gfx_mem_hint memhin
 	obj->desc.buff.type = type;
 	obj->desc.buff.size = size;
     obj->desc.buff.gl_tbuff = tbuff;
-    obj->desc.buff.alignment = g_dev.buffer_alignment;
+    obj->desc.buff.alignment = g_gfxdev.buffer_alignment;
 
-    g_dev.memstats.buffer_cnt ++;
-    g_dev.memstats.buffers += size;
+    g_gfxdev.memstats.buffer_cnt ++;
+    g_gfxdev.memstats.buffers += size;
 	return obj;
 }
 
@@ -930,7 +1000,7 @@ gfx_buffer gfx_delayed_createbuffer(enum gfx_buffer_type type, enum gfx_mem_hint
     gfx_buffer obj = create_obj(0, GFX_OBJ_BUFFER);
     obj->desc.buff.type = type;
     obj->desc.buff.size = size;
-    obj->desc.buff.alignment = g_dev.buffer_alignment;
+    obj->desc.buff.alignment = g_gfxdev.buffer_alignment;
 
     void* ndata = ALLOC(size, MID_GFX);
     if (data == NULL)   {
@@ -947,12 +1017,12 @@ gfx_buffer gfx_delayed_createbuffer(enum gfx_buffer_type type, enum gfx_mem_hint
     citem->params.buff.size = size;
     citem->params.buff.type = type;
 
-    mt_mutex_lock(&g_dev.objcreate_mtx);
+    mt_mutex_lock(&g_gfxdev.objcreate_mtx);
     struct gfx_dev_delayed_signal* s = gfx_delayed_createsignal(thread_id);
     s->pending_cnt ++;
     citem->signal = s;
-    list_add(&g_dev.objcreates, &citem->lnode, citem);
-    mt_mutex_unlock(&g_dev.objcreate_mtx);
+    list_add(&g_gfxdev.objcreates, &citem->lnode, citem);
+    mt_mutex_unlock(&g_gfxdev.objcreate_mtx);
 
     return obj;
 }
@@ -977,8 +1047,8 @@ GLuint gfx_create_buffer_gl(enum gfx_buffer_type type, enum gfx_mem_hint memhint
 
 void gfx_destroy_buffer(gfx_buffer buff)
 {
-    g_dev.memstats.buffer_cnt --;
-    g_dev.memstats.buffers -= buff->desc.buff.size;
+    g_gfxdev.memstats.buffer_cnt --;
+    g_gfxdev.memstats.buffers -= buff->desc.buff.size;
 
 	GLuint id = (GLuint)buff->api_obj;
     if (id != 0)
@@ -1083,8 +1153,8 @@ gfx_texture gfx_create_texture(enum gfx_texture_type type, uint width, uint heig
     obj->desc.tex.gl_type = gl_type;
     obj->desc.tex.gl_fmt = gl_fmt;
 
-    g_dev.memstats.texture_cnt ++;
-    g_dev.memstats.textures += total_size;
+    g_gfxdev.memstats.texture_cnt ++;
+    g_gfxdev.memstats.textures += total_size;
 	return obj;
 }
 
@@ -1154,13 +1224,13 @@ gfx_texture gfx_delayed_createtexture(enum gfx_texture_type type, uint width, ui
         offset += data[i].size;
     }
 
-    mt_mutex_lock(&g_dev.objcreate_mtx);
+    mt_mutex_lock(&g_gfxdev.objcreate_mtx);
     struct gfx_dev_delayed_signal* s = gfx_delayed_createsignal(thread_id);
     s->pending_cnt ++;
     citem->signal = s;
 
-    list_add(&g_dev.objcreates, &citem->lnode, citem);
-    mt_mutex_unlock(&g_dev.objcreate_mtx);
+    list_add(&g_gfxdev.objcreates, &citem->lnode, citem);
+    mt_mutex_unlock(&g_gfxdev.objcreate_mtx);
 
     return obj;
 }
@@ -1169,11 +1239,11 @@ struct gfx_dev_delayed_signal* gfx_delayed_createsignal(uint thread_id)
 {
     struct gfx_dev_delayed_signal* s = gfx_delayed_getsignal(thread_id);
     if (s == NULL)  {
-        s = (struct gfx_dev_delayed_signal*)arr_add(&g_dev.objcreate_signals);
+        s = (struct gfx_dev_delayed_signal*)arr_add(&g_gfxdev.objcreate_signals);
         ASSERT(s);
         memset(s, 0x00, sizeof(struct gfx_dev_delayed_signal));
         s->thread_id = thread_id;
-        s->signal_id = mt_event_addsignal(g_dev.objcreate_event);
+        s->signal_id = mt_event_addsignal(g_gfxdev.objcreate_event);
     }
 
     return s;
@@ -1181,9 +1251,9 @@ struct gfx_dev_delayed_signal* gfx_delayed_createsignal(uint thread_id)
 
 struct gfx_dev_delayed_signal* gfx_delayed_getsignal(uint thread_id)
 {
-    for (uint i = 0, cnt = g_dev.objcreate_signals.item_cnt; i < cnt; i++)    {
+    for (uint i = 0, cnt = g_gfxdev.objcreate_signals.item_cnt; i < cnt; i++)    {
         struct gfx_dev_delayed_signal* s =
-            &((struct gfx_dev_delayed_signal*)g_dev.objcreate_signals.buffer)[i];
+            &((struct gfx_dev_delayed_signal*)g_gfxdev.objcreate_signals.buffer)[i];
         if (s->thread_id == thread_id)
             return s;
     }
@@ -1229,8 +1299,8 @@ gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt,
     obj->desc.tex.is_rt = TRUE;
     obj->desc.tex.mip_cnt = mipcnt;
 
-    g_dev.memstats.rttexture_cnt ++;
-    g_dev.memstats.rt_textures += obj->desc.tex.size;
+    g_gfxdev.memstats.rttexture_cnt ++;
+    g_gfxdev.memstats.rt_textures += obj->desc.tex.size;
 
 	return obj;
 }
@@ -1386,8 +1456,8 @@ gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
     obj->desc.tex.is_rt = TRUE;
     obj->desc.tex.mip_cnt = 1;
 
-    g_dev.memstats.rttexture_cnt ++;
-    g_dev.memstats.rt_textures += obj->desc.tex.size;
+    g_gfxdev.memstats.rttexture_cnt ++;
+    g_gfxdev.memstats.rt_textures += obj->desc.tex.size;
 
 	return obj;
 }
@@ -1428,8 +1498,8 @@ gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format f
     obj->desc.tex.is_rt = TRUE;
     obj->desc.tex.mip_cnt = 1;
 
-    g_dev.memstats.rttexture_cnt ++;
-    g_dev.memstats.rt_textures += obj->desc.tex.size;
+    g_gfxdev.memstats.rttexture_cnt ++;
+    g_gfxdev.memstats.rt_textures += obj->desc.tex.size;
 
 	return obj;
 }
@@ -1437,11 +1507,11 @@ gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format f
 void gfx_destroy_texture(gfx_texture tex)
 {
     if (!tex->desc.tex.is_rt)   {
-        g_dev.memstats.texture_cnt --;
-        g_dev.memstats.textures -= tex->desc.tex.size;
+        g_gfxdev.memstats.texture_cnt --;
+        g_gfxdev.memstats.textures -= tex->desc.tex.size;
     }   else    {
-        g_dev.memstats.rttexture_cnt --;
-        g_dev.memstats.rt_textures -= tex->desc.tex.size;
+        g_gfxdev.memstats.rttexture_cnt --;
+        g_gfxdev.memstats.rt_textures -= tex->desc.tex.size;
     }
 
 	GLuint tex_id = (GLuint)tex->api_obj;
@@ -1798,7 +1868,7 @@ const struct gfx_depthstencil_desc* gfx_get_defaultdepthstencil()
 
 const struct gfx_gpu_memstats* gfx_get_memstats()
 {
-    return &g_dev.memstats;
+    return &g_gfxdev.memstats;
 }
 
 bool_t gfx_check_feature(enum gfx_feature ft)
@@ -1813,4 +1883,113 @@ bool_t gfx_check_feature(enum gfx_feature ft)
         return FALSE;
     }
 }
+
+void APIENTRY gfx_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
+        GLsizei length, const GLchar* message, GLvoid* user_param)
+{
+    printf("[Warning] OpenGL: %s (id: %d, source: %s, type: %s, severity: %s)\n", message,
+        id, gfx_debug_getsource(source), gfx_debug_gettype(type),
+        gfx_debug_getseverity(severity));
+}
+
+const char* gfx_debug_getseverity(GLenum severity)
+{
+    switch (severity)   {
+    case GL_DEBUG_SEVERITY_HIGH_ARB:
+        return "high";
+    case GL_DEBUG_SEVERITY_MEDIUM_ARB:
+        return "medium";
+    case GL_DEBUG_SEVERITY_LOW_ARB:
+        return "low";
+    default:
+        return "";
+    }
+}
+
+const char* gfx_debug_getsource(GLenum source)
+{
+    switch (source) {
+    case GL_DEBUG_SOURCE_API_ARB:
+        return "api";
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB:
+        return "window-system";
+    case GL_DEBUG_SOURCE_SHADER_COMPILER_ARB:
+        return "shader-compiler";
+    case GL_DEBUG_SOURCE_THIRD_PARTY_ARB:
+        return "3rdparty";
+    case GL_DEBUG_SOURCE_APPLICATION_ARB:
+        return "applcation";
+    case GL_DEBUG_SOURCE_OTHER_ARB:
+        return "other";
+    default:
+        return "";
+    }
+}
+
+const char* gfx_debug_gettype(GLenum type)
+{
+    switch (type)   {
+    case GL_DEBUG_TYPE_ERROR_ARB:
+        return "error";
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB:
+        return "deprecated";
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB:
+        return "undefined";
+    case GL_DEBUG_TYPE_PORTABILITY_ARB:
+        return "portability";
+    case GL_DEBUG_TYPE_PERFORMANCE_ARB:
+        return "performance";
+    case GL_DEBUG_TYPE_OTHER_ARB:
+        return "other";
+    default:
+        return "";
+    }
+}
+
+const char* gfx_get_driverstr()
+{
+    static char info[256];
+    sprintf(info, "%s %s %s", glGetString(GL_RENDERER), glGetString(GL_VERSION),
+#if defined(_X64_)
+        "x64"
+#elif defined(_X86_)
+        "x86"
+#else
+        "[]"
+#endif
+        );
+    return info;
+}
+
+void gfx_get_devinfo(struct gfx_device_info* info)
+{
+    memset(info, 0x00, sizeof(struct gfx_device_info));
+
+    const char* vendor = (const char*)glGetString(GL_VENDOR);
+    if (strstr(vendor, "ATI"))
+        info->vendor = GFX_GPU_ATI;
+    else if (strstr(vendor, "NVIDIA"))
+        info->vendor = GFX_GPU_NVIDIA;
+    else if (strstr(vendor, "INTEL"))
+        info->vendor = GFX_GPU_INTEL;
+    else
+        info->vendor = GFX_GPU_UNKNOWN;
+    sprintf(info->desc, "%s, version: %s, GLSL: %s",
+        glGetString(GL_RENDERER), glGetString(GL_VERSION),
+        glGetString(GL_SHADING_LANGUAGE_VERSION));
+
+    if (GLEW_ATI_meminfo)   {
+        GLint vbo_free = 0;
+        glGetIntegerv(VBO_FREE_MEMORY_ATI, &vbo_free);
+        info->mem_avail = vbo_free;
+    } else if (GLEW_NVX_gpu_memory_info)    {
+        glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &info->mem_avail);
+    }
+}
+
+enum gfx_hwver gfx_get_hwver()
+{
+    return g_gfxdev.ver;
+}
+
 #endif  /* _GL_ */

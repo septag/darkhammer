@@ -40,7 +40,7 @@ def initialize(assetdir, widget):
     params.dev.buffsize_data = 256
     params.data_dir = os.path.abspath(util.get_exec_dir(__file__) + '/../../data')
 
-    if not dheng.app_init(name, params, hwnd):
+    if not dheng.app_init(name, params):
         dheng.err_sendtolog(False)
         dheng.core_release(False)
         return False

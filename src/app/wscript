@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+
+import os, sys, glob
+
+def build(bld):
+    libs = []
+    frameworks = []
+    libpath = []
+    includes = []
+    cflags = []
+    defines = ['_APP_EXPORT_']
+
+    files = bld.path.ant_glob('*.c')
+    if bld.env.GFX_API == 'D3D':
+        files.extend(bld.path.ant_glob('d3d/*.c*'))
+        files.extend(bld.path.ant_glob('platform/win/*.c'))
+        libs.extend(['dxguid', 'dxgi'])
+        if bld.env.DX_LIBPATH != '':        libpath.append(bld.env.DX_LIBPATH)
+        if bld.env.DX_INCLUDES != '':       includes.append(bld.env.DX_INCLUDES)        
+    elif bld.env.GFX_API == 'GL':
+        files.extend(bld.path.ant_glob('gl/*.c'))
+        if sys.platform == 'linux':            
+            libs.append('GL')
+        elif sys.platform == 'win32':          
+            libs.append('OpenGL32')
+        elif sys.platform == 'darwin':
+            frameworks.append('OpenGL')
+        libs.append('glfw')
+        defines.append('GLFW_DLL')
+
+    includes.extend([\
+        os.path.join(bld.env.ROOTDIR, 'build'),
+        os.path.join(bld.env.ROOTDIR, 'include', 'dhapp')])
+
+    if sys.platform == 'win32':
+        cflags = ['/TP']       
+
+    vnum = ''
+    if sys.platform == 'linux':
+        vnum = bld.env.VERSION
+
+    bld.shlib(
+        source = files,
+        name = 'dhapp',
+        target = 'dhapp' + bld.env.SUFFIX,
+        install_path = '${PREFIX}/lib',
+        defines = defines,
+        lib = libs,
+        framework = frameworks,
+        includes = includes,
+        libpath = libpath,
+        vnum = vnum,
+        cflags = cflags,
+        use = ['dhcore'])
+
+

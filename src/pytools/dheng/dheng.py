@@ -8,108 +8,7 @@ HELPER_DIR = os.path.abspath(os.path.join(MY_DIR, '..', 'helpers'))
 sys.path.append(HELPER_DIR)
 import dhlog
 from dhcore import *
-
-class MSAAMode:
-    NONE = 0
-    X2 = 2
-    X4 = 4
-    X8 = 8
-
-class TextureQuality:
-    HIGH = 1
-    NORMAL = 2
-    LOW = 3
-    HIGHEST = 0
-
-class TextureFilter:
-    TRILINEAR = 0
-    BILINEAR = 1
-    ANISO2X = 2
-    ANISO4X = 3
-    ANISO8X = 4
-    ANISO16X = 5
-
-class ShadingQuality:
-    LOW = 2
-    NORMAL = 1
-    HIGH = 0
-
-class GfxHwVer:
-    UNKNOWN = 0
-    D3D11_0 = 3
-    D3D10_1 = 2
-    D3D10_0 = 1
-    D3D11_1 = 4
-    GL4_4 = 12
-    GL4_3 = 11
-    GL4_2 = 10
-    GL4_1 = 9
-    GL4_0 = 8
-    GL3_3 = 7
-    GL3_2 = 6
-
-class GfxFlags:
-    FULLSCREEN = (1<<0)
-    VSYNC = (1<<1)
-    DEBUG = (1<<2)
-    FXAA = (1<<3)
-    REBUILDSHADERS = (1<<4)
-
-class EngFlags:
-    DEBUG = (1<<0)
-    DEV = (1<<1)
-    EDITOR = (1<<2)
-    CONSOLE = (1<<3)
-    DISABLEPHX = (1<<4)
-    OPTIMIZEMEMORY = (1<<5)
-    DISABLEBGLOAD = (1<<6)
-
-class PhxFlags:
-    TRACKMEM = (1<<0)
-    PROFILE = (1<<1)
-
-class _InitParams(Structure):
-    class DevParams(Structure):
-        _fields_ = [\
-            ('fpsgraph_max', c_int), 
-            ('ftgraph_max', c_int),
-            ('webserver_port', c_int),
-            ('buffsize_data', c_uint),
-            ('buffsize_tmp', c_uint)]
-
-    class PhxParams(Structure):
-        _fields_ = [\
-            ('flags', c_uint),
-            ('mem_sz', c_uint),
-            ('substeps_max', c_uint),
-            ('scratch_sz', c_uint)]
-
-    class SctParams(Structure):
-        _fields_ = [('mem_sz', c_uint)]
-
-    class GfxParams(Structure):
-        _fields_ = [\
-            ('flags', c_uint),
-            ('msaa_mode', c_uint),
-            ('tex_quality', c_uint),
-            ('tex_filter', c_uint),
-            ('shading_quality', c_uint),
-            ('hwver', c_uint),
-            ('adapter_id', c_uint),
-            ('width', c_uint),
-            ('height', c_uint),
-            ('refresh_rate', c_uint)]
-
-    _fields_ = [\
-        ('flags', c_uint),
-        ('console_lines_max', c_uint),
-        ('gfx', GfxParams),
-        ('dev', DevParams),
-        ('phx', PhxParams),
-        ('sct', SctParams),
-        ('console_cmds', c_char_p),
-        ('console_cmds_cnt', c_uint),
-        ('data_path', c_char_p)]
+from dhapp import *
 
 class _API:
     is_init = False
@@ -131,76 +30,16 @@ class _API:
         try:
             dhenglib = cdll.LoadLibrary(shlib)
         except:
+            dhlog.Log.warn(str(sys.exc_info()[1]))
             dhlog.Log.fatal('could not load dynamic library %s' % shlib)
             sys.exit(-1)
 
         dhlog.Log.msgline('module "%s" loaded' % shlib, dhlog.TERM_GREEN)
 
-        # app.h
-        _API.app_defaultconfig = dhenglib.app_defaultconfig
-        _API.app_defaultconfig.restype = POINTER(_InitParams)
-
-        _API.app_load_config = dhenglib.app_load_config
-        _API.app_load_config.restype = POINTER(_InitParams)
-        _API.app_load_config.argtypes = [c_char_p]
-
-        _API.app_config_add_consolecmd = dhenglib.app_config_add_consolecmd
-        _API.app_config_add_consolecmd.argtypes = [POINTER(_InitParams), c_char_p]
-
-        _API.app_unload_config = dhenglib.app_unload_config
-        _API.app_unload_config.argtypes = [POINTER(_InitParams)]
-
-        _API.app_query_displaymodes = dhenglib.app_query_displaymodes
-        _API.app_query_displaymodes.restype = c_char_p
-
-        _API.app_free_displaymodes = dhenglib.app_free_displaymodes
-        _API.app_free_displaymodes.argtypes = [c_char_p]
-
-        _API.app_init = dhenglib.app_init
-        _API.app_init.restype = c_int
-        _API.app_init.argtypes = [c_char_p, POINTER(_InitParams), c_void_p]
-
-        _API.app_release = dhenglib.app_release
-
-        _API.app_set_alwaysactive = dhenglib.app_set_alwaysactive
-        _API.argtypes = [c_uint]
-
-        _API.app_swapbuffers = dhenglib.app_swapbuffers
-
-        _API.app_get_wndheight = dhenglib.app_get_wndheight
-        _API.app_get_wndheight.restype = c_uint
-
-        _API.app_get_wndwidth = dhenglib.app_get_wndwidth
-        _API.app_get_wndwidth.restype = c_uint
-
-        _API.app_resize_window = dhenglib.app_resize_window
-        _API.restype = c_int
-        _API.argtypes = [c_char_p, c_uint, c_uint]
-
-        _API.app_show_window = dhenglib.app_show_window
-        _API.app_show_window.argtypes = [c_char_p]
-
-        _API.app_hide_window = dhenglib.app_hide_window
-        _API.app_hide_window.argtypes = [c_char_p]
-
-        _API.fn_app_update = CFUNCTYPE(None)
-        _API.app_set_updatefunc = dhenglib.app_set_updatefunc
-        _API.app_set_updatefunc.argtypes = [_API.fn_app_update]
-
-        _API.fn_app_keypress = CFUNCTYPE(None, c_char_p, c_byte, c_uint)
-        _API.app_set_keypressfunc = dhenglib.app_set_keypressfunc
-        _API.app_set_keypressfunc.argtypes = [_API.fn_app_keypress]
-
-        _API.fn_app_resize = CFUNCTYPE(None, c_char_p, c_uint, c_uint)
-        _API.app_set_resizefunc = dhenglib.app_set_resizefunc
-        _API.app_set_resizefunc.argtypes = [_API.fn_app_resize]
-
-        _API.app_update = dhenglib.app_update
-
         # engine.h
         _API.eng_init = dhenglib.eng_init
         _API.eng_init.restype = c_int
-        _API.eng_init.argtypes = [POINTER(_InitParams)]
+        _API.eng_init.argtypes = [POINTER(InitParams)]
 
         _API.eng_release = dhenglib.eng_release
         _API.eng_update = dhenglib.eng_update
@@ -213,33 +52,6 @@ class _API:
 
         _API.eng_get_sharedir = dhenglib.eng_get_sharedir
         _API.eng_get_sharedir.restype = c_char_p
-
-        # input.h
-        _API.input_update = dhenglib.input_update
-        _API.input_kb_getkey = dhenglib.input_kb_getkey
-        _API.input_kb_getkey.restype = c_uint
-        _API.input_kb_getkey.argtypes = [c_uint, c_uint]
-
-        _API.input_kb_getkey = dhenglib.input_kb_getkey
-        _API.input_kb_getkey.restype = c_uint
-        _API.input_kb_getkey.argtypes = [c_uint, c_uint]
-
-        _API.input_mouse_getkey = dhenglib.input_mouse_getkey
-        _API.input_mouse_getkey.restype = c_uint
-        _API.input_mouse_getkey.argtypes = [c_uint, c_uint]
-
-        _API.input_mouse_getpos = dhenglib.input_mouse_getpos
-        _API.input_mouse_getpos.restype = POINTER(Vec2i)
-        _API.input_mouse_getpos.argtypes = [POINTER(Vec2i)]
-
-        _API.input_mouse_smooth = dhenglib.input_mouse_smooth
-        _API.input_mouse_smooth.argtypes = [POINTER(c_float), POINTER(c_float), c_float, c_float,
-            c_float, c_float]
-
-        _API.input_mouse_lockcursor = dhenglib.input_kb_unlockkey
-        _API.input_mouse_lockcursor.argtypes = [c_int, c_int]
-
-        _API.input_mouse_unlockcursor = dhenglib.input_mouse_unlockcursor
 
         # scene-mgr.h
         _API.scn_create_scene = dhenglib.scn_create_scene
@@ -286,6 +98,9 @@ class _API:
         # gfx.h
         _API.gfx_set_gridcallback = dhenglib.gfx_set_gridcallback
         _API.gfx_set_gridcallback.argtypes = [c_uint]
+
+        _API.gfx_resize = dhenglib.gfx_resize
+        _API.gfx_resize.argtypes = [c_uint, c_uint]
 
         # cmp-mgr.h
         _API.cmp_findtype = dhenglib.cmp_findtype
@@ -445,97 +260,16 @@ class _API:
 
         _API.is_init = True
 
-class Config:
-    def __init__(self, json_filepath=''):
-        if json_filepath != '':
-            self.params = _API.app_load_config(to_cstr(json_filepath))
-            if not self.params:
-                dhlog.Log.warn(Errors.last_error())
-            self.params = _API.app_defaultconfig()
-        else:
-            self.params = _API.app_defaultconfig()
-
-    def __del__(self):
-        if self.params:
-            _API.app_unload_config(self.params)
-            del self.params
-
-    def __set_datapath(self, path):
-        self.params.contents.data_path = path.encode('ascii')
-    def __get_datapath(self):
-        return self.params.contents.data_path
-    data_path = property(__get_datapath, __set_datapath)
-
-    def __set_engineflags(self, flags):
-        self.params.contents.flags = flags
-    def __get_engineflags(self):
-        return self.params.contents.flags
-    engine_flags = property(__get_engineflags, __set_engineflags)
-
-    def __set_gfxflags(self, flags):
-        self.params.contents.gfx.flags = flags
-    def __get_gfxflags(self):
-        return self.params.contents.gfx.flags
-    gfx_flags = property(__get_gfxflags, __set_gfxflags)
-
-    def __set_gfxhwver(self, hwver):
-        self.params.contents.gfx.hwver = hwver
-    def __get_gfxhwver(self):
-        return self.params.contents.gfx.hwver
-    gfx_hwver = property(__get_gfxhwver, __set_gfxhwver)
-
-    def __set_height(self, height):
-        self.params.contents.gfx.height = height
-    def __get_height(self):
-        return self.params.contents.gfx.height
-    height = property(__get_height, __set_height)
-
-    def __set_width(self, width):
-        self.params.contents.gfx.width = width
-    def __get_width(self):
-        return self.params.contents.gfx.width
-    width = property(__get_width, __set_width)
-
-    def __set_buffsizedata(self, buffsize):
-        self.params.contents.dev.buffsize_data = buffsize
-    def __get_buffsizedata(self):
-        return self.params.contents.dev.buffsize_data
-    buffsize_data = property(__get_buffsizedata, __set_buffsizedata)
-
-    def __set_buffsizetmp(self, buffsize):
-        self.params.contents.dev.buffsize_tmp = buffsize
-    def __get_buffsizetmp(self):
-        return self.params.contents.dev.buffsize_tmp
-    buffsize_tmp = property(__get_buffsizetmp, __set_buffsizetmp)
-
-    def __set_texturefilter(self, filter):
-        self.params.contents.gfx.tex_filter = filter
-    def __get_texturefilter(self, filter):
-        return self.params.contents.gfx.tex_filter
-    texture_filter = property(__get_texturefilter, __set_texturefilter)
-
-    def __set_texturequality(self, quality):
-        self.params.contents.tex_quality = quality
-    def __get_texturequality(self, quality):
-        return self.params.contents.tex_quality
-    texture_quality = property(__get_texturequality, __set_texturequality)
-
-    def __set_shadingquality(self, shquality):
-        self.params.contents.shading_quality = shquality
-    def __get_shadingquality(self, shquality):
-        return self.params.contents.shading_quality
-    shading_quality = property(__get_shadingquality, __set_shadingquality)
-
 class Engine:
     is_init = False
     __active_scene = None
 
     @staticmethod
-    def keypress_callback(s, ch, vkey):
+    def send_keys(ch, vkey):
         _API.eng_send_guimsgs(ch, vkey)
 
     @staticmethod
-    def update_callback():
+    def update():
         ft = _API.eng_get_frametime()
         Input.update(ft)
 
@@ -545,23 +279,11 @@ class Engine:
         _API.eng_update()   
 
     @staticmethod
-    def init(title, conf, window_hdl=None):
-        r = _API.app_init(to_cstr(title), conf.params, c_void_p(window_hdl))
-        if IS_FAIL(r):
-            raise Exception(Errors.last_error())
-
+    def init(conf):
         r = _API.eng_init(conf.params)
         if IS_FAIL(r):
             raise Exception(Errors.last_error())
 
-        _API.app_show_window(None)
-
-        # initialize and keep callbacks
-        Engine.pfn_keypress_callback = _API.fn_app_keypress(Engine.keypress_callback)
-        Engine.pfn_update_callback = _API.fn_app_update(Engine.update_callback)
-
-        _API.app_set_updatefunc(Engine.pfn_update_callback)
-        _API.app_set_keypressfunc(Engine.pfn_keypress_callback)
         _API.gfx_set_gridcallback(c_uint(True))
 
         # register components
@@ -579,12 +301,7 @@ class Engine:
     @staticmethod
     def release():
         _API.eng_release()
-        _API.app_release()
         Engine.is_init = False
-
-    @staticmethod
-    def run():
-        _API.app_update()
 
     @staticmethod
     def set_active_scene(scene, caller_scene=False):
@@ -597,165 +314,18 @@ class Engine:
     def get_share_dir():
         return _API.eng_get_sharedir().decode()
 
+    @staticmethod
+    def resize_view(width, height):
+        if Engine.is_init:
+            _API.gfx_resize(c_uint(width), c_uint(height))
 
-class EngineCallbacks(object):
+
+class EngineCallbacks:
     __metaclass__ = ABCMeta
 
     @abstractmethod
     def draw_debug(self):
         pass
-
-class Key:
-    ESC = 0
-    F1 = 1
-    F2 = 2
-    F3 = 3
-    F4 = 4
-    F5 = 5
-    F6 = 6
-    F7 = 7
-    F8 = 8
-    F9 = 9
-    F10 = 10
-    F11 = 11
-    F12 = 12
-    PRINTSCREEN = 13
-    BREAK = 14
-    TILDE = 15
-    D1 = 16
-    D2 = 17
-    D3 = 18
-    D4 = 19
-    D5 = 20
-    D6 = 21
-    D7 = 22
-    D8 = 23
-    D9 = 24
-    D0 = 25
-    DASH = 26 
-    EQUAL = 27
-    BACKSPACE = 28
-    TAB = 29
-    Q = 30
-    W = 31
-    E = 32
-    R = 33
-    T = 34
-    Y = 35
-    U = 36
-    I = 37
-    O = 38
-    P = 39
-    BRACKET_OPEN = 40
-    BRACKET_CLOSE = 41
-    BACKSLASH = 42
-    CAPS = 43
-    A = 44
-    S = 45
-    D = 46
-    F = 47
-    G = 48
-    H = 49
-    J = 50
-    K = 51
-    L = 52
-    SEMICOLON = 53
-    QUOTE = 54
-    ENTER = 55
-    LSHIFT = 56
-    Z = 57
-    X = 58
-    C = 59
-    V = 60
-    B = 61
-    N = 62
-    M = 63
-    COMMA = 64
-    DOT = 65
-    SLASH = 66
-    RSHIFT = 67
-    LCTRL = 68
-    LALT = 69
-    SPACE = 70
-    RALT = 71
-    RCTRL = 72
-    DELETE = 73
-    INSERT = 74
-    HOME = 75
-    END = 76
-    PGUP = 77
-    PGDWN = 78
-    UP = 79
-    DOWN = 80
-    LEFT = 81
-    RIGHT = 82
-    NUM_SLASH = 83
-    NUM_MULTIPLY = 84
-    NUM_MINUS = 85
-    NUM_PLUS = 86
-    NUM_ENTER = 87
-    NUM_DOT = 88
-    NUM_1 = 89
-    NUM_2 = 90
-    NUM_3 = 91
-    NUM_4 = 92
-    NUM_5 = 93
-    NUM_6 = 94
-    NUM_7 = 95
-    NUM_8 = 96
-    NUM_9 = 97
-    NUM_0 = 98
-    NUM_LOCK = 99 
-
-class MouseKey:
-    LEFT = 0
-    RIGHT = 1
-    MIDDLE = 2
-    PGUP = 3
-    PGDOWN = 4
-
-class Input:
-    __mpos = Vec2()
-
-    @staticmethod
-    def is_keydown(key, once = False):
-        return _API.input_kb_getkey(c_uint(key), c_uint(once))
-
-    @staticmethod
-    def is_mousedown(key, once = False):
-        return _API.input_mouse_getkey(c_uint(key), c_uint(once))
-
-    @staticmethod
-    def __update_mouse_pos(smooth = True, smoothness = 60, dt = 0):
-        pos = Vec2i()
-        _API.input_mouse_getpos(byref(pos))
-
-        if smooth:
-            x = c_float(Input.__mpos.x)
-            y = c_float(Input.__mpos.y)
-            _API.input_mouse_smooth(byref(x), byref(y),
-                c_float(pos.x), c_float(pos.y), c_float(smoothness), c_float(dt))
-            Input.__mpos = Vec2(x.value, y.value)
-        else:
-            Input.__mpos.x = pos.x
-            Input.__mpos.y = pos.y
-
-    @staticmethod
-    def lock_cursor():
-        _API.input_mouse_lockcursor(int(Input.__mpos.x), int(Input.__mpos.y))
-
-    @staticmethod
-    def unlock_cursor():
-        _API.input_mouse_unlockcursor()
-
-    @staticmethod
-    def get_mousepos():
-        return Input.__mpos
-
-    @staticmethod
-    def update(dt):
-        _API.input_update()
-        Input.__update_mouse_pos(smooth=True, dt=dt)
 
 class Component:
     __cmps = dict()

@@ -25,12 +25,13 @@
 #include "dhcore/task-mgr.h"
 #include "dhcore/hwinfo.h"
 
+#include "dhapp/input.h"
+
 #include "mem-ids.h"
 #include "gfx.h"
 #include "dhcore/file-io.h"
 #include "dhcore/stack-alloc.h"
 #include "res-mgr.h"
-#include "input.h"
 #include "debug-hud.h"
 #include "console.h"
 #include "prf-mgr.h"
@@ -41,7 +42,6 @@
 #include "gfx-cmdqueue.h"
 #include "lod-scheme.h"
 #include "phx.h"
-#include "app.h"
 #include "world-mgr.h"
 #include "gfx-device.h"
 
@@ -81,7 +81,7 @@ struct engine
 
 /*************************************************************************************************/
 /* engine global */
-static struct engine g_eng;
+static struct engine* g_eng = NULL;
 
 /*************************************************************************************************
  * fwd declarations
@@ -104,14 +104,12 @@ int eng_hud_drawft(gfx_cmdqueue cmdqueue, int x, int y, int line_stride, void* p
 /*************************************************************************************************/
 void eng_zero()
 {
-    memset(&g_eng, 0x00, sizeof(struct engine));
     gfx_zero();
     rs_zero();
     con_zero();
     hud_zero();
     sct_zero();
     lod_zero();
-    input_zero();
     wld_zero();
 
 #if defined(_PROFILE_)
@@ -150,9 +148,17 @@ result_t eng_init(const struct init_params* params)
 {
     result_t r = RET_OK;
 
-    memcpy(&g_eng.params, params, sizeof(struct init_params));
+    ASSERT(g_eng == NULL);
+    g_eng = (struct engine*)ALLOC(sizeof(struct engine), 0);
+    if (g_eng == 0)
+        return err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
+    memset(g_eng, 0x00, sizeof(struct engine));
 
-    hw_getinfo(&g_eng.hwinfo, HWINFO_ALL);
+    eng_zero();
+
+    memcpy(&g_eng->params, params, sizeof(struct init_params));
+
+    hw_getinfo(&g_eng->hwinfo, HWINFO_ALL);
 
     /* console (before anything else) */
     if (BIT_CHECK(params->flags, ENG_FLAG_CONSOLE))	{
@@ -198,7 +204,7 @@ result_t eng_init(const struct init_params* params)
             , asctime(localtime(&raw_tm)));
 
     /* hardware info */
-    hw_printinfo(&g_eng.hwinfo, HWINFO_ALL);
+    hw_printinfo(&g_eng->hwinfo, HWINFO_ALL);
 
     size_t tmp_sz = params->dev.buffsize_tmp;
     size_t data_sz = data_sz = params->dev.buffsize_data;
@@ -209,19 +215,19 @@ result_t eng_init(const struct init_params* params)
     /* dynamic allocator for data in dev (editor) mode, stack allocator in game (normal) mode */
     if (BIT_CHECK(params->flags, ENG_FLAG_OPTIMIZEMEMORY))   {
         /* lsr (load-stay-resident) allocator for essential engine data */
-        r |= mem_stack_create(mem_heap(), &g_eng.lsr_stack, LSR_SIZE, MID_DATA);
-        mem_stack_bindalloc(&g_eng.lsr_stack, &g_eng.lsr_alloc);
+        r |= mem_stack_create(mem_heap(), &g_eng->lsr_stack, LSR_SIZE, MID_DATA);
+        mem_stack_bindalloc(&g_eng->lsr_stack, &g_eng->lsr_alloc);
 
-        r |= mem_freelist_create_ts(mem_heap(), &g_eng.data_freelist, data_sz, MID_DATA);
-        mem_freelist_bindalloc_ts(&g_eng.data_freelist, &g_eng.data_alloc);
+        r |= mem_freelist_create_ts(mem_heap(), &g_eng->data_freelist, data_sz, MID_DATA);
+        mem_freelist_bindalloc_ts(&g_eng->data_freelist, &g_eng->data_alloc);
     }   else    {
-        mem_heap_bindalloc(&g_eng.data_alloc);
-        mem_heap_bindalloc(&g_eng.lsr_alloc);
+        mem_heap_bindalloc(&g_eng->data_alloc);
+        mem_heap_bindalloc(&g_eng->lsr_alloc);
 
-        g_eng.data_alloc.alloc_fn = eng_allocfn_data;
-        g_eng.data_alloc.alignedalloc_fn = eng_alignedallocfn_data;
-        g_eng.lsr_alloc.alloc_fn = eng_allocfn_lsr;
-        g_eng.lsr_alloc.alignedalloc_fn = eng_alignedallocfn_lsr;
+        g_eng->data_alloc.alloc_fn = eng_allocfn_data;
+        g_eng->data_alloc.alignedalloc_fn = eng_alignedallocfn_data;
+        g_eng->lsr_alloc.alloc_fn = eng_allocfn_lsr;
+        g_eng->lsr_alloc.alignedalloc_fn = eng_alignedallocfn_lsr;
 
         r = RET_OK;
     }
@@ -232,14 +238,14 @@ result_t eng_init(const struct init_params* params)
     }
 
     /* timer manager and frame timer */
-    g_eng.timer = timer_createinstance(TRUE);
+    g_eng->timer = timer_createinstance(TRUE);
 
     /* add engine's own data path to file-mgr */
     if (params->data_path != NULL)   {
         char data_path_ext[DH_PATH_MAX];
         path_getfileext(data_path_ext, params->data_path);
         if (str_isequal_nocase(data_path_ext, "pak"))    {
-            if (IS_FAIL(pak_open(&g_eng.data_pak, mem_heap(), params->data_path, 0)))    {
+            if (IS_FAIL(pak_open(&g_eng->data_pak, mem_heap(), params->data_path, 0)))    {
                 err_print(__FILE__, __LINE__, "engine init: could not open data pak");
                 return RET_FAIL;
             }
@@ -251,7 +257,7 @@ result_t eng_init(const struct init_params* params)
             fio_addvdir(params->data_path, FALSE);
         }
         /* assume that share directory is same as data dir */
-        path_getdir(g_eng.share_dir, params->data_path);
+        path_getdir(g_eng->share_dir, params->data_path);
     }   else    {
         char data_path[DH_PATH_MAX];
         char share_dir[DH_PATH_MAX];
@@ -263,7 +269,7 @@ result_t eng_init(const struct init_params* params)
         }
 
         fio_addvdir(data_path, FALSE);  /* set default (config.h configured on build) data dir */
-        strcpy(g_eng.share_dir, share_dir);
+        strcpy(g_eng->share_dir, share_dir);
     }
 
     uint rs_flags = 0;
@@ -274,7 +280,7 @@ result_t eng_init(const struct init_params* params)
     }
 
     /* task manager */
-    uint thread_cnt = maxui(g_eng.hwinfo.cpu_core_cnt - 1, 1);
+    uint thread_cnt = maxui(g_eng->hwinfo.cpu_core_cnt - 1, 1);
     r = tsk_initmgr(thread_cnt, 0, tmp_sz, 0);
     if (IS_FAIL(r)) {
         err_print(__FILE__, __LINE__, "engine init failed: could not init task-mgr");
@@ -289,7 +295,7 @@ result_t eng_init(const struct init_params* params)
         err_print(__FILE__, __LINE__, "engine init failed: could not init res-mgr");
         return RET_FAIL;
     }
-    rs_set_dataalloc(&g_eng.lsr_alloc);
+    rs_set_dataalloc(&g_eng->lsr_alloc);
 
     /* graphics renderer */
     r = gfx_init(&params->gfx);
@@ -314,16 +320,13 @@ result_t eng_init(const struct init_params* params)
         }
     }
 
-    /* input */
-    input_init();
-
     /* component manager */
     r = cmp_initmgr();
     if (IS_FAIL(r)) {
         err_print(__FILE__, __LINE__, "engine init failed: could not init cmp-mgr");
         return RET_FAIL;
     }
-    cmp_set_globalalloc(&g_eng.data_alloc, tsk_get_tmpalloc(0));
+    cmp_set_globalalloc(&g_eng->data_alloc, tsk_get_tmpalloc(0));
 
     /* world manager */
     r = wld_initmgr();
@@ -370,7 +373,7 @@ result_t eng_init(const struct init_params* params)
     }
 
     /* switch back to normal data allocator */
-    rs_set_dataalloc(&g_eng.data_alloc);
+    rs_set_dataalloc(&g_eng->data_alloc);
 
     /* enable background-loading if res-mgr is prepared for (see above rs_initmgr) */
     if (gfx_check_feature(GFX_FEATURE_THREADED_CREATES))
@@ -399,18 +402,20 @@ result_t eng_init(const struct init_params* params)
 
 void eng_release()
 {
+    if (g_eng == NULL)
+        return;
+
     rs_release_resources();
 
     lod_releasemgr();
 #if !defined(_DEBUG_)
-    pak_close(&g_eng.data_pak);
+    pak_close(&g_eng->data_pak);
 #endif
 	prf_releasemgr();
     sct_release();
     wld_releasemgr();
     scn_releasemgr();
     cmp_releasemgr();
-    input_release();
     phx_release();
     hud_release();
     gfx_release();
@@ -418,27 +423,28 @@ void eng_release()
     rs_releasemgr();
     tsk_releasemgr();
 
-    if (g_eng.timer != NULL)
-        timer_destroyinstance(g_eng.timer);
+    if (g_eng->timer != NULL)
+        timer_destroyinstance(g_eng->timer);
 
     /* check for main memory leaks */
-    if (BIT_CHECK(g_eng.params.flags, ENG_FLAG_DEV))    {
-        uint leak_cnt = mem_freelist_getleaks_ts(&g_eng.data_freelist, NULL);
+    if (BIT_CHECK(g_eng->params.flags, ENG_FLAG_DEV))    {
+        uint leak_cnt = mem_freelist_getleaks_ts(&g_eng->data_freelist, NULL);
         if (leak_cnt > 0)
             log_printf(LOG_WARNING, "%d leaks found on dynamic 'data' memory", leak_cnt);
     }
 
-    mem_freelist_destroy_ts(&g_eng.data_freelist);
-    mem_stack_destroy(&g_eng.lsr_stack);
+    mem_freelist_destroy_ts(&g_eng->data_freelist);
+    mem_stack_destroy(&g_eng->lsr_stack);
 
     log_print(LOG_TEXT, "engine released.");
 
-	if (BIT_CHECK(g_eng.params.flags, ENG_FLAG_CONSOLE))	{
+	if (BIT_CHECK(g_eng->params.flags, ENG_FLAG_CONSOLE))	{
 		log_outputfunc(FALSE, NULL, NULL);
 		con_release();
 	}
 
-    eng_zero();
+    FREE(g_eng);
+    g_eng = NULL;
 }
 
 void eng_update()
@@ -453,23 +459,23 @@ void eng_update()
     A_SAVE(tmp_alloc);
 
     uint64 start_tick = timer_querytick();
-    g_eng.frame_stats.start_tick = start_tick;
+    g_eng->frame_stats.start_tick = start_tick;
 
     /* check for file changes (dev-mode) */
-    if (BIT_CHECK(g_eng.params.flags, ENG_FLAG_DEV))
+    if (BIT_CHECK(g_eng->params.flags, ENG_FLAG_DEV))
         fio_mon_update();
 
     /* update all timers */
     timer_update(start_tick);
 
     /* do all the work ... */
-    float dt = g_eng.timer->dt;
+    float dt = g_eng->timer->dt;
 
     /* resource manager */
     rs_update();
 
     /* physics */
-    if (!BIT_CHECK(g_eng.params.flags, ENG_FLAG_DISABLEPHX)) {
+    if (!BIT_CHECK(g_eng->params.flags, ENG_FLAG_DISABLEPHX)) {
         if (simulated)
             phx_wait();
         phx_update_xforms(simulated);   /* gather results */
@@ -479,7 +485,7 @@ void eng_update()
     sct_update();
 
     /* physics: run simulation */
-    if (!BIT_CHECK(g_eng.params.flags, ENG_FLAG_DISABLEPHX))
+    if (!BIT_CHECK(g_eng->params.flags, ENG_FLAG_DISABLEPHX))
         simulated = phx_update_sim(dt);
 
     /* update component system stages */
@@ -499,17 +505,13 @@ void eng_update()
     cmp_update(dt, CMP_UPDATE_STAGE5);
     PRF_CLOSESAMPLE();
 
-    PRF_OPENSAMPLE("Display");
-    app_swapbuffers();
-    PRF_CLOSESAMPLE();
-
     /* clear update list of components */
     cmp_clear_updates();
 
     /* final frame stats calculation */
     fl64 ft = timer_calctm(start_tick, timer_querytick());
-    if (g_eng.fps_lock > 0)  {
-        fl64 target_ft = 1.0 / (fl64)g_eng.fps_lock;
+    if (g_eng->fps_lock > 0)  {
+        fl64 target_ft = 1.0 / (fl64)g_eng->fps_lock;
         while (ft < target_ft)  {
             ft = timer_calctm(start_tick, timer_querytick());
         }
@@ -520,12 +522,12 @@ void eng_update()
     prf_presentsamples(ft);
 #endif
 
-    g_eng.frame_stats.ft = (float)ft;
-    g_eng.frame_stats.frame ++;
+    g_eng->frame_stats.ft = (float)ft;
+    g_eng->frame_stats.frame ++;
     frame_cnt ++;
     elapsed_tm += (float)ft;
     if (elapsed_tm > 1.0f)  {
-        g_eng.frame_stats.fps = frame_cnt;
+        g_eng->frame_stats.fps = frame_cnt;
         frame_cnt = 0;
         elapsed_tm = 0.0f;
     }
@@ -535,7 +537,7 @@ void eng_update()
 
 const struct frame_stats* eng_get_framestats()
 {
-	return &g_eng.frame_stats;
+	return &g_eng->frame_stats;
 }
 
 void eng_send_guimsgs(char c, uint vkey)
@@ -545,27 +547,27 @@ void eng_send_guimsgs(char c, uint vkey)
 
 const struct init_params* eng_get_params()
 {
-	return &g_eng.params;
+	return &g_eng->params;
 }
 
 struct allocator* eng_get_lsralloc()
 {
-    return &g_eng.lsr_alloc;
+    return &g_eng->lsr_alloc;
 }
 
 struct allocator* eng_get_dataalloc()
 {
-    return &g_eng.data_alloc;
+    return &g_eng->data_alloc;
 }
 
 void eng_get_memstats(struct eng_mem_stats* stats)
 {
     memset(stats, 0x00, sizeof(struct eng_mem_stats));
-    if (BIT_CHECK(g_eng.params.flags, ENG_FLAG_OPTIMIZEMEMORY)) {
-        stats->data_max = g_eng.data_freelist.fl.size;
-        stats->data_size = g_eng.data_freelist.fl.alloc_size;
-        stats->lsr_max = g_eng.lsr_stack.size;
-        stats->lsr_size = g_eng.lsr_stack.offset;
+    if (BIT_CHECK(g_eng->params.flags, ENG_FLAG_OPTIMIZEMEMORY)) {
+        stats->data_max = g_eng->data_freelist.fl.size;
+        stats->data_size = g_eng->data_freelist.fl.alloc_size;
+        stats->lsr_max = g_eng->lsr_stack.size;
+        stats->lsr_size = g_eng->lsr_stack.offset;
     }   else    {
         stats->data_max = 0;
         stats->data_size = mem_sizebyid(MID_DATA);
@@ -743,7 +745,7 @@ int eng_hud_drawcallgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y,
 
 const struct hwinfo* eng_get_hwinfo()
 {
-    return &g_eng.hwinfo;
+    return &g_eng->hwinfo;
 }
 
 result_t eng_console_lockfps(uint argc, const char** argv, void* param)
@@ -751,7 +753,7 @@ result_t eng_console_lockfps(uint argc, const char** argv, void* param)
     if (argc != 1)
         return RET_INVALIDARG;
 
-    g_eng.fps_lock = clampui(str_toint32(argv[0]), 0, 1000);
+    g_eng->fps_lock = clampui(str_toint32(argv[0]), 0, 1000);
     return RET_OK;
 }
 
@@ -768,10 +770,10 @@ void eng_resume()
 
 const char* eng_get_sharedir()
 {
-    return g_eng.share_dir;
+    return g_eng->share_dir;
 }
 
 float eng_get_frametime()
 {
-    return g_eng.frame_stats.ft;
+    return g_eng->frame_stats.ft;
 }

@@ -27,7 +27,7 @@
 #include "dhcore/vec-math.h"
 #include "dhcore/prims.h"
 #include "engine-api.h"
-#include "input.h"
+#include "dhapp/input.h"
 
 #define CAM_FRUSTUM_LEFT    0
 #define CAM_FRUSTUM_RIGHT   1

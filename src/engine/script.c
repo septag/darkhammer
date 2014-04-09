@@ -45,7 +45,7 @@ extern "C" {
 #include "debug-hud.h"
 #include "res-mgr.h"
 #include "prf-mgr.h"
-#include "init-params.h"
+#include "dhapp/init-params.h"
 
 #include "components/cmp-trigger.h"
 
@@ -865,19 +865,6 @@ void sct_setthreshold(int mem_sz)
                 gc->threshold = mem_sz;
             node = node->next;
         }
-    }
-}
-
-void sct_parseparams(struct sct_params* params, json_t j)
-{
-    memset(params, 0x00, sizeof(struct sct_params));
-
-    /* script */
-    json_t jsct = json_getitem(j, "script");
-    if (jsct != NULL)  {
-        params->mem_sz = json_geti_child(jsct, "mem-size", 0);
-    }   else    {
-        params->mem_sz = 0;
     }
 }
 

@@ -26,7 +26,7 @@
 #include "engine.h"
 #include "mem-ids.h"
 #include "console.h"
-#include "input.h"
+#include "dhapp/input.h"
 
 #define GRAPH_UPDATE_INTERVAL	0.05f
 

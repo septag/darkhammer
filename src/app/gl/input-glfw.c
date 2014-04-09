@@ -15,10 +15,10 @@
 
 #if defined(_GL_)
 
-#include "GLFWEXT/glfw3.h"
+#include "GLFW/glfw3.h"
 #include "dhcore/core.h"
 #include "glfw-keycodes.h"
-#include "input.h"
+#include "dhapp/input.h"
 
 void input_make_keymap_platform(uint keymap[INPUT_KEY_CNT])
 {
@@ -124,20 +124,20 @@ void input_make_keymap_platform(uint keymap[INPUT_KEY_CNT])
     keymap[99] = KEY_NUM_LOCK;
 }
 
-void input_mouse_getpos_platform(void* wnd_hdl, OUT int* x, OUT int* y)
+void input_mouse_getpos_platform(GLFWwindow* wnd_hdl, OUT int* x, OUT int* y)
 {
     double xd, yd;
-    glfwGetCursorPos((GLFWwindow*)wnd_hdl, &xd, &yd);
+    glfwGetCursorPos(wnd_hdl, &xd, &yd);
     *x = (int)xd;
     *y = (int)yd;
 }
 
-void input_mouse_setpos_platform(void* wnd_hdl, int x, int y)
+void input_mouse_setpos_platform(GLFWwindow* wnd_hdl, int x, int y)
 {
-    glfwSetCursorPos((GLFWwindow*)wnd_hdl, (double)x, (double)y);
+    glfwSetCursorPos(wnd_hdl, (double)x, (double)y);
 }
 
-bool_t input_mouse_getkey_platform(void* wnd_hdl, enum input_mouse_key mkey)
+bool_t input_mouse_getkey_platform(GLFWwindow* wnd_hdl, enum input_mouse_key mkey)
 {
     int button = 0;
     switch (mkey)   {
@@ -158,15 +158,15 @@ bool_t input_mouse_getkey_platform(void* wnd_hdl, enum input_mouse_key mkey)
         break;
     }
 
-    return glfwGetMouseButton((GLFWwindow*)wnd_hdl, button) == GLFW_PRESS;
+    return glfwGetMouseButton(wnd_hdl, button) == GLFW_PRESS;
 }
 
 
-bool_t input_kb_getkey_platform(void* wnd_hdl, const uint keymap[INPUT_KEY_CNT],
+bool_t input_kb_getkey_platform(GLFWwindow* wnd_hdl, const uint keymap[INPUT_KEY_CNT],
                                 enum input_key key)
 {
     int keycode = (int)keymap[(uint)key];
-    return glfwGetKey((GLFWwindow*)wnd_hdl, keycode) == GLFW_PRESS;
+    return glfwGetKey(wnd_hdl, keycode) == GLFW_PRESS;
 }
 
 #endif

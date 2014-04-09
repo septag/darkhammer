@@ -17,12 +17,12 @@
 #include "dhcore/core.h"
 #include "dhcore/timer.h"
 
-#include "dheng/app.h"
+#include "dhapp/app.h"
 #include "dheng/engine.h"
 #include "dheng/gfx-canvas.h"
 #include "dheng/camera.h"
 #include "dheng/scene-mgr.h"
-#include "dheng/input.h"
+#include "dhapp/input.h"
 #include "dheng/gfx.h"
 #include "dheng/debug-hud.h"
 
@@ -220,7 +220,7 @@ void update_camera()
     input_mouse_getpos(&mpos);
 
     /* update only if application is active and mouse activity is enabled */
-    if (app_isactive() && !hud_console_isactive())   {
+    if (app_window_isactive() && !hud_console_isactive())   {
         /* Move camera only if left mouse key is pressed inside the window */
         if (prev_x != 0 && prev_y != 0 && input_mouse_getkey(INPUT_MOUSEKEY_LEFT, FALSE))
         {
@@ -266,7 +266,7 @@ void update_light()
 /**
  * Window keypress callback: Send required keyboard messages to engine (for GUI handling)
  */
-void keypress_callback(const char* wnd_name, char c, uint vkey)
+void keypress_callback(char c, uint vkey)
 {
     eng_send_guimsgs(c, vkey);
 }
@@ -286,7 +286,7 @@ void update_callback()
  * Application activate/deactivate callback
  * Pause/Resume engine simulation
  */
-void activate_callback(const char* wnd_name, bool_t active)
+void activate_callback(bool_t active)
 {
     if (active)
         eng_resume();
@@ -298,7 +298,7 @@ void activate_callback(const char* wnd_name, bool_t active)
  * Window resize callback
  * Resize the camera aspect
  */
-void resize_callback(const char* wnd_name, uint width, uint height)
+void resize_callback(uint width, uint height)
 {
     cam_set_viewsize(&g_cam.c, (float)width, (float)height);
 }
@@ -317,7 +317,7 @@ int main(int argc, char** argv)
     set_logfile();
 
     /* load config file (json) */
-    init_params* params = app_defaultconfig();
+    init_params* params = app_config_default();
     if (params == NULL) {
         err_sendtolog(FALSE);
         core_release(FALSE);
@@ -331,11 +331,11 @@ int main(int argc, char** argv)
 
     /* Initialize application (graphics device and rendering window)
      * Application name will also, be the name of the main window */
-    r = app_init(APP_NAME, params, 0);
+    r = app_init(APP_NAME, params);
     if (IS_FAIL(r)) {
         err_sendtolog(FALSE);
         core_release(FALSE);
-        app_unload_config(params);
+        app_config_unload(params);
         return -1;
     }
 
@@ -343,7 +343,7 @@ int main(int argc, char** argv)
     r = eng_init(params);
 
     /* init params isn't needed anymore */
-    app_unload_config(params);
+    app_config_unload(params);
     if (IS_FAIL(r)) {
         err_sendtolog(FALSE);
         eng_release();
@@ -361,16 +361,16 @@ int main(int argc, char** argv)
     }
 
     /* Set application callbacks */
-    app_set_updatefunc(update_callback);
-    app_set_keypressfunc(keypress_callback);
-    app_set_activefunc(activate_callback);
+    app_window_setupdatefn(update_callback);
+    app_window_setkeypressfn(keypress_callback);
+    app_window_setactivefn(activate_callback);
     gfx_set_debug_renderfunc(debug_view_callback);
 
     /* Initialize ok: show the main window */
-    app_show_window(NULL);
+    app_window_show();
 
     /* Enter message loop and update engine */
-    app_update();
+    app_window_run();
 
     /* cleanup */
     release_scene();

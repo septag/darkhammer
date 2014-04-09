@@ -30,7 +30,6 @@
 #include "debug-hud.h"
 #include "prf-mgr.h"
 #include "camera.h"
-#include "app.h"
 
 #include "renderpaths/gfx-csm.h"
 
@@ -727,7 +726,7 @@ struct gfx_pfx_shadow* gfx_pfx_shadowcsm_create(uint width, uint height,
 
     /* shaders */
     char cascadecnt[16];
-    enum gfx_hwver hwver = app_get_gfxver();
+    enum gfx_hwver hwver = gfx_get_hwver();
     str_itos(cascadecnt, gfx_csm_get_cascadecnt());
     gfx_shader_beginload(eng_get_lsralloc(), "shaders/fsq-pos.vs", "shaders/df-shadow-csm.ps",
         NULL, 2, "shaders/common.inc", "shaders/df-common.inc");
@@ -1444,7 +1443,7 @@ struct gfx_pfx_fxaa* gfx_pfx_fxaa_create(uint width, uint height)
     uint define_cnt = 2;
     defines[0].name = "FXAA_PC";
     defines[0].value = "1";
-    switch (app_get_gfxver())  {
+    switch (gfx_get_hwver())  {
     case GFX_HWVER_D3D11_0:
         defines[1].name = "FXAA_HLSL_5";
         defines[1].value = "1";

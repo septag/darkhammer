@@ -195,7 +195,7 @@ result_t gfx_initcmdqueue(gfx_cmdqueue cmdqueue, void* param)
     }
 
     /* blitting stuff (only for d3d10.0) */
-    if (app_get_gfxver() == GFX_HWVER_D3D10_0)   {
+    if (gfx_get_hwver() == GFX_HWVER_D3D10_0)   {
         struct gfx_depthstencil_desc dsdesc;
         memcpy(&dsdesc, gfx_get_defaultdepthstencil(), sizeof(dsdesc));
         dsdesc.depth_enable = TRUE;
@@ -239,7 +239,7 @@ void gfx_releasecmdqueue(gfx_cmdqueue cmdqueue)
         gfx_shader_unload(cmdqueue->blit_shaderid);
 
     /* if it's not a main-context we can release it */
-    if (cmdqueue->context != app_get_mainctx())
+    if (cmdqueue->context != app_gfx_getcontext())
         RELEASE(cmdqueue->context);
 
     memset(cmdqueue, 0x00, sizeof(struct gfx_cmdqueue_s));
@@ -551,7 +551,7 @@ void gfx_output_clearrendertarget(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
     const float color[4], float depth, uint8 stencil, uint flags)
 {
     if (rt == NULL) {
-        app_clear_rendertarget(color, depth, stencil, flags);
+        app_window_clear(color, depth, stencil, flags);
         return;
     }
 
@@ -597,7 +597,7 @@ void gfx_rendertarget_blit(gfx_cmdqueue cmdqueue,
 
 void gfx_rendertarget_blitraw(gfx_cmdqueue cmdqueue, gfx_rendertarget src_rt)
 {
-    if (app_get_gfxver() != GFX_HWVER_D3D10_0 || src_rt->desc.rt.ds_texture == NULL)   {
+    if (gfx_get_hwver() != GFX_HWVER_D3D10_0 || src_rt->desc.rt.ds_texture == NULL)   {
         /* copy color buffer to current render-target */
         ID3D11Resource* dest_res = cmdqueue->cur_rt != NULL ?
             (ID3D11Resource*)((gfx_texture)cmdqueue->cur_rt->desc.rt.rt_textures[0])->api_obj :

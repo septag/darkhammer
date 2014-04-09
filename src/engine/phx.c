@@ -21,14 +21,13 @@
 #include "phx-device.h"
 #include "cmp-mgr.h"
 #include "engine.h"
-#include "init-params.h"
+#include "dhapp/init-params.h"
 #include "mem-ids.h"
 #include "scene-mgr.h"
 
 #include "components/cmp-xform.h"
 
 #define STEP_LEN (1.0f/60.0f)
-#define DEFAULT_SUBSTEPS_MAX 2
 
 /*************************************************************************************************
  * types
@@ -203,28 +202,6 @@ void phx_wait()
 
     if (scene_id != 0)
         phx_scene_wait(scene_id);
-}
-
-void phx_parseparams(struct phx_params* params, json_t j)
-{
-    memset(params, 0x00, sizeof(struct phx_params));
-
-    /* physics */
-    json_t jphx = json_getitem(j, "physics");
-    if (jphx != NULL)  {
-        if (json_getb_child(jphx, "track-mem", FALSE))
-            BIT_ADD(params->flags, PHX_FLAG_TRACKMEM);
-        if (json_getb_child(jphx, "profile", FALSE))
-            BIT_ADD(params->flags, PHX_FLAG_PROFILE);
-        params->mem_sz = json_geti_child(jphx, "mem-size", 0);
-        params->substeps_max = json_geti_child(jphx, "substeps-max", DEFAULT_SUBSTEPS_MAX);
-        params->scratch_sz = json_geti_child(jphx, "scratch-size", 0);
-    }   else    {
-        params->flags = 0;
-        params->mem_sz = 0;
-        params->substeps_max = DEFAULT_SUBSTEPS_MAX;
-        params->scratch_sz = 0;
-    }
 }
 
 void phx_create_debugplane(float friction, float restitution)

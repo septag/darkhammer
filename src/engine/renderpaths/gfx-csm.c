@@ -31,7 +31,6 @@
 #include "res-mgr.h"
 #include "console.h"
 #include "debug-hud.h"
-#include "app.h"
 
 #define CSM_SHADER_CNT 4
 #define CSM_CASCADE_CNT 3
@@ -452,7 +451,7 @@ result_t gfx_csm_resize(uint width, uint height)
 
 result_t csm_create_shadowrt(uint width, uint height)
 {
-	enum gfx_hwver hwver = app_get_gfxver();
+	enum gfx_hwver hwver = gfx_get_hwver();
 	if (hwver == GFX_HWVER_D3D10_0 || hwver == GFX_HWVER_GL3_3 || hwver == GFX_HWVER_GL3_2)
 	{
 		g_csm->shadow_tex = gfx_create_texturert_cube(width, height, GFX_FORMAT_DEPTH32);
@@ -921,7 +920,7 @@ result_t csm_console_debugcsm(uint argc, const char** argv, void* param)
 bool_t csm_load_prev_shaders(struct allocator* alloc)
 {
     char cascadecnt[10];
-    enum gfx_hwver hwver = app_get_gfxver();
+    enum gfx_hwver hwver = gfx_get_hwver();
 
     gfx_shader_beginload(alloc, "shaders/fsq.vs", "shaders/csm-prev.ps", NULL, 1,
         "shaders/common.inc");

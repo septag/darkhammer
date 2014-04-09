@@ -30,7 +30,7 @@
 #include "engine.h"
 #include "gfx-device.h"
 #include "gfx-canvas.h"
-#include "init-params.h"
+#include "dhapp/init-params.h"
 #include "gfx-cmdqueue.h"
 #include "gfx.h"
 

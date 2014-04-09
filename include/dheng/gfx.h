@@ -30,7 +30,7 @@
 
 #include "engine-api.h"
 #include "gfx-types.h"
-#include "init-params.h"
+#include "dhapp/init-params.h"
 #include "cmp-types.h"
 
 /* fwd */
@@ -142,6 +142,7 @@ const char* gfx_rpath_getflagstr(uint rpath_flags);
 
 /* used internally by gfx-device(es) in order to set current render-target size parameters */
 void gfx_set_rtvsize(uint width, uint height);
+void gfx_get_rtvsize(OUT uint* width, OUT uint* height);
 
 /* misc */
 gfx_sampler gfx_get_globalsampler();
@@ -149,7 +150,7 @@ gfx_sampler gfx_get_globalsampler_low();
 void gfx_draw_fullscreenquad();
 const struct gfx_params* gfx_get_params();
 void gfx_set_previewrenderflag();
-void gfx_resize(uint width, uint height);
+
 
 /*************************************************************************************************
  * API
@@ -157,6 +158,8 @@ void gfx_resize(uint width, uint height);
 
 /* default callback implementations */
 void gfx_render_grid(gfx_cmdqueue cmdqueue, const struct gfx_view_params* params);
+
+ENGINE_API void gfx_resize(uint width, uint height);
 
 ENGINE_API void gfx_set_gridcallback(bool_t enable);
 
