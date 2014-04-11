@@ -41,13 +41,13 @@ struct err_data
     struct err_desc* err_stack;      /* array of error stacks (see err_desc) */
     char* err_string;     /* whole error string that is created when needed */
     long volatile err_cnt;        /* number of error items in the stack */
-    bool_t init;           /* initialized ? */
+    int init;           /* initialized ? */
     long volatile err_code;       /* last error code */
     mt_mutex mtx;
 };
 
 static struct err_data g_err;
-static bool_t g_err_zero = FALSE;
+static int g_err_zero = FALSE;
 
 /* */
 void err_reportassert(const char* expr, const char* source, uint line)
@@ -152,7 +152,7 @@ void err_print(const char* source, uint line, const char* text)
     MT_ATOMIC_INCR(g_err.err_cnt);
 }
 
-void err_sendtolog(bool_t as_warning)
+void err_sendtolog(int as_warning)
 {
     const char* text = err_getstring();
     if (as_warning)
@@ -207,7 +207,7 @@ void err_clear()
     MT_ATOMIC_SET(g_err.err_cnt, 0);
 }
 
-bool_t err_haserrors()
+int err_haserrors()
 {
     return g_err.err_cnt != 0;
 }

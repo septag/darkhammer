@@ -79,7 +79,7 @@ struct gfx_occ
     struct mat4f viewport;
     struct mat4f viewprojvp;  /* world to viewport matrix */
 
-    bool_t debug;
+    int debug;
     struct gfx_occ_stats stats;
 
     pfn_drawtri drawtri_fn;
@@ -561,7 +561,7 @@ simd4i_t occ_calc_edge(struct vec4i* e_stepx, struct vec4i* e_stepy,
 
 result_t occ_console_show(uint argc, const char ** argv, void* param)
 {
-    bool_t show = TRUE;
+    int show = TRUE;
     if (argc == 1)
         show = str_tobool(argv[0]);
     else if (argc > 1)
@@ -639,7 +639,7 @@ float gfx_occ_getfar()
     return OCC_FAR;
 }
 
-bool_t gfx_occ_testbounds(const struct sphere* s, const struct vec3f* xaxis,
+int gfx_occ_testbounds(const struct sphere* s, const struct vec3f* xaxis,
     const struct vec3f* yaxis, const struct vec3f* campos)
 {
     struct vec4f quad_pts[4];
@@ -832,7 +832,7 @@ float occ_testtri(const struct vec3f* v0, const struct vec3f* v1, const struct v
 /*************************************************************************************************
  * AMD variations (without SSE4.1)
  */
-INLINE bool_t occ_amd_testallzeros(simd4i_t xmm)
+INLINE int occ_amd_testallzeros(simd4i_t xmm)
 {
     return _mm_movemask_epi8(_mm_cmpeq_epi8(xmm, _mm_setzero_si128())) == 0xFFFF;
 }

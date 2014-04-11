@@ -20,9 +20,9 @@
 #include "dhcore/types.h"
 #include "h3dimport.h"
 
-bool_t import_model(const struct import_params* params);
-bool_t import_list(const struct import_params* params);
-bool_t import_listmtls(const struct import_params* params);
+int import_model(const struct import_params* params);
+int import_list(const struct import_params* params);
+int import_listmtls(const struct import_params* params);
 
 
 #endif /* MODEL_IMPORT_H_ */

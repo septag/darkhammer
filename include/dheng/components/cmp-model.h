@@ -35,7 +35,7 @@ struct cmp_model
 {
     /* interface */
 	char filepath[128];
-	bool_t exclude_shadows;
+	int exclude_shadows;
 
 	/* internal */
 	reshandle_t model_hdl;
@@ -53,7 +53,7 @@ ENGINE_API result_t cmp_model_modify(struct cmp_obj* obj, struct allocator* allo
 static const struct cmp_value cmp_model_values[] = {
     {"filepath", CMP_VALUE_STRING, offsetof(struct cmp_model, filepath), 128, 1,
     cmp_model_modify, "customdlg; filepicker; filter=*.h3dm;"},
-    {"exclude_shadows", CMP_VALUE_BOOL, offsetof(struct cmp_model, exclude_shadows), sizeof(bool_t),
+    {"exclude_shadows", CMP_VALUE_BOOL, offsetof(struct cmp_model, exclude_shadows), sizeof(int),
     1,  NULL, ""}
 };
 static const uint16 cmp_model_type = 0x4e9b;
@@ -61,7 +61,7 @@ static const uint16 cmp_model_type = 0x4e9b;
 result_t cmp_model_register(struct allocator* alloc);
 
 /* callback: reloading from res-mgr */
-void cmp_model_reload(const char* filepath, reshandle_t hdl, bool_t manual);
+void cmp_model_reload(const char* filepath, reshandle_t hdl, int manual);
 
 void cmp_model_debug(struct cmp_obj* obj, void* data, cmphandle_t cur_hdl, float dt,
     const struct gfx_view_params* params);

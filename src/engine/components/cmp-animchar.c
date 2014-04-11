@@ -32,7 +32,7 @@ result_t cmp_animchar_create(struct cmp_obj* obj, void* data, cmphandle_t hdl);
 void cmp_animchar_destroy(struct cmp_obj* obj, void* data, cmphandle_t hdl);
 void cmp_animchar_update(cmp_t c, float dt, void* param);
 void cmp_animchar_destroydata(struct cmp_obj* obj, struct cmp_animchar* data, cmphandle_t hdl,
-                              bool_t release_ctrl);
+                              int release_ctrl);
 result_t cmp_animchar_createhierarchy(struct cmp_animchar* ch, struct cmp_model* m,
     struct gfx_model* gmodel);
 void cmp_animchar_destroybind(struct cmp_animchar* ch);
@@ -128,7 +128,7 @@ result_t cmp_animchar_modify(struct cmp_obj* obj, struct allocator* alloc,
     struct cmp_animchar* ch = (struct cmp_animchar*)data;
 
     uint filehash = hash_str(ch->filepath);
-    bool_t reload = (ch->filepathhash == filehash);
+    int reload = (ch->filepathhash == filehash);
     cmp_animchar_destroydata(obj, ch, hdl, !reload);
     ch->filepathhash = filehash;
 
@@ -396,7 +396,7 @@ void cmp_animchar_destroybind(struct cmp_animchar* ch)
 }
 
 void cmp_animchar_destroydata(struct cmp_obj* obj, struct cmp_animchar* data, cmphandle_t hdl,
-                              bool_t release_ctrl)
+                              int release_ctrl)
 {
     cmp_animchar_destroybind(data);
 
@@ -449,7 +449,7 @@ void cmp_animchar_reelchanged(reshandle_t reel_hdl)
     }
 }
 
-void cmp_animchar_reload(const char* filepath, reshandle_t hdl, bool_t manual)
+void cmp_animchar_reload(const char* filepath, reshandle_t hdl, int manual)
 {
     uint cnt;
     struct allocator* tmp_alloc = tsk_get_tmpalloc(0);
@@ -507,7 +507,7 @@ void cmp_animchar_destroyinstances(reshandle_t hdl, const struct cmp_instance_de
     }
 }
 
-void cmp_animchar_setparamb(cmphandle_t hdl, const char* name, bool_t value)
+void cmp_animchar_setparamb(cmphandle_t hdl, const char* name, int value)
 {
     const struct cmp_animchar* ch = (const struct cmp_animchar*)cmp_getinstancedata(hdl);
     if (ch->inst != NULL && ch->ctrl_hdl != INVALID_HANDLE) {
@@ -559,7 +559,7 @@ int cmp_animchar_getparami(cmphandle_t hdl, const char* name)
     return 0;
 }
 
-bool_t cmp_animchar_getparamb(cmphandle_t hdl, const char* name)
+int cmp_animchar_getparamb(cmphandle_t hdl, const char* name)
 {
     const struct cmp_animchar* ch = (const struct cmp_animchar*)cmp_getinstancedata(hdl);
     if (ch->inst != NULL && ch->ctrl_hdl != INVALID_HANDLE) {
@@ -581,7 +581,7 @@ enum anim_ctrl_paramtype cmp_animchar_getparamtype(cmphandle_t hdl, const char* 
     return ANIM_CTRL_PARAM_UNKNOWN;
 }
 
-bool_t cmp_animchar_get_curstate(cmphandle_t hdl, const char* layer_name, char* state, 
+int cmp_animchar_get_curstate(cmphandle_t hdl, const char* layer_name, char* state, 
     float* progress)
 {
     const struct cmp_animchar* ch = (const struct cmp_animchar*)cmp_getinstancedata(hdl);
@@ -594,7 +594,7 @@ bool_t cmp_animchar_get_curstate(cmphandle_t hdl, const char* layer_name, char* 
     return FALSE;
 }
 
-bool_t cmp_animchar_get_curtransition(cmphandle_t hdl, const char* layer_name, char* state_a, 
+int cmp_animchar_get_curtransition(cmphandle_t hdl, const char* layer_name, char* state_a, 
     char* state_b, float* progress)
 {
     const struct cmp_animchar* ch = (const struct cmp_animchar*)cmp_getinstancedata(hdl);

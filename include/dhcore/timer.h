@@ -63,7 +63,7 @@ void timer_releasemgr();
  * @see timer_destroyinstance
  * @ingroup timer
  */
-CORE_API struct timer* timer_createinstance(bool_t start);
+CORE_API struct timer* timer_createinstance(int start);
 
 /**
  * remove timer from timer_mgr\n

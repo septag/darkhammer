@@ -86,7 +86,7 @@ CORE_API void hashtable_chained_destroy(struct hashtable_chained* table);
  * checks if hash table is empty
  * @ingroup htable
  */
-CORE_API bool_t hashtable_chained_isempty(struct hashtable_chained* table);
+CORE_API int hashtable_chained_isempty(struct hashtable_chained* table);
 /**
  * add item to hash table, constains key/value pair
  * @param hash_key hash key, can be created with hash functions
@@ -152,7 +152,7 @@ CORE_API void hashtable_fixed_destroy(struct hashtable_fixed* table);
  * checks if hash table is empty
  * @ingroup htable
  */
-CORE_API bool_t hashtable_fixed_isempty(struct hashtable_fixed* table);
+CORE_API int hashtable_fixed_isempty(struct hashtable_fixed* table);
 /**
  * add item to hash table, constains key/value pair
  * @param hash_key hash key, can be created with hash functions
@@ -219,7 +219,7 @@ CORE_API void hashtable_open_destroy(struct hashtable_open* table);
  * checks if hash table is empty
  * @ingroup htable
  */
-CORE_API bool_t hashtable_open_isempty(struct hashtable_open* table);
+CORE_API int hashtable_open_isempty(struct hashtable_open* table);
 /**
  * add item to hash table, constains key/value pair
  * @param hash_key hash key, can be created with hash functions

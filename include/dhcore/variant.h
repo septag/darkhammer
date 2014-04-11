@@ -44,7 +44,7 @@ struct variant
     enum variant_type type;
 
     union   {
-        bool_t b;
+        int b;
         int i;
         uint ui;
         float f;
@@ -55,7 +55,7 @@ struct variant
 };
 
 CORE_API struct variant* var_setv(struct variant* rv, const struct variant* v);
-CORE_API struct variant* var_setb(struct variant* v, bool_t b);
+CORE_API struct variant* var_setb(struct variant* v, int b);
 CORE_API struct variant* var_seti(struct variant* v, int i);
 CORE_API struct variant* var_setui(struct variant* v, uint ui);
 CORE_API struct variant* var_setf(struct variant* v, float f);
@@ -77,7 +77,7 @@ CORE_API const char* var_gets(const struct variant* v);
 CORE_API int var_geti(const struct variant* v);
 CORE_API uint var_getui(const struct variant* v);
 CORE_API float var_getf(const struct variant* v);
-CORE_API bool_t var_getb(const struct variant* v);
+CORE_API int var_getb(const struct variant* v);
 CORE_API const float* var_getfv(const struct variant* v);
 CORE_API const int* var_getiv(const struct variant* v);
 CORE_API const char* var_gets(const struct variant* v);

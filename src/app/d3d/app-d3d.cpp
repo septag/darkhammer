@@ -53,8 +53,8 @@ struct app_swapchain
     HWND hwnd;
     uint width;
     uint height;
-    bool_t vsync;
-    bool_t fullscreen;
+    int vsync;
+    int fullscreen;
     uint refresh_rate;
 
     IDXGISwapChain* sc;
@@ -73,11 +73,11 @@ struct app_win
     HINSTANCE pinst; /* program instance */
     uint width;
     uint height;
-    bool_t active;
-    bool_t always_active;
-    bool_t init;
-    bool_t d3d_dbg;
-    bool_t wnd_override;
+    int active;
+    int always_active;
+    int init;
+    int d3d_dbg;
+    int wnd_override;
     uint refresh_rate;
 
     /* callbacks */
@@ -114,7 +114,7 @@ result_t app_init_dxgi(const struct init_params* params,
     OUT enum gfx_hwver* pver);
 void app_release_dxgi();
 result_t app_add_swapchain(const char* name, HWND hwnd, uint width, uint height,
-    uint refresh_rate, bool_t fullscreen, bool_t vsync);
+    uint refresh_rate, int fullscreen, int vsync);
 void app_remove_swapchain(const char* name);
 const char* app_get_wndname(HWND hwnd);
 struct app_swapchain* app_find_swapchain(const char* wnd_name);
@@ -394,8 +394,8 @@ void app_window_run()
         return;
 
     MSG msg;
-    bool_t quit = FALSE;
-    bool_t have_msg = FALSE;
+    int quit = FALSE;
+    int have_msg = FALSE;
 
     memset(&msg, 0x00, sizeof(MSG));
 
@@ -447,7 +447,7 @@ void app_window_readjust(uint client_width, uint client_height)
 }
 
 
-void app_window_alwaysactive(bool_t active)
+void app_window_alwaysactive(int active)
 {
     g_app->always_active = active;
 }
@@ -639,7 +639,7 @@ result_t app_add_rendertarget(const char* wnd_name, wnd_t wnd, uint width, uint 
 }
 
 result_t app_add_swapchain(const char* name, HWND hwnd, uint width, uint height,
-    uint refresh_rate, bool_t fullscreen, bool_t vsync)
+    uint refresh_rate, int fullscreen, int vsync)
 {
     ASSERT(g_app);
 
@@ -1033,7 +1033,7 @@ const char* app_getname()
     return g_app->name;
 }
 
-bool_t app_window_isactive()
+int app_window_isactive()
 {
     return g_app->active;
 }

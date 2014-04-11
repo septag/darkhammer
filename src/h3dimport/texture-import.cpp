@@ -23,8 +23,8 @@
 /*************************************************************************************************
  * inlines
  */
-INLINE nvtt::Format import_get_nvttfmt(char* str_type, enum h3d_texture_type type, bool_t has_alpha,
-		bool_t force_bc2)
+INLINE nvtt::Format import_get_nvttfmt(char* str_type, enum h3d_texture_type type, int has_alpha,
+		int force_bc2)
 {
 	switch (type)	{
 	case H3D_TEXTURE_GLOSS:
@@ -77,7 +77,7 @@ struct tex_output_handler : public nvtt::OutputHandler
 			fclose(file);
 	}
 
-	bool_t is_open() const
+	int is_open() const
 	{
 		return (file != NULL);
 	}
@@ -116,7 +116,7 @@ private:
 };
 
 /*************************************************************************************************/
-bool_t import_process_texture(const char* img_filepath, enum h3d_texture_type type,
+int import_process_texture(const char* img_filepath, enum h3d_texture_type type,
 		const struct import_params* params, char* img_filename, struct import_texture_info* info)
 {
 	char img_ext[DH_PATH_MAX];
@@ -229,7 +229,7 @@ const char* import_get_textureusage(enum h3d_texture_type type)
 	}
 }
 
-bool_t import_texture(const struct import_params* params)
+int import_texture(const struct import_params* params)
 {
     struct import_texture_info info;
     char filename[128];

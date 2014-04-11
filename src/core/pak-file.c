@@ -154,7 +154,7 @@ void pak_close(struct pak_file* pak)
     memset(pak, 0x00, sizeof(struct pak_file));
 }
 
-bool_t pak_isopen(struct pak_file* pak)
+int pak_isopen(struct pak_file* pak)
 {
     return (pak->f != NULL);
 }

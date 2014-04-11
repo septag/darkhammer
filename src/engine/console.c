@@ -46,8 +46,8 @@ struct console
 	struct array logs;	/* type = struct console_line */
 	uint cur_logidx;
 	uint lines_max;
-    bool_t last_limitidx;
-    bool_t init;
+    int last_limitidx;
+    int init;
 };
 
 /*************************************************************************************************

@@ -139,13 +139,13 @@ ENGINE_API void gfx_canvas_settextcolor(const struct color* c);
  * @param cull Enable/Disable cull backfaces
  * @ingroup gfx-canvas
  */
-ENGINE_API void gfx_canvas_setwireframe(bool_t enable, bool_t cull);
+ENGINE_API void gfx_canvas_setwireframe(int enable, int cull);
 
 /**
  * Enable/Disable Z-test
  * @ingroup gfx-canvas
  */
-ENGINE_API void gfx_canvas_setztest(bool_t enable);
+ENGINE_API void gfx_canvas_setztest(int enable);
 
 /**
  * Sets clipping rectangle for the drawing functions that follows
@@ -156,7 +156,7 @@ ENGINE_API void gfx_canvas_setztest(bool_t enable);
  * @param h Height of the clipping rect, in pixels
  * @ingroup gfx-canvas
  */
-ENGINE_API void gfx_canvas_setclip2d(bool_t enable, int x, int y, int w, int h);
+ENGINE_API void gfx_canvas_setclip2d(int enable, int x, int y, int w, int h);
 
 /**
  * Sets alpha (transparency) for the following draw objects
@@ -245,7 +245,7 @@ ENGINE_API void gfx_canvas_box(const struct aabb* b, const struct mat3f* world);
  * @ingroup gfx-canvas
  */
 ENGINE_API void gfx_canvas_boundaabb(const struct aabb* b, const struct mat4f* viewproj,
-                                     bool_t show_info);
+                                     int show_info);
 /**
  * Draws a solid sphere (3D)
  * @param s Sphere, without transformation
@@ -277,7 +277,7 @@ ENGINE_API void gfx_canvas_capsule(float radius, float half_height, const struct
  * @ingroup gfx-canvas
  */
 ENGINE_API void gfx_canvas_boundsphere(const struct sphere* s, const struct mat4f* viewproj,
-                                       const struct mat3f* view, bool_t show_info);
+                                       const struct mat3f* view, int show_info);
 
 /**
  * Draws a rectangular bitmap in space, very much like a single billboard (3D)
@@ -344,13 +344,13 @@ ENGINE_API void gfx_canvas_arrow3d(const struct vec4f* p0, const struct vec4f* p
  * @param width Width of the arrow head
  * @ingroup gfx-canvas
  */
-ENGINE_API void gfx_canvas_arrow2d(const struct vec2i* p0, const struct vec2i* p1, bool_t twoway,
+ENGINE_API void gfx_canvas_arrow2d(const struct vec2i* p0, const struct vec2i* p1, int twoway,
                                    uint line_width, float width);
 ENGINE_API void gfx_canvas_geo(const struct gfx_model_geo* geo, const struct mat3f* world);
 ENGINE_API void gfx_canvas_georaw(gfx_inputlayout il, const struct mat3f* world, const struct color* clr,
     uint tri_cnt, enum gfx_index_type ib_type);
 ENGINE_API void gfx_canvas_cam(const struct camera* cam, const struct vec4f* activecam_pos,
-		const struct mat4f* viewproj, bool_t show_info);
+		const struct mat4f* viewproj, int show_info);
 ENGINE_API void gfx_canvas_worldbounds(const struct vec3f* minpt, const struct vec3f* maxpt,
     float height);
 

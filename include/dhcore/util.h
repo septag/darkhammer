@@ -128,35 +128,35 @@ CORE_API char* util_gettempdir(char* outdir);
  * @return TRUE if successful
  * @ingroup util
  */
-CORE_API bool_t util_makedir(const char* dir);
+CORE_API int util_makedir(const char* dir);
 
 /**
  * copies a file from source to destination
  * @return TRUE if successful
  * @ingroup util
  */
-CORE_API bool_t util_copyfile(const char* dest, const char* src);
+CORE_API int util_copyfile(const char* dest, const char* src);
 
 /**
  * deletees a file from disk
  * @return TRUE if success
  * @ingroup util
  */
-CORE_API bool_t util_delfile(const char* filepath);
+CORE_API int util_delfile(const char* filepath);
 
 /**
  * moves a file from source to destination path
  * @return TRUE if success
  * @ingroup util
  */
-CORE_API bool_t util_movefile(const char* dest, const char* src);
+CORE_API int util_movefile(const char* dest, const char* src);
 
 /**
  * checks if specified path is a directory
  * @return TRUE if path is directory
  * @ingroup util
  */
-CORE_API bool_t util_pathisdir(const char* path);
+CORE_API int util_pathisdir(const char* path);
 
 /**
  * stalls program and sleeps for N milliseconds

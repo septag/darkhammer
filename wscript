@@ -319,9 +319,9 @@ def build(bld):
     if sys.platform == 'linux':
         libdir = os.path.join(bld.env.PREFIX, 'lib')
         os.environ['LD_LIBRARY_PATH'] = libdir
-        delfiles = glob.glob(os.path.join(libdir, 'libdhcore' + bld.env.SUFFIX + '.*'))
+        delfiles = glob.glob(os.path.join(libdir, 'libdhcore' + bld.env.SUFFIX + '*'))
         delfiles.extend(glob.glob(os.path.join(libdir, 'libdheng' + bld.env.SUFFIX + '.*')))
-        delfiles = glob.glob(os.path.join(libdir, 'libdhapp' + bld.env.SUFFIX + '.*'))
+        delfiles.extend(glob.glob(os.path.join(libdir, 'libdhapp' + bld.env.SUFFIX + '.*')))
         for f in delfiles:
             os.remove(f)
 

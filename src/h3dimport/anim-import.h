@@ -19,6 +19,6 @@
 #include "dhcore/types.h"
 #include "h3dimport.h"
 
-bool_t import_anim(const struct import_params* params);
+int import_anim(const struct import_params* params);
 
 #endif /* __ANIMIMPORT_H__ */

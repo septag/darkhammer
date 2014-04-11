@@ -58,45 +58,45 @@ typedef void (*pfn_log_handler)(enum log_type /*type*/, const char* /*text*/, vo
  * set log output to console
  * @ingroup log
  */
-CORE_API result_t log_outputconsole(bool_t enable);
+CORE_API result_t log_outputconsole(int enable);
 /**
  * set log output to text file
  * @ingroup log
  */
-CORE_API result_t log_outputfile(bool_t enable, const char* log_filepath);
+CORE_API result_t log_outputfile(int enable, const char* log_filepath);
 /**
  * set log output to debugger
  * @ingroup log
  */
-CORE_API result_t log_outputdebugger(bool_t enable);
+CORE_API result_t log_outputdebugger(int enable);
 /**
  * set log output to custom function
  * @ingroup log
  */
-CORE_API result_t log_outputfunc(bool_t enable, pfn_log_handler log_fn, void* param);
+CORE_API result_t log_outputfunc(int enable, pfn_log_handler log_fn, void* param);
 
 /* check output options of logger 
  **
  * checks if log output is console
  * @ingroup log
  */
-CORE_API bool_t log_isconsole();
+CORE_API int log_isconsole();
 /**
  * checks if log output is text file
  * @ingroup log
  */
-CORE_API bool_t log_isfile();
+CORE_API int log_isfile();
 /**
  * checks if log output is debugger
  * @ingroup log
  */
-CORE_API bool_t log_isdebugger();
+CORE_API int log_isdebugger();
 
 /**
  * checks if log output is custom function
  * @ingroup log
  */
-CORE_API bool_t log_isoutputfunc();
+CORE_API int log_isoutputfunc();
 
 /**
  * print text to the logger

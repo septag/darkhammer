@@ -74,7 +74,7 @@ struct anim_clip
     char name[32];
     uint frame_start; /* must be < subclip->frame_end */
     uint frame_end;   /* must be <= reel->frame_cnt */
-    bool_t looped;
+    int looped;
     float duration;
 };
 
@@ -119,7 +119,7 @@ struct anim_ctrl_param
     union   {
         float f;
         int i;
-        bool_t b;
+        int b;
     } value;
 };
 
@@ -186,7 +186,7 @@ struct anim_ctrl_transition_groupitem
     uint param_idx;
     union {
         float f;
-        bool_t b;
+        int b;
         int i;
     } value;
 };
@@ -236,7 +236,7 @@ struct anim_ctrl_param_inst
     union   {
         float f;
         int i;
-        bool_t b;
+        int b;
     } value;
 };
 
@@ -257,7 +257,7 @@ struct anim_ctrl_clip_inst
     float tm;    /* local time */
     float progress;  /* normalized progress (*N if looped) */
     float duration;
-    bool_t looped;
+    int looped;
     uint rclip_idx;
 };
 
@@ -319,7 +319,7 @@ uint anim_ctrl_getcount_3rd(json_t jparent, const char* name0, const char* name1
 /* animation controller */
 void anim_ctrl_startstate(const anim_ctrl ctrl, anim_ctrl_inst inst, uint state_idx,
                           float start_tm);
-bool_t anim_ctrl_checkstate(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
+int anim_ctrl_checkstate(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
                             uint layer_idx, uint state_idx, float tm);
 void anim_ctrl_updatetransition(struct anim_pose* poses,
                                 const anim_ctrl ctrl, anim_ctrl_inst inst,
@@ -327,7 +327,7 @@ void anim_ctrl_updatetransition(struct anim_pose* poses,
                                 float tm, struct allocator* tmp_alloc);
 void anim_ctrl_startstate(const anim_ctrl ctrl, anim_ctrl_inst inst, uint state_idx,
                           float start_tm);
-bool_t anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
+int anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
                              const anim_reel reel, uint state_idx, uint layer_idx,
                              const struct anim_ctrl_transition_group* tgroup, float tm);
 void anim_ctrl_updatestate(struct anim_pose* poses, const anim_ctrl ctrl, anim_ctrl_inst inst,
@@ -350,7 +350,7 @@ void anim_ctrl_startseq(const anim_ctrl ctrl, anim_ctrl_inst inst,
 void anim_ctrl_startclip(const anim_ctrl ctrl, anim_ctrl_inst inst, uint clip_idx, float start_tm);
 void anim_ctrl_startblendtree(const anim_ctrl ctrl, anim_ctrl_inst inst, uint blendtree_idx,
                               float start_tm);
-bool_t anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
+int anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
                              const anim_reel reel, uint state_idx, uint layer_idx,
                              const struct anim_ctrl_transition_group* tgroup, float tm);
 float anim_ctrl_updateclip(struct anim_pose* poses, const anim_ctrl ctrl,
@@ -427,7 +427,7 @@ INLINE enum anim_predicate anim_ctrl_parse_grppred(json_t jgrp)
         return ANIM_PREDICATE_UNKNOWN;
 }
 
-INLINE bool_t anim_ctrl_testpredicate_f(enum anim_predicate pred, float value1, float value2)
+INLINE int anim_ctrl_testpredicate_f(enum anim_predicate pred, float value1, float value2)
 {
     switch (pred)   {
     case ANIM_PREDICATE_EQUAL:
@@ -443,7 +443,7 @@ INLINE bool_t anim_ctrl_testpredicate_f(enum anim_predicate pred, float value1, 
     }
 }
 
-INLINE bool_t anim_ctrl_testpredicate_n(enum anim_predicate pred, int value1, int value2)
+INLINE int anim_ctrl_testpredicate_n(enum anim_predicate pred, int value1, int value2)
 {
     switch (pred)   {
     case ANIM_PREDICATE_EQUAL:
@@ -459,7 +459,7 @@ INLINE bool_t anim_ctrl_testpredicate_n(enum anim_predicate pred, int value1, in
     }
 }
 
-INLINE bool_t anim_ctrl_testpredicate_b(bool_t value1, bool_t value2)
+INLINE int anim_ctrl_testpredicate_b(int value1, int value2)
 {
     return value1 == value2;
 }
@@ -1232,11 +1232,11 @@ void anim_ctrl_update(const anim_ctrl ctrl, anim_ctrl_inst inst, float tm,
     inst->tm = tm;
 }
 
-bool_t anim_ctrl_checkstate(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
+int anim_ctrl_checkstate(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
     uint layer_idx, uint state_idx, float tm)
 {
     const struct anim_ctrl_state* cstate = &ctrl->states[state_idx];
-    bool_t condition_meet = FALSE;
+    int condition_meet = FALSE;
 
     for (uint i = 0, cnt = cstate->transition_cnt; i < cnt; i++)  {
         struct anim_ctrl_transition* trans = &ctrl->transitions[cstate->transitions[i]];
@@ -1257,11 +1257,11 @@ bool_t anim_ctrl_checkstate(const anim_ctrl ctrl, anim_ctrl_inst inst, const ani
     return condition_meet;
 }
 
-bool_t anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
+int anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
                              const anim_reel reel, uint state_idx, uint layer_idx,
                              const struct anim_ctrl_transition_group* tgroup, float tm)
 {
-    bool_t condition = TRUE;
+    int condition = TRUE;
     for (uint i = 0; i < tgroup->item_cnt && condition; i++)   {
         const struct anim_ctrl_transition_groupitem* item = &tgroup->items[i];
 
@@ -1637,7 +1637,7 @@ void anim_ctrl_set_paramf(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name,
     }
 }
 
-bool_t anim_ctrl_get_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name)
+int anim_ctrl_get_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name)
 {
     struct hashtable_item* item = hashtable_fixed_find(&ctrl->param_tbl, hash_str(name));
     if (item != NULL)   {
@@ -1647,7 +1647,7 @@ bool_t anim_ctrl_get_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* nam
     return FALSE;
 }
 
-void anim_ctrl_set_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name, bool_t value)
+void anim_ctrl_set_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name, int value)
 {
     struct hashtable_item* item = hashtable_fixed_find(&ctrl->param_tbl, hash_str(name));
     if (item != NULL)   {
@@ -1966,7 +1966,7 @@ reshandle_t anim_ctrl_get_reel(const anim_ctrl_inst inst)
     return inst->reel_hdl;
 }
 
-bool_t anim_ctrl_get_curstate(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
+int anim_ctrl_get_curstate(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
     char* state, float* progress)
 {
     /* find layer */
@@ -1995,7 +1995,7 @@ bool_t anim_ctrl_get_curstate(anim_ctrl ctrl, anim_ctrl_inst inst, const char* l
     return FALSE;
 }
 
-bool_t anim_ctrl_get_curtransition(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
+int anim_ctrl_get_curtransition(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
     char* state_a, char* state_b, OUT OPTIONAL float* progress)
 {
     for (uint i = 0; i < ctrl->layer_cnt; i++)  {

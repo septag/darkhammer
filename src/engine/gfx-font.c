@@ -458,8 +458,8 @@ const wchar* gfx_font_resolveunicode(const struct gfx_font* f, const wchar* inte
 
         if (ch_meta != INVALID_INDEX)    {
             uint8 ch_flags = f->meta_rules[ch_meta].flags;
-            bool_t ch_left = FALSE;
-            bool_t ch_right = FALSE;
+            int ch_left = FALSE;
+            int ch_right = FALSE;
 
             /* check if we have 'left' glyph for current character
              * then look for the 'right-side', if right-side character and

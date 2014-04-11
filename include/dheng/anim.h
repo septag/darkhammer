@@ -52,7 +52,7 @@ struct anim_reel_desc
 struct anim_clip_desc
 {
     const char* name;
-    bool_t looped;
+    int looped;
     float duration;
 };
 
@@ -72,9 +72,9 @@ ENGINE_API enum anim_ctrl_paramtype anim_ctrl_get_paramtype(anim_ctrl ctrl, anim
 ENGINE_API float anim_ctrl_get_paramf(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name);
 ENGINE_API void anim_ctrl_set_paramf(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name,
                                      float value);
-ENGINE_API bool_t anim_ctrl_get_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name);
+ENGINE_API int anim_ctrl_get_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name);
 ENGINE_API void anim_ctrl_set_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name,
-                                     bool_t value);
+                                     int value);
 ENGINE_API int anim_ctrl_get_parami(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name);
 ENGINE_API void anim_ctrl_set_parami(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name,
   int value);
@@ -106,9 +106,9 @@ void anim_get_desc(struct anim_reel_desc* desc, const anim_reel reel);
 const char* anim_get_posebinding(const anim_reel reel, uint pose_idx);
 
 /* debugging */
-bool_t anim_ctrl_get_curstate(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
+int anim_ctrl_get_curstate(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
   OUT char* state, OUT OPTIONAL float* progress);
-bool_t anim_ctrl_get_curtransition(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
+int anim_ctrl_get_curtransition(anim_ctrl ctrl, anim_ctrl_inst inst, const char* layer_name, 
   OUT char* state_a, OUT char* state_b, OUT OPTIONAL float* progress);
 
 #endif /* __ANIM_H__ */

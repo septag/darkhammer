@@ -95,7 +95,7 @@ CORE_API void* arr_add(struct array* arr);
  * @see arr_expand
  * @ingroup array
  */
-INLINE bool_t arr_needexpand(const struct array* arr)
+INLINE int arr_needexpand(const struct array* arr)
 {
     return (arr->max_cnt == arr->item_cnt);
 }
@@ -104,7 +104,7 @@ INLINE bool_t arr_needexpand(const struct array* arr)
  * checks if array is empty
  * @ingroup array
  */
-INLINE bool_t arr_isempty(const struct array* arr)
+INLINE int arr_isempty(const struct array* arr)
 {
     return (arr->item_cnt == 0);
 }

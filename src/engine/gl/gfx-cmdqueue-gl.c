@@ -36,8 +36,6 @@
 struct gfx_cmdqueue_s
 {
 	struct gfx_framestats stats;
-	int rtv_width;
-	int rtv_height;
 	struct gfx_rasterizer_desc last_raster;
 	struct gfx_depthstencil_desc last_depthstencil;
 	struct gfx_blend_desc last_blend;
@@ -170,7 +168,9 @@ void gfx_program_settexture(gfx_cmdqueue cmdqueue, gfx_program prog, enum gfx_sh
 void gfx_output_setviewport(gfx_cmdqueue cmdqueue, int x, int y, int width, int height)
 {
 	/* convert y to meet engine coordinate system */
-	y = cmdqueue->rtv_height - y;
+    int rtv_width, rtv_height;
+    gfx_get_rtvsize(&rtv_width, &rtv_height);
+	y = rtv_height - y;
 	y = y - height;
 	glViewport(x, y, width, height);
     glDepthRangef(0.0f, 1.0f);
@@ -179,9 +179,11 @@ void gfx_output_setviewport(gfx_cmdqueue cmdqueue, int x, int y, int width, int 
 void gfx_output_setviewportbias(gfx_cmdqueue cmdqueue, int x, int y, int width, int height)
 {
     const float bias = 0.0000152588f;
+    int rtv_width, rtv_height;
+    gfx_get_rtvsize(&rtv_width, &rtv_height);
 
     /* convert y to meet engine coordinate system */
-    y = cmdqueue->rtv_height - y;
+    y = rtv_height - y;
     y = y - height;
     glViewport(x, y, width, height);
     glDepthRangef(2.0f*bias, 1.0f-2.0f*bias);
@@ -244,7 +246,10 @@ void output_setblendstate(gfx_cmdqueue cmdqueue, const struct gfx_blend_desc* de
 void gfx_output_setscissor(gfx_cmdqueue cmdqueue, int x, int y, int width, int height)
 {
 	/* convert y to meet engine coordinate system */
-	y = cmdqueue->rtv_height - y;
+    int rtv_width, rtv_height;
+    gfx_get_rtvsize(&rtv_width, &rtv_height);
+
+	y = rtv_height - y;
 	y = y - height;
 	glScissor(x, y, width, height);
 }
@@ -382,7 +387,7 @@ void output_setdepthstencilstate(gfx_cmdqueue cmdqueue, const struct gfx_depthst
 }
 
 void* gfx_buffer_map(gfx_cmdqueue cmdqueue, gfx_buffer buffer, uint offset, uint size,
-		uint mode /* enum gfx_map_mode */, bool_t sync_cpu)
+		uint mode /* enum gfx_map_mode */, int sync_cpu)
 {
 	ASSERT(buffer->type == GFX_OBJ_BUFFER);
 	GLenum target = (GLenum)buffer->desc.buff.type;
@@ -450,18 +455,6 @@ void gfx_draw_indexedinstance(gfx_cmdqueue cmdqueue, enum gfx_primitive_type typ
 	cmdqueue->stats.draw_group_cnt[draw_id] ++;
 }
 
-void gfx_cmdqueue_setrtvsize(gfx_cmdqueue cmdqueue, uint width, uint height)
-{
-	cmdqueue->rtv_width = width;
-	cmdqueue->rtv_height = height;
-}
-
-void gfx_cmdqueue_getrtvsize(gfx_cmdqueue cmdqueue, OUT uint* width, OUT uint* height)
-{
-	*width = (uint)cmdqueue->rtv_width;
-	*height = (uint)cmdqueue->rtv_height;
-}
-
 void gfx_reset_devstates(gfx_cmdqueue cmdqueue)
 {
     gfx_output_setblendstate(cmdqueue, NULL, NULL);
@@ -494,8 +487,8 @@ void gfx_output_setrendertarget(gfx_cmdqueue cmdqueue, OPTIONAL gfx_rendertarget
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		glDrawBuffers(1, def_binding);
 
-        uint width, height;
-        gfx_get_rtvsize(&width, &height);
+        int width, height;
+        gfx_get_wndsize(&width, &height);
 		gfx_set_rtvsize(width, height);
 	}
 
@@ -506,7 +499,9 @@ void gfx_rendertarget_blit(gfx_cmdqueue cmdqueue,
 		int dest_x, int dest_y, int dest_width, int dest_height,
 		gfx_rendertarget src_rt, int src_x, int src_y, int src_width, int src_height)
 {
-	dest_y = cmdqueue->rtv_height - dest_y;
+    int rtv_width, rtv_height;
+    gfx_get_rtvsize(&rtv_width, &rtv_height);
+	dest_y = rtv_height - dest_y;
 	dest_y = dest_y - dest_height;
 
 	src_y = src_rt->desc.rt.height - src_y;
@@ -521,13 +516,16 @@ void gfx_rendertarget_blit(gfx_cmdqueue cmdqueue,
 
 void gfx_rendertarget_blitraw(gfx_cmdqueue cmdqueue, gfx_rendertarget src_rt)
 {
+    int rtv_width, rtv_height;
+    gfx_get_rtvsize(&rtv_width, &rtv_height);
+
     GLuint flags = GL_COLOR_BUFFER_BIT;
     if (src_rt->desc.rt.ds_texture != NULL)
         flags |= (GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)src_rt->api_obj);
     glBlitFramebuffer(0, 0, src_rt->desc.rt.width, src_rt->desc.rt.height,
-        0, 0, cmdqueue->rtv_width, cmdqueue->rtv_height, flags, GL_NEAREST);
+        0, 0, rtv_width, rtv_height, flags, GL_NEAREST);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 }
 

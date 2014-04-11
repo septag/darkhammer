@@ -41,7 +41,7 @@ struct phx_shape_data
     enum phx_obj_type type; /* one of shape types */
     struct xform3d local_pose;
     uint mtl_cnt;
-    bool_t ccd;
+    int ccd;
 
     union   {
         struct {
@@ -78,7 +78,7 @@ struct phx_rigid_data
     float ang_damping;
     int positer_cnt_min;
     int veliter_cnt_min;
-    bool_t gravity_disable;
+    int gravity_disable;
 
     struct phx_shape_data* shapes;
 };
@@ -97,9 +97,9 @@ struct phx_prefab_data
 /*************************************************************************************************
  * fwd declarations
  */
-bool_t phx_prefab_loadshape(struct phx_shape_data* shape, file_t f, struct allocator* alloc);
+int phx_prefab_loadshape(struct phx_shape_data* shape, file_t f, struct allocator* alloc);
 struct phx_rigid_data* phx_prefab_loadrigid(file_t f, struct allocator* alloc);
-phx_obj phx_prefab_loadmesh(file_t f, bool_t gpu_mesh, struct allocator* tmp_alloc, uint thread_id);
+phx_obj phx_prefab_loadmesh(file_t f, int gpu_mesh, struct allocator* tmp_alloc, uint thread_id);
 phx_mtl phx_prefab_loadmtl(file_t f);
 
 void phx_prefab_destroyshape(struct phx_shape_data* shape, struct allocator* alloc);
@@ -190,7 +190,7 @@ phx_prefab phx_prefab_load(const char* h3dp_filepath, struct allocator* alloc, u
     }
 
     /* meshes (geos) */
-    bool_t gpu_mesh = BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV);
+    int gpu_mesh = BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV);
     for (uint i = 0; i < h3ddesc.geo_cnt; i++)    {
         prefab->meshes[i] = phx_prefab_loadmesh(f, gpu_mesh, tmp_alloc, thread_id);
         if (prefab->meshes[i] == NULL)  {
@@ -248,7 +248,7 @@ void phx_prefab_unload(phx_prefab prefab)
     A_ALIGNED_FREE(alloc, pr);
 }
 
-phx_obj phx_prefab_loadmesh(file_t f, bool_t gpu_mesh, struct allocator* tmp_alloc, uint thread_id)
+phx_obj phx_prefab_loadmesh(file_t f, int gpu_mesh, struct allocator* tmp_alloc, uint thread_id)
 {
     struct h3d_phx_geo h3dgeo;
 
@@ -319,7 +319,7 @@ struct phx_rigid_data* phx_prefab_loadrigid(file_t f, struct allocator* alloc)
     rigid->shape_cnt = h3drigid.shape_cnt;
     memset(rigid->shapes, 0x00, sizeof(struct phx_shape_data)*h3drigid.shape_cnt);
 
-    bool_t r = TRUE;
+    int r = TRUE;
     for (uint i = 0; i < h3drigid.shape_cnt; i++)
         r &= phx_prefab_loadshape(&rigid->shapes[i], f, alloc);
 
@@ -329,7 +329,7 @@ struct phx_rigid_data* phx_prefab_loadrigid(file_t f, struct allocator* alloc)
     return rigid;
 }
 
-bool_t phx_prefab_loadshape(struct phx_shape_data* shape, file_t f, struct allocator* alloc)
+int phx_prefab_loadshape(struct phx_shape_data* shape, file_t f, struct allocator* alloc)
 {
     struct h3d_phx_shape h3dshape;
 

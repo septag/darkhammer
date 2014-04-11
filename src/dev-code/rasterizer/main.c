@@ -26,7 +26,7 @@
 
 /* globals */
 HWND g_hwnd = NULL;
-bool_t g_active = FALSE;
+int g_active = FALSE;
 HDC g_hdc = NULL;
 HGLRC g_glc = NULL;
 GLuint g_tex = 0;
@@ -173,8 +173,8 @@ result_t win_initapp(HINSTANCE hinst)
 void win_updateapp()
 {
     MSG msg;
-    bool_t quit = FALSE;
-    bool_t have_msg = FALSE;
+    int quit = FALSE;
+    int have_msg = FALSE;
 
     memset(&msg, 0x00, sizeof(MSG));
 

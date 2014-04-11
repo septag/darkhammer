@@ -139,7 +139,7 @@ struct gfx_model_mtlgpu
 	reshandle_t textures[GFX_MODEL_MAX_MAPS];
 	struct gfx_cblock* cb; /* mtl cblock */
 	struct gfx_renderpass_item passes[GFX_RENDERPASS_MAX];
-	bool_t invalidate_cb; /* indicates that the data inside 'cb' is changed */
+	int invalidate_cb; /* indicates that the data inside 'cb' is changed */
 };
 
 struct gfx_model_submesh
@@ -207,7 +207,7 @@ struct gfx_model_instance
 	struct gfx_model_mtlgpu** mtls;	/* material instances, count = model->mtl_cnt */
 	struct gfx_model_posegpu** poses; /* poses for each skinned geo or NULL, count=model->geo_cnt */
 	uint* unique_ids;	/* count=mesh count(x)each mesh submesh count: unique ids r used in batcher for instancing*/
-    bool_t* alpha_flags;    /* count = renderable-node-count: indicates that each node has some kind of alpha */
+    int* alpha_flags;    /* count = renderable-node-count: indicates that each node has some kind of alpha */
 	struct allocator* alloc;
 };
 

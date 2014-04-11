@@ -80,7 +80,7 @@ static const cmptype_t cmp_light_type = 0x4e0e;
 result_t cmp_light_register(struct allocator* alloc);
 
 /* used by scene-mgr */
-ENGINE_API bool_t cmp_light_applylod(cmphandle_t light_hdl, const struct vec3f* campos,
+ENGINE_API int cmp_light_applylod(cmphandle_t light_hdl, const struct vec3f* campos,
                                      OUT float* intensity);
 
 #endif /* CMP_LIGHT_H_ */

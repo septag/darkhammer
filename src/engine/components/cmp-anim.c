@@ -35,7 +35,7 @@ result_t cmp_anim_create(struct cmp_obj* obj, void* data, cmphandle_t hdl);
 void cmp_anim_destroy(struct cmp_obj* obj, void* data, cmphandle_t hdl);
 void cmp_anim_update(cmp_t c, float dt, void* param);
 void cmp_anim_destroydata(struct cmp_obj* obj, struct cmp_anim* data, cmphandle_t hdl,
-    bool_t release_mesh);
+    int release_mesh);
 result_t cmp_anim_createhierarchy(struct cmp_anim* a, struct cmp_model* m, struct gfx_model* gmodel);
 void cmp_anim_destroybind(struct cmp_anim* a);
 result_t cmp_anim_createskeleton(struct cmp_anim* a, struct cmp_model* m, struct gfx_model* gmodel,
@@ -149,7 +149,7 @@ result_t cmp_anim_modify(struct cmp_obj* obj, struct allocator* alloc, struct al
     struct cmp_anim* a = (struct cmp_anim*)data;
 
     uint filehash = hash_str(a->filepath);
-    bool_t reload = (a->filepathhash == filehash);
+    int reload = (a->filepathhash == filehash);
     cmp_anim_destroydata(obj, a, cur_hdl, !reload);
     a->filepathhash = filehash;
 
@@ -417,7 +417,7 @@ void cmp_anim_stop(cmphandle_t hdl)
 }
 
 void cmp_anim_destroydata(struct cmp_obj* obj, struct cmp_anim* data, cmphandle_t hdl,
-    bool_t release_clip)
+    int release_clip)
 {
     cmp_anim_stop(hdl);
 
@@ -433,7 +433,7 @@ void cmp_anim_destroydata(struct cmp_obj* obj, struct cmp_anim* data, cmphandle_
     data->alloc = NULL;
 }
 
-void cmp_anim_reload(const char* filepath, reshandle_t hdl, bool_t manual)
+void cmp_anim_reload(const char* filepath, reshandle_t hdl, int manual)
 {
     uint cnt;
     struct allocator* tmp_alloc = tsk_get_tmpalloc(0);
@@ -556,7 +556,7 @@ result_t cmp_anim_modify_frame(struct cmp_obj* obj, struct allocator* alloc,
     return RET_OK;
 }
 
-bool_t cmp_anim_isplaying(cmphandle_t hdl)
+int cmp_anim_isplaying(cmphandle_t hdl)
 {
     struct cmp_anim* a = (struct cmp_anim*)cmp_getinstancedata(hdl);
     return a->playing;

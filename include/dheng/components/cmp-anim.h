@@ -35,7 +35,7 @@ struct cmp_anim
     reshandle_t clip_hdl;
     float t; /* elapsed time */
     uint clip_id;
-    bool_t playing; /* keep play state */
+    int playing; /* keep play state */
     struct gfx_model_posegpu* pose; /* pointer to gpupose of the binded skeletal model */
     const cmphandle_t* xform_hdls; /* pointer to xform components, used for hierarchal animation */
     struct mat3f root_mat;  /* root matrix which must be applied to root node after anim update */
@@ -68,7 +68,7 @@ static const uint16 cmp_anim_type = 0x068b;
 
 /* */
 result_t cmp_anim_register(struct allocator* alloc);
-void cmp_anim_reload(const char* filepath, reshandle_t hdl, bool_t manual);
+void cmp_anim_reload(const char* filepath, reshandle_t hdl, int manual);
 result_t cmp_anim_bind(struct cmp_obj* obj, void* data, struct allocator* alloc,
     struct allocator* tmp_alloc, reshandle_t hdl);
 void cmp_anim_unbind(cmphandle_t hdl);
@@ -78,7 +78,7 @@ ENGINE_API uint cmp_anim_getframecnt(cmphandle_t hdl);
 ENGINE_API uint cmp_anim_getfps(cmphandle_t hdl);
 ENGINE_API void cmp_anim_play(cmphandle_t hdl);
 ENGINE_API void cmp_anim_stop(cmphandle_t hdl);
-ENGINE_API bool_t cmp_anim_isplaying(cmphandle_t hdl);
+ENGINE_API int cmp_anim_isplaying(cmphandle_t hdl);
 ENGINE_API uint cmp_anim_getcurframe(cmphandle_t hdl);
 ENGINE_API uint cmp_anim_getclipcnt(cmphandle_t hdl);
 ENGINE_API const char* cmp_anim_getclipname(cmphandle_t hdl, uint clip_idx);

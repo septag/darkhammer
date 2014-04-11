@@ -57,7 +57,7 @@ result_t core_init(uint flags)
     return RET_OK;
 }
 
-void core_release(bool_t report_leaks)
+void core_release(int report_leaks)
 {
 	timer_releasemgr();
 

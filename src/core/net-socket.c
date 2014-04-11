@@ -226,7 +226,7 @@ int sock_tcpsend(socket_t sock, const void* buffer, int size)
 }
 
 
-bool_t sock_pollrecv(socket_t sock, uint timeout)
+int sock_pollrecv(socket_t sock, uint timeout)
 {
     struct timeval tmout = {timeout/1000, (timeout%1000)*1000};
     fd_set readset;
@@ -240,7 +240,7 @@ bool_t sock_pollrecv(socket_t sock, uint timeout)
     return FALSE;
 }
 
-bool_t sock_pollsend(socket_t sock, uint timeout)
+int sock_pollsend(socket_t sock, uint timeout)
 {
     struct timeval tmout = {timeout/1000, (timeout%1000)*1000};
     fd_set writeset;

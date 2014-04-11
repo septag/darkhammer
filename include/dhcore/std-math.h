@@ -30,7 +30,7 @@
  * check if float value is NAN
  * @ingroup stdmath
  */
-INLINE bool_t math_isnan(float n)
+INLINE int math_isnan(float n)
 {
     return (n != n);
 }
@@ -48,7 +48,7 @@ INLINE float math_round(float n)
  * checks equality of two floating-point values with a tolerance
  * @ingroup stdmath
  */
-INLINE bool_t math_isequal(float a, float b)
+INLINE int math_isequal(float a, float b)
 {
     if (fabs(a-b) < EPSILON)
         return TRUE;
@@ -66,7 +66,7 @@ INLINE bool_t math_isequal(float a, float b)
  * checks if floating-point value is zero
  * @ingroup stdmath
  */
-INLINE bool_t math_iszero(float n)
+INLINE int math_iszero(float n)
 {
     return fabs(n) < EPSILON;
 }

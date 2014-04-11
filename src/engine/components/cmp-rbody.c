@@ -37,7 +37,7 @@ void cmp_rbody_update(cmp_t c, float dt, void* param);
 void cmp_rbody_debug(struct cmp_obj* obj, void* data, cmphandle_t cur_hdl, float dt,
     const struct gfx_view_params* params);
 void cmp_rbody_destroydata(struct cmp_obj* host_obj, struct cmp_rbody* data, cmphandle_t hdl,
-    bool_t release_phx);
+    int release_phx);
 
 void cmp_rbody_destroyinstances(reshandle_t prefab_hdl, const struct cmp_instance_desc** insts,
     uint cnt);
@@ -89,7 +89,7 @@ result_t cmp_rbody_modifyfile(struct cmp_obj* obj, struct allocator* alloc,
 {
     struct cmp_rbody* rb = (struct cmp_rbody*)data;
     uint filehash = hash_str(rb->filepath);
-    bool_t reload = (rb->filepath_hash == filehash);
+    int reload = (rb->filepath_hash == filehash);
     rb->filepath_hash = filehash;
 
     /* destroy data before loading anything */
@@ -165,7 +165,7 @@ result_t cmp_rbody_modifycolfilter(struct cmp_obj* obj, struct allocator* alloc,
 }
 
 void cmp_rbody_destroydata(struct cmp_obj* host_obj, struct cmp_rbody* data, cmphandle_t hdl,
-    bool_t release_phx)
+    int release_phx)
 {
     if (data->rbody != NULL)    {
         if (data->px_sceneid != 0)
@@ -216,7 +216,7 @@ void cmp_rbody_update(cmp_t c, float dt, void* param)
     }
 }
 
-void cmp_rbody_reload(const char* filepath, reshandle_t hdl, bool_t manual)
+void cmp_rbody_reload(const char* filepath, reshandle_t hdl, int manual)
 {
     uint cnt;
     struct allocator* tmp_alloc = tsk_get_tmpalloc(0);

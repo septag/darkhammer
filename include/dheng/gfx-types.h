@@ -198,7 +198,7 @@ struct gfx_shader_define
 
 struct gfx_blend_desc
 {
-    bool_t enable;
+    int enable;
     enum gfx_blend_mode src_blend;
     enum gfx_blend_mode dest_blend;
     enum gfx_blend_op color_op;
@@ -216,11 +216,11 @@ struct gfx_stencilop_desc
 
 struct gfx_depthstencil_desc
 {
-    bool_t depth_enable;
-    bool_t depth_write;
+    int depth_enable;
+    int depth_write;
     enum gfx_cmp_func depth_func;
 
-    bool_t stencil_enable;
+    int stencil_enable;
     uint stencil_mask;
     struct gfx_stencilop_desc stencil_frontface_desc;
     struct gfx_stencilop_desc stencil_backface_desc;
@@ -228,8 +228,8 @@ struct gfx_depthstencil_desc
 
 struct gfx_threading_support
 {
-    bool_t concurrent_create;
-    bool_t concurrent_cmdlist;
+    int concurrent_create;
+    int concurrent_cmdlist;
 };
 
 struct gfx_device_info
@@ -300,8 +300,8 @@ struct gfx_rasterizer_desc
     enum gfx_cull_mode cull;
     float depth_bias;
     float slopescaled_depthbias;
-    bool_t scissor_test;
-    bool_t depth_clip;
+    int scissor_test;
+    int depth_clip;
 };
 
 struct gfx_msaa_desc
@@ -315,9 +315,9 @@ struct gfx_displaytarget_desc
     uint width;
     uint height;
     uint refresh_rate;
-    bool_t vsync;
-    bool_t fullscreen;
-    bool_t depthstencil;
+    int vsync;
+    int fullscreen;
+    int depthstencil;
 
     void* hwnd;
 
@@ -390,11 +390,11 @@ struct gfx_obj_desc
             uint height;
             uint depth;	/* .. same as array count (if not=1 then we have array/3d tex) */
             enum gfx_format fmt;
-            bool_t has_alpha;
+            int has_alpha;
             void* d3d_srv;
             void* d3d_rtv;
             uint size;
-            bool_t is_rt;
+            int is_rt;
             uint mip_cnt;
             int gl_type;
             int gl_fmt;

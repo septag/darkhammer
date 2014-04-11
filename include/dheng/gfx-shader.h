@@ -76,7 +76,7 @@ struct gfx_cblock
     uint end_offset;  /* maximum offset that gpu update should apply (normally equals buffer_size) */
     struct gfx_sharedbuffer* shared_buff;  /* =NULL if shared uniform buffer is not provided */
 	struct allocator* alloc;
-    bool_t is_tbuff;
+    int is_tbuff;
 };
 
 struct gfx_shader
@@ -102,7 +102,7 @@ struct file_mgr;
 
 /* */
 void gfx_shader_zero();
-result_t gfx_shader_initmgr(bool_t disable_cache);
+result_t gfx_shader_initmgr(int disable_cache);
 void gfx_shader_releasemgr();
 
 /* returns 0 if shader could not be loaded */
@@ -174,7 +174,7 @@ void gfx_shader_bindcblock_tbuffer(gfx_cmdqueue cmdqueue, struct gfx_shader* sha
     uint name_hash, const struct gfx_cblock* cblock);
 
 /* constants */
-bool_t gfx_cb_isvalid(struct gfx_cblock* cb, uint name_hash);
+int gfx_cb_isvalid(struct gfx_cblock* cb, uint name_hash);
 void gfx_cb_set4m(struct gfx_cblock* cb, uint name_hash, const struct mat4f* m);
 void gfx_cb_set3m(struct gfx_cblock* cb, uint name_hash, const struct mat3f* m);
 void gfx_cb_set4f(struct gfx_cblock* cb, uint name_hash, const float* fv);
@@ -210,8 +210,8 @@ void gfx_cb_set3mv_offset(struct gfx_cblock* cb, uint name_hash, const struct ma
 void gfx_cb_set_endoffset(struct gfx_cblock* cb, uint offset);
 
 /* default uniforms/slow mode */
-bool_t gfx_shader_isvalidtex(struct gfx_shader* shader, uint name_hash);
-bool_t gfx_shader_isvalid(struct gfx_shader* shader, uint name_hash);
+int gfx_shader_isvalidtex(struct gfx_shader* shader, uint name_hash);
+int gfx_shader_isvalid(struct gfx_shader* shader, uint name_hash);
 void gfx_shader_set4m(struct gfx_shader* shader, uint name_hash, const struct mat4f* m);
 void gfx_shader_set3m(struct gfx_shader* shader, uint name_hash, const struct mat3f* m);
 void gfx_shader_set4f(struct gfx_shader* shader, uint name_hash, const float* fv);

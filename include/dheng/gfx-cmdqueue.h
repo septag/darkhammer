@@ -32,7 +32,7 @@ void gfx_destroy_cmdqueue(gfx_cmdqueue cmdqueue);
 /* buffer / texture */
 void gfx_buffer_update(gfx_cmdqueue cmdqueue, gfx_buffer buffer, const void* data, uint size);
 void* gfx_buffer_map(gfx_cmdqueue cmdqueue, gfx_buffer buffer, uint offset, uint size,
-		uint mode /* enum gfx_map_mode */, bool_t sync_cpu);
+		uint mode /* enum gfx_map_mode */, int sync_cpu);
 void gfx_buffer_unmap(gfx_cmdqueue cmdqueue, gfx_buffer buffer);
 
 void gfx_rendertarget_blit(gfx_cmdqueue cmdqueue,
@@ -97,8 +97,6 @@ void gfx_reset_devstates(gfx_cmdqueue cmdqueue);
 const struct gfx_framestats* gfx_get_framestats(gfx_cmdqueue cmdqueue);
 
 /* misc/internal */
-void gfx_cmdqueue_setrtvsize(gfx_cmdqueue cmdqueue, uint width, uint height);
-void gfx_cmdqueue_getrtvsize(gfx_cmdqueue cmdqueue, OUT uint* width, OUT uint* height);
 void gfx_cmdqueue_resetsrvs(gfx_cmdqueue cmdqueue);
 
 _EXTERN_END_

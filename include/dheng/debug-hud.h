@@ -37,17 +37,17 @@ typedef int (*pfn_hud_render_label)(gfx_cmdqueue cmqueue, int x, int y, int line
  * @return current y position (y + graph_height)
  */
 typedef int (*pfn_hud_render_graph)(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y,
-    bool_t update, void* param);
+    int update, void* param);
 
 void hud_zero();
-result_t hud_init(bool_t init_console);
+result_t hud_init(int init_console);
 void hud_release();
 
 void hud_render(gfx_cmdqueue cmdqueue);
 void hud_send_input(char c, enum input_key key);
 void hud_console_scroll();
 
-ENGINE_API bool_t hud_console_isactive();
+ENGINE_API int hud_console_isactive();
 
 ENGINE_API void hud_add_label(const char* alias, pfn_hud_render_label render_fn,
     OPTIONAL void* param);
@@ -55,7 +55,7 @@ ENGINE_API void hud_remove_label(const char* alias);
 ENGINE_API void hud_add_graph(const char* alias, pfn_hud_render_graph render_fn,
     ui_widget widget, OPTIONAL void* param);
 ENGINE_API void hud_remove_graph(const char* alias);
-ENGINE_API void hud_add_image(const char* alias, gfx_texture img_tex, bool_t fullscreen,
+ENGINE_API void hud_add_image(const char* alias, gfx_texture img_tex, int fullscreen,
     uint width, uint height, const char* caption);
 ENGINE_API void hud_remove_image(const char* alias);
 

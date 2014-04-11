@@ -100,7 +100,7 @@ void tsk_queuejob(uint job_id, const uint* thread_idxs, uint thread_cnt,
  * Globals
  */
 static struct tsk_mgr g_tsk;
-static bool_t g_tsk_zero = FALSE;
+static int g_tsk_zero = FALSE;
 
 /*************************************************************************************************
  * Inlines
@@ -382,7 +382,7 @@ void tsk_queuejob(uint job_id, const uint* thread_idxs, uint thread_cnt,
             ASSERT(thread_idxs[i] != INVALID_INDEX);
             struct tsk_thread* tt = &g_tsk.threads[thread_idxs[i]];
             mt_mutex_lock(&tt->job_queue_mtx);
-            bool_t first_node = (tt->job_queue == NULL);
+            int first_node = (tt->job_queue == NULL);
             queue_push(&tt->job_queue, &job->qnode, job);
             mt_mutex_unlock(&tt->job_queue_mtx);
             /* we pushed a new job, resume thread */
@@ -406,7 +406,7 @@ void tsk_wait(uint job_id)
     mt_event_waitforall(job->finish_event, MT_TIMEOUT_INFINITE);
 }
 
-bool_t tsk_check_finished(uint job_id)
+int tsk_check_finished(uint job_id)
 {
     struct tsk_job* job = tsk_job_get(job_id);
     return (job->finished_cnt == job->worker_cnt);

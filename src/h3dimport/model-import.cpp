@@ -90,18 +90,18 @@ struct node_ext* import_create_node(const struct aiScene* scene, struct aiNode* 
 		struct array* nodes, struct array* meshes, struct array* geos, struct array* mtls,
 		uint parent_id);
 struct mesh_ext* import_create_mesh(const struct aiScene* scene, struct array* geos,
-		struct array* mtls, const uint* mesh_ids, uint mesh_cnt, bool_t main_node);
+		struct array* mtls, const uint* mesh_ids, uint mesh_cnt, int main_node);
 struct mtl_ext* import_create_mtl(const struct aiScene* scene, uint mtl_id);
 struct geo_ext* import_create_geo(const struct aiScene* scene, const uint* mesh_ids,
-    uint mesh_cnt, bool_t main_node);
+    uint mesh_cnt, int main_node);
 void import_setup_joints(const struct aiScene* scene, struct h3d_joint* joints,
     struct mat3f* init_pose, struct array* bones,
     struct aiBone** skin_bones, uint skin_bone_cnt, const struct mat3f* root_mat);
 uint import_addvertid(uint* ids, uint id_cnt, uint id);
-bool_t import_writemodel(const char* filepath, const struct node_ext** nodes, uint node_cnt,
+int import_writemodel(const char* filepath, const struct node_ext** nodes, uint node_cnt,
     const struct mesh_ext** meshes, uint mesh_cnt, const struct geo_ext** geos, uint geo_cnt,
     const struct mtl_ext** mtls, uint mtl_cnt, OPTIONAL struct occ_ext* occ);
-bool_t import_mtl_texture(const struct aiMaterial* mtl, enum aiTextureType type,
+int import_mtl_texture(const struct aiMaterial* mtl, enum aiTextureType type,
 		enum h3d_texture_type mytype, char* filename);
 struct occ_ext* import_create_occ(const struct aiScene* scene, struct aiNode* node);
 void import_destroy_occ(struct occ_ext* occ);
@@ -162,7 +162,7 @@ struct mat3f g_model_root;  /* root matrix of the whole model */
 struct mat3f g_resize_mat;
 
 /*************************************************************************************************/
-bool_t import_list(const struct import_params* params)
+int import_list(const struct import_params* params)
 {
     memcpy(&g_import_params, params, sizeof(struct import_params));
     path_getdir(g_modeldir, params->in_filepath);
@@ -184,7 +184,7 @@ bool_t import_list(const struct import_params* params)
             import_listmtls_node(scene, node);
     }
 
-    bool_t first_one = FALSE;
+    int first_one = FALSE;
     for (uint i = 0; i < node->mNumChildren; i++) {
         if (node->mChildren[i]->mNumMeshes > 0) {
             printf("model: %s\n", node->mChildren[i]->mName.data);
@@ -199,7 +199,7 @@ bool_t import_list(const struct import_params* params)
     return TRUE;
 }
 
-bool_t import_listmtls(const struct import_params* params)
+int import_listmtls(const struct import_params* params)
 {
     memcpy(&g_import_params, params, sizeof(struct import_params));
     path_getdir(g_modeldir, params->in_filepath);
@@ -280,7 +280,7 @@ char* import_get_texture(char* filepath, const struct aiMaterial* mtl, enum aiTe
 
 
 /*************************************************************************************************/
-bool_t import_model(const struct import_params* params)
+int import_model(const struct import_params* params)
 {
 	memcpy(&g_import_params, params, sizeof(struct import_params));
     path_getdir(g_modeldir, params->in_filepath);
@@ -328,7 +328,7 @@ bool_t import_model(const struct import_params* params)
     struct aiNode* node;
     struct aiNode* occ_node = NULL;
     struct occ_ext* occ = NULL;
-    bool_t r;
+    int r;
 
 	if (IS_FAIL(arr_create(mem_heap(), &nodes, sizeof(struct node_ext*), 10, 10, 0)) ||
 		IS_FAIL(arr_create(mem_heap(), &meshes, sizeof(struct mesh_ext*), 20, 20, 0)) ||
@@ -577,7 +577,7 @@ struct node_ext* import_create_node(const struct aiScene* scene, struct aiNode* 
 }
 
 struct mesh_ext* import_create_mesh(const struct aiScene* scene, struct array* geos,
-		struct array* mtls, const uint* mesh_ids, uint mesh_cnt, bool_t main_node)
+		struct array* mtls, const uint* mesh_ids, uint mesh_cnt, int main_node)
 {
 	struct mesh_ext* mymesh = (struct mesh_ext*)ALLOC(sizeof(struct mesh_ext), 0);
 	if (mymesh == NULL)
@@ -740,7 +740,7 @@ struct mtl_ext* import_create_mtl(const struct aiScene* scene, uint mtl_id)
 	return mymtl;
 }
 
-bool_t import_mtl_texture(const struct aiMaterial* mtl, enum aiTextureType type,
+int import_mtl_texture(const struct aiMaterial* mtl, enum aiTextureType type,
 		enum h3d_texture_type mytype, char* filename)
 {
 	struct aiString ai_filepath;
@@ -815,7 +815,7 @@ void import_gather_skinbones(struct array* rbones, struct aiBone** bones, uint b
 }
 
 struct geo_ext* import_create_geo(const struct aiScene* scene, const uint* mesh_ids,
-    uint mesh_cnt, bool_t main_node)
+    uint mesh_cnt, int main_node)
 {
 	struct geo_ext* geo = (struct geo_ext*)ALLOC(sizeof(struct geo_ext), 0);
 	if (geo == NULL)
@@ -832,7 +832,7 @@ struct geo_ext* import_create_geo(const struct aiScene* scene, const uint* mesh_
 	uint* vert_iw_idxs = NULL;	/* counters for skin indexes of each vertex */
 	uint vid_cnt = 0;
     uint indexbuffer_sz;
-    bool_t has_skin = FALSE;
+    int has_skin = FALSE;
 
 	if (IS_FAIL(arr_create(mem_heap(), &bones, sizeof(struct aiNode*), 100, 100, 0)) ||
         IS_FAIL(arr_create(mem_heap(), &skin_bones, sizeof(struct aiBone*), 100, 100, 0)))
@@ -1298,7 +1298,7 @@ void import_destroy_occ(struct occ_ext* occ)
     FREE(occ);
 }
 
-bool_t import_writemodel(const char* filepath, const struct node_ext** nodes, uint node_cnt,
+int import_writemodel(const char* filepath, const struct node_ext** nodes, uint node_cnt,
 		const struct mesh_ext** meshes, uint mesh_cnt, const struct geo_ext** geos, uint geo_cnt,
 		const struct mtl_ext** mtls, uint mtl_cnt, OPTIONAL struct occ_ext* occ)
 {

@@ -45,7 +45,7 @@ typedef size_t (*pfnio_file_write)(file_t f, const void* buffer, size_t item_siz
 
 struct vdir
 {
-    bool_t monitor;
+    int monitor;
     char path[DH_PATH_MAX];
 
 #if defined(_FILEMON_)
@@ -74,7 +74,7 @@ struct mon_item
  */
 struct file_mgr
 {
-    bool_t init;
+    int init;
     struct pool_alloc_ts diskfile_alloc;
     struct pool_alloc_ts memfile_alloc;
     struct array vdirs;   /* item: vdir */
@@ -115,7 +115,7 @@ struct mem_file
 result_t fio_mon_init(void* pt);
 void fio_mon_release(void* pt);
 result_t fio_mon_kernel(void* pt);
-bool_t fio_vdir_initmon(struct vdir* vd);
+int fio_vdir_initmon(struct vdir* vd);
 void fio_vdir_releasemon(struct vdir* vd);
 #endif
 
@@ -131,7 +131,7 @@ FILE* open_resolvepath(const char* filepath);
  * globals
  */
 static struct file_mgr g_fio;
-static bool_t g_fio_zero = FALSE;
+static int g_fio_zero = FALSE;
 
 /*************************************************************************************************/
 result_t fio_initmgr()
@@ -219,7 +219,7 @@ void fio_releasemgr()
     memset(&g_fio, 0x00, sizeof(struct file_mgr));
 }
 
-bool_t fio_addvdir(const char* directory, bool_t monitor)
+int fio_addvdir(const char* directory, int monitor)
 {
     ASSERT(directory);
     ASSERT(directory[0] != 0);
@@ -314,7 +314,7 @@ file_t fio_createmem(struct allocator* alloc, const char* name, uint mem_id)
 }
 
 file_t fio_openmem(struct allocator* alloc, const char* filepath,
-                       bool_t ignore_vfs, uint mem_id)
+                       int ignore_vfs, uint mem_id)
 {
     /* if memory file is requested and we have pak files, first try loading from paks */
     if (!ignore_vfs && !arr_isempty(&g_fio.paks))    {
@@ -444,7 +444,7 @@ file_t fio_createdisk(const char* filepath)
     return file_buf;
 }
 
-file_t fio_opendisk(const char* filepath, bool_t ignore_vfs)
+file_t fio_opendisk(const char* filepath, int ignore_vfs)
 {
     uint8* file_buf = (uint8*)mem_pool_alloc_ts(&g_fio.diskfile_alloc);
 
@@ -652,7 +652,7 @@ const char* fio_getpath(file_t f)
     return header->path;
 }
 
-bool_t fio_isopen(file_t f)
+int fio_isopen(file_t f)
 {
     struct file_header* header = (struct file_header*)f;
     if (header->type == FILE_TYPE_MEM)   {
@@ -681,7 +681,7 @@ enum file_mode fio_getmode(file_t f)
  * file change monitoring routines
  */
 #if defined(_FILEMON_)
-bool_t fio_find_file(const struct array* files, const char* filepath);
+int fio_find_file(const struct array* files, const char* filepath);
 
 void fio_mon_callback(efsw_watcher watcher,
     efsw_watchid watchid, const char* dir, const char* filename,
@@ -705,7 +705,7 @@ void fio_mon_callback(efsw_watcher watcher,
     }
 }
 
-bool_t fio_vdir_initmon(struct vdir* vd)
+int fio_vdir_initmon(struct vdir* vd)
 {
     if (g_fio.watcher == NULL) {
         g_fio.watcher = efsw_create(FALSE);
@@ -747,7 +747,7 @@ void fio_vdir_releasemon(struct vdir* vd)
 }
 
 
-bool_t fio_find_file(const struct array* files, const char* filepath)
+int fio_find_file(const struct array* files, const char* filepath)
 {
     for (uint i = 0; i < files->item_cnt; i++)    {
         const char* f = ((char*)files->buffer) + i*DH_PATH_MAX;

@@ -83,7 +83,7 @@ struct sct_timer_event
     reshandle_t hdl;
     float dt; /* in seconds */
     float timeout;   /* in seconds */
-    bool_t single_shot;
+    int single_shot;
     struct linked_list lnode;
 };
 
@@ -115,7 +115,7 @@ struct sct_mgr
     struct linked_list* trigger_events; /* linked-list of running trigger events (data: sct_trigger_event) */
     struct array garbage_scripts;   /* scripts that were not unloaded immediately (have tm_events)
                                        but now are garbage */
-    bool_t monitor;
+    int monitor;
     struct linked_list* gcs;    /* scripts that needs to be garbage-collected periodically */
     struct pool_alloc_ts buffs[SCT_ALLOC_CNT];
 };
@@ -148,11 +148,11 @@ int luaopen_eng(lua_State* l);
 result_t sct_console_runfile(uint argc, const char** argv, void* param);
 
 /* if fname=NULL, runs the whole script, after fname is argument pairs (type, value) */
-bool_t sct_call(reshandle_t s_hdl, const char* fname, uint arg_cnt, ...);
+int sct_call(reshandle_t s_hdl, const char* fname, uint arg_cnt, ...);
 
 void sct_runscript(reshandle_t s_hdl);
 
-bool_t sct_checkresident(reshandle_t hdl);
+int sct_checkresident(reshandle_t hdl);
 void sct_collectgarbage(float dt);
 void sct_addgarbage(reshandle_t hdl);
 void sct_removealltimers();
@@ -201,7 +201,7 @@ void sct_zero()
     memset(&g_sct, 0x00, sizeof(g_sct));
 }
 
-result_t sct_init(const struct sct_params* params, bool_t monitor)
+result_t sct_init(const struct sct_params* params, int monitor)
 {
     result_t r;
 
@@ -281,7 +281,7 @@ void sct_destroy_buffs()
         mem_pool_destroy_ts(&g_sct.buffs[i]);
 }
 
-void sct_reload(const char* filepath, reshandle_t hdl, bool_t manual)
+void sct_reload(const char* filepath, reshandle_t hdl, int manual)
 {
     ASSERT(hdl != INVALID_HANDLE);
     /* coming from res-mgr
@@ -489,7 +489,7 @@ void sct_runscript(reshandle_t s_hdl)
     }
 }
 
-bool_t sct_call(reshandle_t s_hdl, const char* fname, uint arg_cnt, ...)
+int sct_call(reshandle_t s_hdl, const char* fname, uint arg_cnt, ...)
 {
     lua_State* ls = (lua_State*)rs_get_script(s_hdl);
     if (ls == NULL)
@@ -549,7 +549,7 @@ void sct_update()
 {
     PRF_OPENSAMPLE("script");
 
-    bool_t r;
+    int r;
     float dt = g_sct.tm->dt;
 
     /* call timer tm_events in the scripts */
@@ -574,7 +574,7 @@ void sct_update()
     PRF_CLOSESAMPLE(); /* script */
 }
 
-uint sct_addtimer(uint timeout, const char* funcname, bool_t single_shot)
+uint sct_addtimer(uint timeout, const char* funcname, int single_shot)
 {
     static uint id = 1;
 
@@ -686,7 +686,7 @@ void sct_addgarbage(reshandle_t hdl)
     }
 }
 
-bool_t sct_checkresident(reshandle_t hdl)
+int sct_checkresident(reshandle_t hdl)
 {
     /* check for existance of timer events */
     struct linked_list* node = g_sct.tm_events;
@@ -873,7 +873,7 @@ void sct_trigger_callback(struct cmp_obj* trigger_obj, struct cmp_obj* other_obj
 {
     struct sct_trigger_event* e = (struct sct_trigger_event*)param;
     ASSERT(e);
-    bool_t r = sct_call(e->hdl, e->funcname, 3, SCT_ARG_INT, trigger_obj->id,
+    int r = sct_call(e->hdl, e->funcname, 3, SCT_ARG_INT, trigger_obj->id,
         SCT_ARG_INT, other_obj->id, SCT_ARG_INT, (int)state);
 
     /* error occurred (maybe timer function is missing). remove trigger */

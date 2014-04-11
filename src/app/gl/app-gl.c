@@ -54,9 +54,9 @@ struct app_gl
     uint width;
     uint height;
     uint refresh_rate;
-    bool_t active;
-    bool_t always_active;
-    bool_t init;
+    int active;
+    int always_active;
+    int init;
 
     GLFWwindow* wnd;
 
@@ -95,7 +95,7 @@ void glfw_window_mousepos(GLFWwindow* wnd, double xpos, double ypos);
 struct app_wnd* app_find_window(const char* wnd_name);
 struct app_wnd* app_find_window_byhdl(GLFWwindow* w);
 struct app_wnd* app_add_window(const char* name, uint width, uint height, uint refresh_rate,
-    bool_t fullscreen, wnd_t wnd_override);
+    int fullscreen, wnd_t wnd_override);
 void app_remove_window(const char* name);
 
 /*************************************************************************************************
@@ -263,7 +263,7 @@ void app_window_readjust(uint client_width, uint client_height)
     glfwSetWindowSize(g_app->wnd, client_width, client_height);
 }
 
-void app_window_alwaysactive(bool_t active)
+void app_window_alwaysactive(int active)
 {
     g_app->always_active = active;
 }
@@ -286,7 +286,7 @@ void app_window_swapbuffers()
     glfwSwapBuffers(g_app->wnd);
 }
 
-bool_t app_window_isactive()
+int app_window_isactive()
 {
     return g_app->active;
 }

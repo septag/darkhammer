@@ -46,7 +46,7 @@ timer* g_timer = NULL;
  * Initialize the scene
  * Set root data directory and load/init required assets
  */
-bool_t init_scene()
+int init_scene()
 {
     /* data root directory is "[tutorials]/data" */
     set_datadir();
@@ -178,7 +178,7 @@ void update_callback()
  * Application activate/deactivate callback
  * Pause/Resume engine simulation
  */
-void activate_callback(bool_t active)
+void activate_callback(int active)
 {
     if (active)
         eng_resume();

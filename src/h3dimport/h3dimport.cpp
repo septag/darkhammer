@@ -64,7 +64,7 @@ INLINE enum h3d_texture_type import_texture_gettype(const char* value)
 /***********************************************************************************
  * forward declarations
  */
-bool_t validate_params(const struct import_params* params);
+int validate_params(const struct import_params* params);
 void verbose_param_report(const struct import_params* params);
 
 /* callbacks for arguments */
@@ -153,7 +153,7 @@ int main(int argc, char** argv)
 {
 	result_t r;
     int prog_ret = 0;
-    bool_t ir = FALSE;
+    int ir = FALSE;
 
     struct import_params params;
     memset(&params, 0x00, sizeof(params));
@@ -252,7 +252,7 @@ cleanup:
 	return prog_ret;
 }
 
-bool_t validate_params(const struct import_params* params)
+int validate_params(const struct import_params* params)
 {
     if (params->type == IMPORT_UNKNOWN)
         return FALSE;

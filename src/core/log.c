@@ -51,7 +51,7 @@ enum output_mode
 
 /* globals */
 static struct log g_log;
-static bool_t g_log_init = FALSE;
+static int g_log_init = FALSE;
 
 result_t log_init()
 {
@@ -71,7 +71,7 @@ void log_release()
     memset(&g_log, 0x00, sizeof(g_log));
 }
 
-result_t log_outputconsole(bool_t enable)
+result_t log_outputconsole(int enable)
 {
     if (enable)
     	BIT_ADD(g_log.outputs, OUTPUT_CONSOLE);
@@ -81,7 +81,7 @@ result_t log_outputconsole(bool_t enable)
     return RET_OK;
 }
 
-result_t log_outputfile(bool_t enable, const char* log_filepath)
+result_t log_outputfile(int enable, const char* log_filepath)
 {
     BIT_ADD(g_log.outputs, OUTPUT_FILE);
 
@@ -104,7 +104,7 @@ result_t log_outputfile(bool_t enable, const char* log_filepath)
     return RET_OK;
 }
 
-result_t log_outputdebugger(bool_t enable)
+result_t log_outputdebugger(int enable)
 {
     if (enable)
     	BIT_ADD(g_log.outputs, OUTPUT_DEBUGGER);
@@ -114,7 +114,7 @@ result_t log_outputdebugger(bool_t enable)
     return RET_OK;
 }
 
-result_t log_outputfunc(bool_t enable, pfn_log_handler log_fn, void* param)
+result_t log_outputfunc(int enable, pfn_log_handler log_fn, void* param)
 {
     if (enable)     {
         BIT_ADD(g_log.outputs, OUTPUT_CUSTOM);
@@ -129,22 +129,22 @@ result_t log_outputfunc(bool_t enable, pfn_log_handler log_fn, void* param)
     return RET_OK;
 }
 
-bool_t log_isconsole()
+int log_isconsole()
 {
     return BIT_CHECK(g_log.outputs, OUTPUT_CONSOLE);
 }
 
-bool_t log_isfile()
+int log_isfile()
 {
     return BIT_CHECK(g_log.outputs, OUTPUT_FILE);
 }
 
-bool_t log_isdebugger()
+int log_isdebugger()
 {
     return BIT_CHECK(g_log.outputs, OUTPUT_DEBUGGER);
 }
 
-bool_t log_isoutputfunc()
+int log_isoutputfunc()
 {
     return BIT_CHECK(g_log.outputs, OUTPUT_CUSTOM);
 }

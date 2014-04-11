@@ -92,7 +92,7 @@ gfx_texture gfx_create_texture(enum gfx_texture_type type, uint width, uint heig
 		uint depth, enum gfx_format fmt, uint mip_cnt, uint array_size, uint total_size,
 		const struct gfx_subresource_data* data, enum gfx_mem_hint memhint, uint thread_id);
 gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt,
-    bool_t has_mipmap /* =FALSE */);
+    int has_mipmap /* =FALSE */);
 gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format fmt);
 gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
 		enum gfx_format fmt);
@@ -100,7 +100,7 @@ void gfx_destroy_texture(gfx_texture tex);
 
 /* get info */
 const struct gfx_gpu_memstats* gfx_get_memstats();
-bool_t gfx_check_feature(enum gfx_feature ft);
+int gfx_check_feature(enum gfx_feature ft);
 
 /* Multi-thread (delayed) object creation routines, currently only implemented for GL,
  * D3D11 spec doesn't need these */

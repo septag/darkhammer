@@ -196,7 +196,7 @@ float ray_intersect_plane(const struct ray* r, const struct plane* p)
     return t;
 }
 
-bool_t sphere_intersects(const struct sphere* s1, const struct sphere* s2)
+int sphere_intersects(const struct sphere* s1, const struct sphere* s2)
 {
     struct vec3f d;
     vec3_setf(&d, s2->x - s1->x, s2->y - s1->y, s2->z - s1->z);

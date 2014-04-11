@@ -34,10 +34,10 @@
 /*************************************************************************************************
  * forward
  */
-gfx_texture dds_create_texture(struct allocator* tmp_alloc, uint first_mipidx, bool_t srgb,
+gfx_texture dds_create_texture(struct allocator* tmp_alloc, uint first_mipidx, int srgb,
 		struct dds_header* header, uint8* bits, uint size, uint thread_id);
 enum gfx_format dds_get_format(const struct dds_pixel_fmt* pf);
-bool_t dds_is_argb(const struct dds_pixel_fmt* pf);
+int dds_is_argb(const struct dds_pixel_fmt* pf);
 void dds_get_surfaceinfo(uint width, uint height, enum gfx_format fmt,
 		OUT uint* size, OUT uint* rowsize, OUT uint* rowcnt);
 uint gfx_texture_getbpp(enum gfx_format fmt);
@@ -45,7 +45,7 @@ enum gfx_format dds_conv_tosrgb(enum gfx_format fmt);
 
 /*************************************************************************************************/
 gfx_texture gfx_texture_loaddds(const char* dds_filepath, uint first_mipidx,
-		bool_t srgb, uint thread_id)
+		int srgb, uint thread_id)
 {
 	/* TODO: get tmp allocator based on thread_id */
 	struct allocator* tmp_alloc = tsk_get_tmpalloc(thread_id);
@@ -108,7 +108,7 @@ gfx_texture gfx_texture_loaddds(const char* dds_filepath, uint first_mipidx,
 	return tex;
 }
 
-gfx_texture dds_create_texture(struct allocator* tmp_alloc, uint first_mipidx, bool_t srgb,
+gfx_texture dds_create_texture(struct allocator* tmp_alloc, uint first_mipidx, int srgb,
 		struct dds_header* header, uint8* bits, uint size, uint thread_id)
 {
 	uint width = header->width;
@@ -287,7 +287,7 @@ enum gfx_format dds_get_format(const struct dds_pixel_fmt* pf)
 }
 
 
-bool_t dds_is_argb(const struct dds_pixel_fmt* pf)
+int dds_is_argb(const struct dds_pixel_fmt* pf)
 {
     if (BIT_CHECK(pf->flags, DDS_RGB) && pf->rgb_bitcnt == 32)    {
         if (ISBITMASK(0x00ff0000,0x0000ff00,0x000000ff,0xff000000))
@@ -305,7 +305,7 @@ void dds_get_surfaceinfo(uint width, uint height, enum gfx_format fmt,
     uint rowbytes_cnt = 0;
     uint row_cnt = 0;
 
-    bool_t bc = TRUE;	/* block-compression */
+    int bc = TRUE;	/* block-compression */
     int bytes_per_block = 16;
     switch (fmt)
     {

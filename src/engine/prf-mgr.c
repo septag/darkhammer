@@ -118,7 +118,7 @@ json_t prf_cmd_getcaminfo(const char* param1, const char* param2);
 /*************************************************************************************************
  * inlines
  */
- json_t prf_cmd_createkeyvalue_n(const char* key, fl64 value, bool_t isgraph)
+ json_t prf_cmd_createkeyvalue_n(const char* key, fl64 value, int isgraph)
 {
 	json_t p = json_create_obj();
 	json_additem_toobj(p, "key", json_create_str(key));
@@ -137,7 +137,7 @@ INLINE json_t prf_cmd_createkeyvalue_s(const char* key, const char* value)
 	return p;
 }
 
-INLINE json_t prf_cmd_createkeyvalue_b(const char* key, bool_t value)
+INLINE json_t prf_cmd_createkeyvalue_b(const char* key, int value)
 {
 	json_t p = json_create_obj();
 	json_additem_toobj(p, "key", json_create_str(key));

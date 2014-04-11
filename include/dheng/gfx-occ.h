@@ -33,7 +33,7 @@ void gfx_occ_setmatrices(const struct mat4f* viewproj);
 void gfx_occ_clear();
 void gfx_occ_drawoccluder(struct allocator* tmp_alloc, struct gfx_model_occ* occ,
     const struct mat3f* world);
-bool_t gfx_occ_testbounds(const struct sphere* s, const struct vec3f* xaxis,
+int gfx_occ_testbounds(const struct sphere* s, const struct vec3f* xaxis,
     const struct vec3f* yaxis, const struct vec3f* campos);
 void gfx_occ_finish(gfx_cmdqueue cmdqueue, const struct gfx_view_params* params);
 float gfx_occ_getfar();

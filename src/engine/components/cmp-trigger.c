@@ -32,7 +32,7 @@ void cmp_trigger_destroy(struct cmp_obj* obj, void* data, cmphandle_t hdl);
 void cmp_trigger_update(cmp_t c, float dt, void* param);
 void cmp_trigger_debug(struct cmp_obj* obj, void* data, cmphandle_t cur_hdl, float dt,
     const struct gfx_view_params* params);
-phx_obj cmp_trigger_createrbody(struct cmp_obj* obj, const struct vec3f* box, bool_t is_static,
+phx_obj cmp_trigger_createrbody(struct cmp_obj* obj, const struct vec3f* box, int is_static,
     const struct xform3d* xf, const struct xform3d* shape_xf);
 
 void cmp_trigger_callback(phx_obj trigger, phx_obj other, enum phx_trigger_state state,
@@ -120,7 +120,7 @@ void cmp_trigger_destroy(struct cmp_obj* obj, void* data, cmphandle_t hdl)
         obj->trigger_cmp = INVALID_HANDLE;
 }
 
-phx_obj cmp_trigger_createrbody(struct cmp_obj* obj, const struct vec3f* box, bool_t is_static,
+phx_obj cmp_trigger_createrbody(struct cmp_obj* obj, const struct vec3f* box, int is_static,
     const struct xform3d* xf, const struct xform3d* shape_xf)
 {
     phx_obj rbody = NULL;

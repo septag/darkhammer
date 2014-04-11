@@ -115,7 +115,7 @@ INLINE uint get_constant_size(enum gfx_constant_type type)
 	}
 }
 
-INLINE bool_t uniform_check_sampler(GLuint prog_id, GLuint idx)
+INLINE int uniform_check_sampler(GLuint prog_id, GLuint idx)
 {
 	char name[32];
 	GLint size;
@@ -332,8 +332,8 @@ uint shader_gather_cbuniforms(GLuint prog_id, GLuint block_idx,
     c_lastname[0] = 0;
     uint member_cnt = 0;
     uint final_member_cnt = 1;
-    bool_t is_struct = FALSE;
-    bool_t zero_to_one = FALSE;
+    int is_struct = FALSE;
+    int zero_to_one = FALSE;
 
     glGetActiveUniformBlockiv(prog_id, block_idx, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &uniform_cnt);
     if (uniform_cnt == 0)
@@ -368,7 +368,7 @@ uint shader_gather_cbuniforms(GLuint prog_id, GLuint block_idx,
             *bracket = 0;
         if (dot != NULL)
             *dot = 0;
-        bool_t new_val = (bracket == NULL || (bracket != NULL && *(bracket+1) == '0'));
+        int new_val = (bracket == NULL || (bracket != NULL && *(bracket+1) == '0'));
         if (new_val && !str_isequal(c_name, c_lastname)) {
             /* set array count for previous uniform */
             if (cnt > 0 && is_struct)
@@ -718,12 +718,12 @@ void gfx_shader_setfv(struct gfx_shader* shader, uint name_hash, const float* fv
     glUniform1fv((GLint)idx, (GLsizei)cnt, fv);
 }
 
-bool_t gfx_shader_isvalidtex(struct gfx_shader* shader, uint name_hash)
+int gfx_shader_isvalidtex(struct gfx_shader* shader, uint name_hash)
 {
 	return hashtable_fixed_find(&shader->sampler_bindtable, name_hash) != NULL;
 }
 
-bool_t gfx_shader_isvalid(struct gfx_shader* shader, uint name_hash)
+int gfx_shader_isvalid(struct gfx_shader* shader, uint name_hash)
 {
 	return shader_find_constant(shader, name_hash) != INVALID_INDEX;
 }

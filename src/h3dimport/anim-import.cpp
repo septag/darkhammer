@@ -51,7 +51,7 @@ struct anim_ext
 /*************************************************************************************************
  * fwd declarations
  */
-bool_t import_writeanim(const char* filepath, const struct anim_ext* anim);
+int import_writeanim(const char* filepath, const struct anim_ext* anim);
 struct h3d_anim_clip* import_loadclips(const char* json_filepath, uint frame_cnt,
     OUT uint* clip_cnt);
 struct h3d_anim_clip* import_defaultclip(uint frame_cnt);
@@ -63,7 +63,7 @@ enum coord_type g_anim_coord;
 
 
 /*************************************************************************************************/
-bool_t import_anim(const struct import_params* params)
+int import_anim(const struct import_params* params)
 {
     uint flags = 0;
     if (params->coord == COORD_NONE)
@@ -86,7 +86,7 @@ bool_t import_anim(const struct import_params* params)
     uint fps = params->anim_fps != 0 ? params->anim_fps : DEFAULT_FPS;
     uint channel_cnt = 0;
     uint frame_cnt = 0;
-    bool_t has_scale = FALSE;
+    int has_scale = FALSE;
 
     /* channel count is the sum of all animation channels */
     /* frame_cnt is the maximum of all animation channel key counts */
@@ -178,7 +178,7 @@ bool_t import_anim(const struct import_params* params)
     h3danim.clips = import_loadclips(params->clips_json_filepath, frame_cnt, &h3danim.a.clip_cnt);
 
     /* write */
-    bool_t r = import_writeanim(params->out_filepath, &h3danim);
+    int r = import_writeanim(params->out_filepath, &h3danim);
 
     /* report */
     if (r)  {
@@ -215,7 +215,7 @@ bool_t import_anim(const struct import_params* params)
     return r;
 }
 
-bool_t import_writeanim(const char* filepath, const struct anim_ext* anim)
+int import_writeanim(const char* filepath, const struct anim_ext* anim)
 {
     /* write to temp file and move it later */
     char filepath_tmp[DH_PATH_MAX];

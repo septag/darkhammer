@@ -64,7 +64,7 @@ struct canvas_item2d;
  * Returns TRUE if all quads are written from source, FALSE if there is still some quads
  *   remaining in the source
  */
-typedef bool_t (*pfn_canvas_quadstream)(struct canvas_vertex2d* verts, uint quad_cnt,
+typedef int (*pfn_canvas_quadstream)(struct canvas_vertex2d* verts, uint quad_cnt,
     const struct canvas_item2d* item, uint* streamed_cnt);
 
 enum canvas_item2d_type
@@ -97,7 +97,7 @@ struct canvas_item2d
     uint flags;
     fonthandle_t font;
     struct rect2di clip_rc;
-    bool_t clip_enable;
+    int clip_enable;
 
     union   {
         char text[256];
@@ -164,10 +164,10 @@ struct canvas
     struct canvas_brush brush;
     struct color line_color;
     float alpha;
-    bool_t wireframe;
+    int wireframe;
     gfx_sampler sampler2d;
     struct rect2di clip_rc;
-    bool_t clip_enable;
+    int clip_enable;
     gfx_rasterstate rs_scissor;
 
     struct gfx_contbuffer contbuffer;
@@ -235,23 +235,23 @@ INLINE float canvas_apply_kerning(const struct gfx_font* font,
 /*************************************************************************************************
  * forward declarations
  */
-float canvas_get_textwidth(const struct gfx_font* font, const void* text, bool_t unicode,
+float canvas_get_textwidth(const struct gfx_font* font, const void* text, int unicode,
     uint text_len, float* firstchar_width);
 const struct vec2f* canvas_get_alignpos(struct vec2f* r, const struct gfx_font* font,
     float text_width, float firstchar_width, const struct vec2i* p0, const struct vec2i* p1,
     uint flags);
 void canvas_put_into_renderlist(struct canvas_item2d* item);
-bool_t canvas_require_batch(const struct canvas_item2d* item1, const struct canvas_item2d* item2);
+int canvas_require_batch(const struct canvas_item2d* item1, const struct canvas_item2d* item2);
 
-bool_t canvas_stream_text(struct canvas_vertex2d* verts, uint quad_cnt,
+int canvas_stream_text(struct canvas_vertex2d* verts, uint quad_cnt,
     const struct canvas_item2d* item, uint* streamed_cnt);
-bool_t canvas_stream_line(struct canvas_vertex2d* verts, uint quad_cnt,
+int canvas_stream_line(struct canvas_vertex2d* verts, uint quad_cnt,
     const struct canvas_item2d* item, uint* streamed_cnt);
-bool_t canvas_stream_rectborder(struct canvas_vertex2d* verts, uint quad_cnt,
+int canvas_stream_rectborder(struct canvas_vertex2d* verts, uint quad_cnt,
     const struct canvas_item2d* item, uint* streamed_cnt);
-bool_t canvas_stream_rect(struct canvas_vertex2d* verts, uint quad_cnt,
+int canvas_stream_rect(struct canvas_vertex2d* verts, uint quad_cnt,
     const struct canvas_item2d* item, uint* streamed_cnt);
-bool_t canvas_stream_rect_flipy(struct canvas_vertex2d* verts, uint quad_cnt,
+int canvas_stream_rect_flipy(struct canvas_vertex2d* verts, uint quad_cnt,
     const struct canvas_item2d* item, uint* streamed_cnt);
 
 result_t canvas_create_buffers();
@@ -270,7 +270,7 @@ gfx_buffer canvas_create_capsule(uint horz_seg_cnt, uint vert_seg_cnt, uint* hal
     uint* cyl_idx, uint* cyl_cnt);
 void canvas_set_perobject(gfx_cmdqueue cmdqueue, const struct mat3f* m, const struct color* c,
     gfx_texture tex);
-bool_t canvas_transform_toclip(struct vec2i* r, const struct vec4f* v, const struct mat4f* viewproj);
+int canvas_transform_toclip(struct vec2i* r, const struct vec4f* v, const struct mat4f* viewproj);
 
 void canvas_3d_switchtexture();
 void canvas_3d_switchnormal();
@@ -819,7 +819,7 @@ void gfx_canvas_line2d(int x0, int y0, int x1, int y1, int line_width)
     canvas_put_into_renderlist(item);
 }
 
-bool_t canvas_require_batch(const struct canvas_item2d* item1, const struct canvas_item2d* item2)
+int canvas_require_batch(const struct canvas_item2d* item1, const struct canvas_item2d* item2)
 {
     /* generic check:
      * item types are different
@@ -889,12 +889,12 @@ void gfx_canvas_render2d(gfx_cmdqueue cmdqueue, gfx_rendertarget rt, float rt_wi
     uint quad_idx = 0;        /* quad index relative to main vbuffer */
     uint start_idx = 0;       /* start aud index to begin draw (see quad_idx) */
     uint quad_cnt = 0;        /* number of quads to draw in each call */
-    bool_t src_eof;             /* end-of-file for source stream */
+    int src_eof;             /* end-of-file for source stream */
     uint quads_perdraw;       /* traces quad index in mapped buffer (resets on every "map") */
     uint map_offset;
     uint map_sz;
     uint quads_max;
-    bool_t prev_clip = FALSE;
+    int prev_clip = FALSE;
 
     float rtsz[] = {rt_width, rt_height};
     gfx_shader_set2f(cv_shader, SHADER_NAME(c_rtsz), rtsz);
@@ -1002,7 +1002,7 @@ void gfx_canvas_render2d(gfx_cmdqueue cmdqueue, gfx_rendertarget rt, float rt_wi
 }
 
 /* stream callback implementations */
-bool_t canvas_stream_text(struct canvas_vertex2d* verts, uint quad_cnt,
+int canvas_stream_text(struct canvas_vertex2d* verts, uint quad_cnt,
     const struct canvas_item2d* item, uint* streamed_cnt)
 {
     static uint char_offset = 0;
@@ -1131,7 +1131,7 @@ bool_t canvas_stream_text(struct canvas_vertex2d* verts, uint quad_cnt,
 }
 
 float canvas_get_textwidth(const struct gfx_font* font, const void* text,
-                    bool_t unicode, uint text_len, float* firstchar_width)
+                    int unicode, uint text_len, float* firstchar_width)
 {
     float width = 0;
     const uint8* buffer = (const uint8*)text;
@@ -1188,7 +1188,7 @@ const struct vec2f* canvas_get_alignpos(struct vec2f* r,
     return r;
 }
 
-bool_t canvas_stream_rect(struct canvas_vertex2d* verts, uint quad_cnt,
+int canvas_stream_rect(struct canvas_vertex2d* verts, uint quad_cnt,
     const struct canvas_item2d* item, uint* streamed_cnt)
 {
     struct canvas_vertex2d* v0 = &verts[0];
@@ -1254,7 +1254,7 @@ bool_t canvas_stream_rect(struct canvas_vertex2d* verts, uint quad_cnt,
     return TRUE;
 }
 
-bool_t canvas_stream_rect_flipy(struct canvas_vertex2d* verts, uint quad_cnt,
+int canvas_stream_rect_flipy(struct canvas_vertex2d* verts, uint quad_cnt,
     const struct canvas_item2d* item, uint* streamed_cnt)
 {
     struct canvas_vertex2d* v0 = &verts[0];
@@ -1321,7 +1321,7 @@ bool_t canvas_stream_rect_flipy(struct canvas_vertex2d* verts, uint quad_cnt,
 }
 
 
-bool_t canvas_stream_line(struct canvas_vertex2d* verts, uint quad_cnt,
+int canvas_stream_line(struct canvas_vertex2d* verts, uint quad_cnt,
     const struct canvas_item2d* item, uint* streamed_cnt)
 {
     struct vec2f p0;    vec2f_setf(&p0, (float)item->p0.x, (float)item->p0.y);
@@ -1373,7 +1373,7 @@ bool_t canvas_stream_line(struct canvas_vertex2d* verts, uint quad_cnt,
     return TRUE;
 }
 
-bool_t canvas_stream_rectborder(struct canvas_vertex2d* verts, uint quad_cnt,
+int canvas_stream_rectborder(struct canvas_vertex2d* verts, uint quad_cnt,
     const struct canvas_item2d* item, uint* streamed_cnt)
 {
     /* draw four lines (quads) around the rectangle */
@@ -1896,7 +1896,7 @@ void gfx_canvas_box(const struct aabb* b, const struct mat3f* world)
     gfx_draw(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, 0, vertex_cnt, GFX_DRAWCALL_DEBUG);
 }
 
-void gfx_canvas_boundaabb(const struct aabb* b, const struct mat4f* viewproj, bool_t show_info)
+void gfx_canvas_boundaabb(const struct aabb* b, const struct mat4f* viewproj, int show_info)
 {
     if (aabb_iszero(b))
         return;
@@ -2011,7 +2011,7 @@ void gfx_canvas_capsule(float radius, float half_height, const struct mat3f* wor
 }
 
 void gfx_canvas_boundsphere(const struct sphere* s, const struct mat4f* viewproj,
-                            const struct mat3f* view, bool_t show_info)
+                            const struct mat3f* view, int show_info)
 {
     gfx_cmdqueue cmdqueue = g_cvs.cmdqueue;
     uint vertex_cnt =
@@ -2296,7 +2296,7 @@ void gfx_canvas_prism_2pts(const struct vec3f* p0, const struct vec3f* p1, float
 }
 
 
-void gfx_canvas_arrow2d(const struct vec2i* p0, const struct vec2i* p1, bool_t twoway,
+void gfx_canvas_arrow2d(const struct vec2i* p0, const struct vec2i* p1, int twoway,
                         uint line_width, float width)
 {
     if (vec2i_isequal(p0, p1))
@@ -2640,7 +2640,7 @@ void gfx_canvas_georaw(gfx_inputlayout il, const struct mat3f* world, const stru
 }
 
 void gfx_canvas_cam(const struct camera* cam, const struct vec4f* activecam_pos,
-		const struct mat4f* viewproj, bool_t show_info)
+		const struct mat4f* viewproj, int show_info)
 {
     struct vec4f frustum[8];
     cam_calc_frustumcorners(cam, frustum, NULL, NULL);
@@ -2683,7 +2683,7 @@ void canvas_set_perobject(gfx_cmdqueue cmdqueue, const struct mat3f* m, const st
     }
 }
 
-bool_t canvas_transform_toclip(struct vec2i* r, const struct vec4f* v, const struct mat4f* viewproj)
+int canvas_transform_toclip(struct vec2i* r, const struct vec4f* v, const struct mat4f* viewproj)
 {
     const float wh = g_cvs.rt_width*0.5f;
     const float hh = g_cvs.rt_height*0.5f;
@@ -2752,7 +2752,7 @@ void gfx_canvas_end3d()
     gfx_output_setblendstate(g_cvs.cmdqueue, NULL, NULL);
 }
 
-void gfx_canvas_setwireframe(bool_t enable, bool_t cull)
+void gfx_canvas_setwireframe(int enable, int cull)
 {
     if (enable)
         gfx_output_setrasterstate(g_cvs.cmdqueue,
@@ -2764,13 +2764,13 @@ void gfx_canvas_setwireframe(bool_t enable, bool_t cull)
     g_cvs.wireframe = enable;
 }
 
-void gfx_canvas_setztest(bool_t enable)
+void gfx_canvas_setztest(int enable)
 {
 	gfx_output_setdepthstencilstate(g_cvs.cmdqueue,
 			enable ? g_cvs.states.ds_depthon : g_cvs.states.ds_depthoff, 0);
 }
 
-void gfx_canvas_setclip2d(bool_t enable, int x, int y, int w, int h)
+void gfx_canvas_setclip2d(int enable, int x, int y, int w, int h)
 {
 	g_cvs.clip_enable = enable;
 	g_cvs.clip_rc.x = x;

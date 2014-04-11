@@ -48,7 +48,7 @@ CORE_API void rand_seed();
  * which normally whould be 50 for 50-50 chance
  * @ingroup num
  */
-CORE_API bool_t rand_flipcoin(uint prob);
+CORE_API int rand_flipcoin(uint prob);
 
 /**
  * get a random value between two integer values , range = [min, max]

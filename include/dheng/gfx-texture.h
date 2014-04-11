@@ -22,7 +22,7 @@
 #include "dhcore/file-io.h"
 
 gfx_texture gfx_texture_loaddds(const char* dds_filepath, uint first_mipidx,
-		bool_t srgb, uint thread_id);
+		int srgb, uint thread_id);
 
 uint gfx_texture_getbpp(enum gfx_format fmt);
 

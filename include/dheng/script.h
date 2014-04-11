@@ -48,13 +48,13 @@ ENGINE_API result_t sct_runfile(const char* lua_filepath);
 _EXTERN_BEGIN_
 
 void sct_zero();
-result_t sct_init(const struct sct_params* params, bool_t monitor);
+result_t sct_init(const struct sct_params* params, int monitor);
 void sct_release();
 void sct_parseparams(struct sct_params* params, json_t j);
 
 void sct_update();
 
-uint sct_addtimer(uint timeout, const char* funcname, bool_t single_shot);
+uint sct_addtimer(uint timeout, const char* funcname, int single_shot);
 void sct_removetimer(uint tid);
 
 void sct_addtrigger(cmphandle_t trigger_cmp, const char* funcname);
@@ -64,7 +64,7 @@ void sct_removetrigger_byfuncname(const char* funcname);
 void sct_throwerror(const char* fmt, ...);  /* used by wrappers */
 sct_t sct_load(const char* lua_filepath, uint thread_id);   /* used by res-mgr */
 void sct_unload(sct_t s);
-void sct_reload(const char* filepath, reshandle_t hdl, bool_t manual);
+void sct_reload(const char* filepath, reshandle_t hdl, int manual);
 void sct_getmemstats(struct sct_memstats* stats);
 void sct_setthreshold(int mem_sz);
 

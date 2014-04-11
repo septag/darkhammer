@@ -50,7 +50,7 @@ struct gfx_contbuffer
 {
 	gfx_buffer buff;
 	uint offset;
-    bool_t reset;   /* if we manually change offset from zero, we have to know to DISCARD it */
+    int reset;   /* if we manually change offset from zero, we have to know to DISCARD it */
 };
 
 void gfx_contbuffer_init(struct gfx_contbuffer* cbuff, gfx_buffer buff);

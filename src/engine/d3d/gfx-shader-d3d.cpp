@@ -86,7 +86,7 @@ struct shader_texture_meta
 #endif
     uint name_hash;
     uint shaderbind_id;
-    bool_t used;
+    int used;
 };
 
 struct shader_metadata
@@ -200,13 +200,13 @@ struct gfx_cblock* shader_create_cblock(struct allocator* alloc,
         struct allocator* tmp_alloc, struct gfx_shader* shader,
         ID3D11ShaderReflectionConstantBuffer* d3d_cb, const char* name,
         struct gfx_sharedbuffer* shared_buff);
-bool_t shader_find_var(uint name_hash, D3D10_SHADER_VARIABLE_CLASS cls,
+int shader_find_var(uint name_hash, D3D10_SHADER_VARIABLE_CLASS cls,
     D3D10_SHADER_VARIABLE_TYPE type, const struct array* constants, OUT uint* idx);
-bool_t shader_gather_constants(ID3D11ShaderReflection* refl, uint cb_idx, uint global_cbidx,
+int shader_gather_constants(ID3D11ShaderReflection* refl, uint cb_idx, uint global_cbidx,
     INOUT struct array* constants);
-bool_t shader_gather_cbuffer(ID3D11ShaderReflection* refl, uint cb_idx,
+int shader_gather_cbuffer(ID3D11ShaderReflection* refl, uint cb_idx,
     enum gfx_shader_type parent_shadertype, INOUT struct array* cbuffers);
-bool_t shader_gather_samplers(ID3D11ShaderReflection* refl,
+int shader_gather_samplers(ID3D11ShaderReflection* refl,
     enum gfx_shader_type parent_shadertype, struct shader_texture_meta* textures,
     uint texture_cnt, INOUT struct array* samplers);
 void shader_gather_textures(struct array* textures, ID3D11ShaderReflection* refl);
@@ -385,7 +385,7 @@ void shader_destroy_metadata(struct gfx_shader* shader)
 /* search in constants array and check the constants in cbuffer for faulty duplicate variables
  * if it's ok, add a constant_meta to the array
  */
-bool_t shader_gather_constants(ID3D11ShaderReflection* refl, uint cb_idx, uint global_cbidx,
+int shader_gather_constants(ID3D11ShaderReflection* refl, uint cb_idx, uint global_cbidx,
         INOUT struct array* constants)
 {
     ID3D11ShaderReflectionConstantBuffer* d3d_cb = refl->GetConstantBufferByIndex(cb_idx);
@@ -432,7 +432,7 @@ bool_t shader_gather_constants(ID3D11ShaderReflection* refl, uint cb_idx, uint g
 /* returns FALSE if variable is used with different class/type
  * idx will be the index in the array of the same
  */
-bool_t shader_find_var(uint name_hash, D3D10_SHADER_VARIABLE_CLASS cls,
+int shader_find_var(uint name_hash, D3D10_SHADER_VARIABLE_CLASS cls,
     D3D10_SHADER_VARIABLE_TYPE type, const struct array* constants, OUT uint* idx)
 {
     *idx = INVALID_INDEX;
@@ -466,7 +466,7 @@ uint shader_check_tbuffer(ID3D11ShaderReflection* refl, const char* cb_name)
 }
 
 /* returns FALSE if duplicate cbuffers with different sizes is found */
-bool_t shader_gather_cbuffer(ID3D11ShaderReflection* refl, uint cb_idx,
+int shader_gather_cbuffer(ID3D11ShaderReflection* refl, uint cb_idx,
     enum gfx_shader_type parent_shadertype, INOUT struct array* cbuffers)
 {
     ID3D11ShaderReflectionConstantBuffer* d3d_cb = refl->GetConstantBufferByIndex(cb_idx);
@@ -626,7 +626,7 @@ struct gfx_cblock* shader_create_cblock(struct allocator* alloc,
 }
 
 /* return FALSE if sampler does not have texture with same name (t_) in the shader */
-bool_t shader_gather_samplers(ID3D11ShaderReflection* refl,
+int shader_gather_samplers(ID3D11ShaderReflection* refl,
     enum gfx_shader_type parent_shadertype, struct shader_texture_meta* textures,
     uint texture_cnt, INOUT struct array* samplers)
 {
@@ -1027,12 +1027,12 @@ void gfx_shader_setfv(struct gfx_shader* shader, uint name_hash, const float* fv
         gfx_cb_setfv(meta->global_cbs[c->global_cb_ids[i]], name_hash, fv, cnt);
 }
 
-bool_t gfx_shader_isvalidtex(struct gfx_shader* shader, uint name_hash)
+int gfx_shader_isvalidtex(struct gfx_shader* shader, uint name_hash)
 {
     return hashtable_fixed_find(&shader->sampler_bindtable, name_hash) != NULL;
 }
 
-bool_t gfx_shader_isvalid(struct gfx_shader* shader, uint name_hash)
+int gfx_shader_isvalid(struct gfx_shader* shader, uint name_hash)
 {
 	return shader_find_constant(shader, name_hash) != INVALID_INDEX;
 }

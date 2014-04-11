@@ -38,7 +38,7 @@ struct ALIGN16 cmp_camera
 	float pitch_max;
 	float pitch_min;
 	char bind_path[32];
-	bool_t active;
+	int active;
 
 	/* internal */
 	struct camera c;
@@ -74,7 +74,7 @@ static const struct cmp_value cmp_camera_values[] = {
 			cmp_camera_modifyconstraint, "angle;spinner;min=-90;max=90;stride=0.1;"},
 		{"bind_path", CMP_VALUE_STRING, offsetof(struct cmp_camera, bind_path), 32, 1,
 			cmp_camera_modifybindpath, "customdlg; filepicker; filter=*.campath;"},
-		{"active", CMP_VALUE_BOOL, offsetof(struct cmp_camera, active), sizeof(bool_t), 1,
+		{"active", CMP_VALUE_BOOL, offsetof(struct cmp_camera, active), sizeof(int), 1,
 			cmp_camera_modifyactive, 0}
 };
 static const cmptype_t cmp_camera_type = 0x8b72;

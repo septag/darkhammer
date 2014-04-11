@@ -33,11 +33,11 @@
 struct json_mgr
 {
     struct pool_alloc_ts buffs[JSON_ALLOC_CNT];
-    bool_t init;
+    int init;
 };
 
 static struct json_mgr g_json;
-static bool_t g_json_zero = FALSE;
+static int g_json_zero = FALSE;
 
 /*************************************************************************************************/
 INLINE void* json_alloc_putsize(void* ptr, uint sz)
@@ -188,7 +188,7 @@ json_t json_parsestring(const char* str)
     return j;
 }
 
-result_t json_savetofile(json_t j, const char* filepath, bool_t trim)
+result_t json_savetofile(json_t j, const char* filepath, int trim)
 {
     ASSERT(g_json.init);
 
@@ -211,7 +211,7 @@ result_t json_savetofile(json_t j, const char* filepath, bool_t trim)
     return RET_OK;
 }
 
-result_t json_savetofilef(json_t j, file_t f, bool_t trim)
+result_t json_savetofilef(json_t j, file_t f, int trim)
 {
     ASSERT(g_json.init);
     ASSERT(fio_isopen(f));
@@ -227,7 +227,7 @@ result_t json_savetofilef(json_t j, file_t f, bool_t trim)
     return RET_OK;
 }
 
-char* json_savetobuffer(json_t j, size_t* outsize, bool_t trim)
+char* json_savetobuffer(json_t j, size_t* outsize, int trim)
 {
     ASSERT(g_json.init);
     char* buffer = trim ? cJSON_PrintUnformatted((cJSON*)j) : cJSON_Print((cJSON*)j);
@@ -265,7 +265,7 @@ void json_sets(json_t j, const char* str)
     strcpy(((cJSON*)j)->string, str);
 }
 
-void json_setb(json_t j, bool_t b)
+void json_setb(json_t j, int b)
 {
     ((cJSON*)j)->valueint = b;
 }
@@ -300,7 +300,7 @@ const char* json_gets_child(json_t parent, const char* name, const char* def_val
     }
 }
 
-bool_t json_getb_child(json_t parent, const char* name, bool_t def_value)
+int json_getb_child(json_t parent, const char* name, int def_value)
 {
     json_t j = json_getitem(parent, name);
     if (j != NULL)  {
@@ -325,7 +325,7 @@ const char* json_gets(json_t j)
     return ((cJSON*)j)->valuestring;
 }
 
-bool_t json_getb(json_t j)
+int json_getb(json_t j)
 {
     return (((cJSON*)j)->valueint ? TRUE : FALSE);
 }
@@ -355,7 +355,7 @@ json_t json_create_obj()
     return cJSON_CreateObject();
 }
 
-json_t json_create_bool(bool_t b)
+json_t json_create_bool(int b)
 {
     return cJSON_CreateBool(b);
 }

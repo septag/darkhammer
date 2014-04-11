@@ -144,7 +144,7 @@ void input_mouse_setpos_platform(void* wnd_hdl, int x, int y)
     SetCursorPos(pt.x, pt.y);
 }
 
-bool_t input_mouse_getkey_platform(void* wnd_hdl, enum input_mouse_key mkey)
+int input_mouse_getkey_platform(void* wnd_hdl, enum input_mouse_key mkey)
 {
     int vkey = 0;
     switch (mkey)   {
@@ -168,7 +168,7 @@ bool_t input_mouse_getkey_platform(void* wnd_hdl, enum input_mouse_key mkey)
     return (GetAsyncKeyState(vkey)&0x8000);
 }
 
-bool_t input_kb_getkey_platform(void* wnd_hdl, const uint keymap[INPUT_KEY_CNT],
+int input_kb_getkey_platform(void* wnd_hdl, const uint keymap[INPUT_KEY_CNT],
                                 enum input_key key)
 {
     int keycode = (int)keymap[(uint)key];

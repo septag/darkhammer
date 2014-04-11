@@ -97,7 +97,7 @@ class _API:
 
         # gfx.h
         _API.gfx_set_gridcallback = dhenglib.gfx_set_gridcallback
-        _API.gfx_set_gridcallback.argtypes = [c_uint]
+        _API.gfx_set_gridcallback.argtypes = [c_int]
 
         _API.gfx_resize = dhenglib.gfx_resize
         _API.gfx_resize.argtypes = [c_uint, c_uint]
@@ -146,11 +146,11 @@ class _API:
 
         _API.cmp_value_setb = dhenglib.cmp_value_setb
         _API.cmp_value_setb.restype = c_int
-        _API.cmp_value_setb.argtypes = [c_ulonglong, c_char_p, c_uint]
+        _API.cmp_value_setb.argtypes = [c_ulonglong, c_char_p, c_int]
 
         _API.cmp_value_getb = dhenglib.cmp_value_getb
         _API.cmp_value_getb.restype = c_int
-        _API.cmp_value_getb.argtypes = [POINTER(c_uint), c_ulonglong, c_char_p]
+        _API.cmp_value_getb.argtypes = [POINTER(c_int), c_ulonglong, c_char_p]
 
         _API.cmp_value_setui = dhenglib.cmp_value_setui
         _API.cmp_value_setui.restype = c_int
@@ -270,13 +270,14 @@ class Engine:
 
     @staticmethod
     def update():
-        ft = _API.eng_get_frametime()
-        Input.update(ft)
+        if Engine.is_init:
+            ft = _API.eng_get_frametime()
+            Input.update(ft)
 
-        if Engine.__active_scene != None:
-            Engine.__active_scene.update_objects(ft)
+            if Engine.__active_scene != None:
+                Engine.__active_scene.update_objects(ft)
 
-        _API.eng_update()   
+            _API.eng_update()   
 
     @staticmethod
     def init(conf):
@@ -284,7 +285,7 @@ class Engine:
         if IS_FAIL(r):
             raise Exception(Errors.last_error())
 
-        _API.gfx_set_gridcallback(c_uint(True))
+        _API.gfx_set_gridcallback(c_int(True))
 
         # register components
         Component.register('transform', 0x7887, Transform) 
@@ -468,11 +469,11 @@ class Camera(Component):
     min_pitch = property(__get_minpitch, __set_minpitch)
 
     def __get_active(self):
-        b = c_uint(0)
+        b = c_int(0)
         _API.cmp_value_getb(byref(b), self._cmp, to_cstr('active'))
         return bool(b.value)
     def __set_active(self, value):
-        _API.cmp_value_setb(self._cmp, to_cstr('active'), c_uint(value))
+        _API.cmp_value_setb(self._cmp, to_cstr('active'), c_int(value))
     active = property(__get_active, __set_active)
 
 class Model(Component):
@@ -490,7 +491,7 @@ class Model(Component):
     filepath = property(__get_filepath, __set_filepath)
 
     def __get_excludeshadows(self):
-        b = c_uint(0)
+        b = c_int(0)
         _API.cmp_value_getb(byref(b), self._cmp, to_cstr('exclude_shadows'))
         return bool(b.value)
     def __set_excludeshadows(self, excl):
@@ -618,15 +619,15 @@ class RigidBody(Component):
     filepath = property(__get_filepath, __set_filepath)
 
     def __get_kinematic(self):
-        b = c_uint()
+        b = c_int()
         _API.cmp_value_getb(byref(b), self._cmp, to_cstr('kinematic'))
         return bool(b.value)
     def __set_kinematic(self, value):
-        _API.cmp_value_setb(self._cmp, to_cstr('kinematic'), c_uint(value))
+        _API.cmp_value_setb(self._cmp, to_cstr('kinematic'), c_int(value))
     kinematic = property(__get_kinematic, __set_kinematic)
 
     def __get_disablegravity(self):
-        b = c_uint()
+        b = c_int()
         _API.cmp_value_getb(byref(b), self._cmp, to_cstr('disablegravity'))
         return bool(b.value)
     def __set_disablegravity(self, value):

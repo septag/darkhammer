@@ -19,8 +19,8 @@
 #include "dhcore/types.h"
 #include "h3dimport.h"
 
-bool_t import_phx_list(const struct import_params* params);
-bool_t import_phx(const struct import_params* params);
+int import_phx_list(const struct import_params* params);
+int import_phx(const struct import_params* params);
 
 
 #endif /* __PHXIMPORT_H__ */

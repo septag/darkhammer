@@ -83,7 +83,7 @@ struct _GCCPACKED_ h3d_geo
 	uint subset_cnt;
 	uint joint_cnt;
 	uint bones_pervertex_max;
-	bool_t ib_isui32;	/* index-buffer is 32bit integer ?*/
+	int ib_isui32;	/* index-buffer is 32bit integer ?*/
 	uint vert_ids[GFX_INPUTELEMENT_ID_CNT];	/* type=gfx_input_element_id, count = vert_id_cnt */
     float joints_rootmat[12];
 
@@ -182,7 +182,7 @@ struct _GCCPACKED_ h3d_model
     uint mesh_cnt;
     uint geo_cnt;
     uint mtl_cnt;
-    bool_t has_occ;
+    int has_occ;
 
     uint total_childidxs; /* total child idxs of all nodes */
     uint total_submeshes; /* total count of submesheshes */
@@ -212,7 +212,7 @@ struct _GCCPACKED_ h3d_anim_clip
     char name[32];
     uint start;
     uint end;
-    bool_t looped;
+    int looped;
 };
 
 struct _GCCPACKED_ h3d_anim
@@ -220,7 +220,7 @@ struct _GCCPACKED_ h3d_anim
     uint fps;
     uint frame_cnt;
     uint channel_cnt;
-    bool_t has_scale;
+    int has_scale;
     uint clip_cnt;
     uint clips_offset;    /* points to end of anim data for clips table */
 
@@ -281,7 +281,7 @@ struct _GCCPACKED_ h3d_phx_shape
     float local_pos[3];
     float local_rot[4];
     uint mtl_cnt;
-    bool_t ccd;
+    int ccd;
 
     /* shape descriptions */
     union   {
@@ -325,7 +325,7 @@ struct _GCCPACKED_ h3d_phx_rigid
     float ang_damping;
     int positer_cnt_min;
     int veliter_cnt_min;
-    bool_t gravity_disable;
+    int gravity_disable;
 
 #if 0
     /* data comes after in the file */

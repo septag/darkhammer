@@ -19,7 +19,7 @@
  * if error occurs within any function within engine, an error-stack will be created and result_t will not return RET_OK\n
  * To check if result_t is an error, use **IS_FAIL(r)** or **IS_OK(r)** macros.\n
  * Example:\n @code
- *  bool_t my_function()  {
+ *  int my_function()  {
  *      result_t r = some_engine_func();
  *      if (IS_FAIL(r))  {
  *           err_print(__FILE__, __LINE__, "Error occured");
@@ -112,7 +112,7 @@ CORE_API uint err_getcode();
  * @param as_warning send error as warning
  * @ingroup err
  */
-CORE_API void err_sendtolog(bool_t as_warning);
+CORE_API void err_sendtolog(int as_warning);
 /**
  * returns error descriptions and call-stack to the caller, **clears** the error-stack after call
  * @return string buffer
@@ -127,6 +127,6 @@ CORE_API void err_clear();
 /**
  * checks if we have errors in the error-stack @ingroup err
  */
-CORE_API bool_t err_haserrors();
+CORE_API int err_haserrors();
 
 #endif /* __ERR_H__ */

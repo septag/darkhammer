@@ -170,7 +170,7 @@ APP_API struct vec2i* input_mouse_getpos(struct vec2i* pos);
  * @see input_mouse_key
  * @see input_update
  */
-APP_API bool_t input_mouse_getkey(enum input_mouse_key mkey, bool_t once);
+APP_API int input_mouse_getkey(enum input_mouse_key mkey, int once);
 
 /**
  * Receives keyboard hit state
@@ -178,7 +178,7 @@ APP_API bool_t input_mouse_getkey(enum input_mouse_key mkey, bool_t once);
  * @return TRUE if specified key in `keycode` parameter is pressed
  * @ingroup input
  */
-APP_API bool_t input_kb_getkey(enum input_key key, bool_t once);
+APP_API int input_kb_getkey(enum input_key key, int once);
 
 /**
  * Translates os-dependant keycode to familiat engine key enum
@@ -201,7 +201,7 @@ APP_API enum input_key input_kb_translatekey(uint vkey);
  * @ingroup input
  */
 APP_API void input_mouse_smooth(INOUT float* rx, INOUT float* ry, float real_x, float real_y,
-                                   float springiness, float dt);
+                                float springiness, float dt);
 
 /**
  * Locks mouse cursor position to specified X, Y position
@@ -219,7 +219,7 @@ APP_API void input_mouse_unlockcursor();
  * @see input_get_kbhit
  * @ingroup input
  */
-APP_API void input_kb_lockkey(enum input_key key, bool_t pressed);
+APP_API void input_kb_lockkey(enum input_key key, int pressed);
 
 /**
  * @see input_get_kbhit
@@ -236,7 +236,7 @@ APP_API void input_kb_resetlocks();
  * @see input_get_mouse
  * @ingroup input
  */
-APP_API void input_mouse_lockkey(enum input_mouse_key key, bool_t pressed);
+APP_API void input_mouse_lockkey(enum input_mouse_key key, int pressed);
 
 /**
  * @see input_get_mouse

@@ -43,7 +43,7 @@ struct mem_stats
  * @param trace_mem Enable tracing memory calls, like leak detection
  * @ingroup mem
  */
-CORE_API result_t mem_init(bool_t trace_mem);
+CORE_API result_t mem_init(int trace_mem);
 
 /**
  * Release memory system
@@ -55,7 +55,7 @@ CORE_API void mem_release();
  * Checks is memory system is initialized
  * @ingroup mem
  */
-CORE_API bool_t mem_isinit();
+CORE_API int mem_isinit();
 
 /**
  * Get memory statistics
@@ -107,7 +107,7 @@ CORE_API void mem_setmaxlimit(size_t size);
  * Checks if memory limit is passed
  * @see mem_setmaxlimit     @ingroup mem
  */
-CORE_API bool_t mem_isoverrun();
+CORE_API int mem_isoverrun();
 
 /**
  * Gets allocation size of certain memory Id

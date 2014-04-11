@@ -23,7 +23,7 @@ void rand_seed()
     srand((unsigned int)time(NULL));
 }
 
-bool_t rand_flipcoin(uint prob)
+int rand_flipcoin(uint prob)
 {
     return ((uint)rand_geti(0, 100) <= prob);
 }

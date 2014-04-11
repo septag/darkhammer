@@ -76,7 +76,7 @@ typedef void (*pfn_app_resize)(uint width, uint height);
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_active)(bool_t active);
+typedef void (*pfn_app_active)(int active);
 /**
  * @ingroup app
  */
@@ -191,7 +191,7 @@ APP_API void app_window_readjust(uint client_width, uint client_height);
  * Sets if application should always be active and running, no matter if it loses focus or not
  * @ingroup app
  */
-APP_API void app_window_alwaysactive(bool_t active);
+APP_API void app_window_alwaysactive(int active);
 
 /**
  * Swaps render buffers and presents the render data to the window.\n
@@ -204,7 +204,7 @@ APP_API void app_window_swapbuffers();
  * Returns TRUE if application has focus
  * @ingroup app
  */
-APP_API bool_t app_window_isactive();
+APP_API int app_window_isactive();
 
 /**
  * Returns applications main render-target width, in pixels

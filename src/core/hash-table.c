@@ -118,7 +118,7 @@ void hashtable_chained_destroy(struct hashtable_chained* table)
     }
 }
 
-bool_t hashtable_chained_isempty(struct hashtable_chained* table)
+int hashtable_chained_isempty(struct hashtable_chained* table)
 {
     return (table->items_cnt == 0);
 }
@@ -210,7 +210,7 @@ void hashtable_fixed_destroy(struct hashtable_fixed* table)
         A_FREE(table->alloc, table->slots);
 }
 
-bool_t hashtable_fixed_isempty(struct hashtable_fixed* table)
+int hashtable_fixed_isempty(struct hashtable_fixed* table)
 {
     return (table->items_cnt == 0);
 }
@@ -286,7 +286,7 @@ void hashtable_open_destroy(struct hashtable_open* table)
         A_FREE(table->alloc, table->slots);
 }
 
-bool_t hashtable_open_isempty(struct hashtable_open* table)
+int hashtable_open_isempty(struct hashtable_open* table)
 {
     return (table->items_cnt == 0);
 }

@@ -83,7 +83,7 @@ struct scn_grid
     struct vec4f* cells;    /*count: 2*cell_cnt, grows if required by cell_cnt */
     struct pool_alloc item_pool;    /* item: scn_grid_item */
     struct linked_list** items;   /* pointer to cell items, count: cell_cnt */
-    bool_t* vis_cells;  /* count: cell_cnt */
+    int* vis_cells;  /* count: cell_cnt */
 };
 
 struct scn_data
@@ -104,7 +104,7 @@ struct scn_mgr
 	struct pool_alloc obj_pool;	/* item: cmp_obj */
     struct camera* active_cam;
     struct array vis_objs;  /* item: cmp_obj* */
-    bool_t debug_grid;
+    int debug_grid;
     struct array global_objs;   /* item: cmp_obj* */
     struct stack* free_scenes;   /* item: index to scenes array, free scene indexes array */
 };
@@ -131,17 +131,17 @@ struct scn_render_model* scene_create_rendermodels(struct allocator* alloc, stru
     struct mat3f* mats, struct sphere* bounds, uint item_offset, OUT uint* pcnt);
 
 /* culling */
-void scene_cullspheres(bool_t* vis, const struct plane frust[6], const struct sphere* bounds,
+void scene_cullspheres(int* vis, const struct plane frust[6], const struct sphere* bounds,
 		uint startidx, uint endidx);
-void scene_cullspheres_nosimd(bool_t* vis, const struct plane frust[6], const struct sphere* bounds,
+void scene_cullspheres_nosimd(int* vis, const struct plane frust[6], const struct sphere* bounds,
 		uint startidx, uint endidx);
 uint scene_cullgrid_sphere(const struct scn_grid* grid, OUT struct cmp_obj** objs,
     const struct sphere* sphere);
-void scene_cull_aabbs_sweep(bool_t* vis, const struct aabb* frust_aabb, const struct vec3f* dir,
+void scene_cull_aabbs_sweep(int* vis, const struct aabb* frust_aabb, const struct vec3f* dir,
     const struct aabb* aabbs, uint startidx, uint endidx);
 void scene_draw_occluders(struct allocator* alloc, struct cmp_obj** objs, uint obj_cnt,
-    const bool_t* vis, const struct gfx_view_params* params);
-int scene_test_occlusion(const bool_t* vis, INOUT struct cmp_obj** objs, uint* bound_idxs,
+    const int* vis, const struct gfx_view_params* params);
+int scene_test_occlusion(const int* vis, INOUT struct cmp_obj** objs, uint* bound_idxs,
     uint obj_cnt, const struct gfx_view_params* params);
 uint scene_cullgrid(const struct scn_grid* grid, INOUT struct cmp_obj** objs, uint start_idx,
     uint end_idx, const struct plane frust[6]);
@@ -434,7 +434,7 @@ struct scn_render_query* scn_create_query(uint scene_id, struct allocator* alloc
     struct array tmp_models; /* item: scn_render_model */
     struct array tmp_lights; /* item: scn_render_light */
     struct array tmp_mats;  /* item: mat3f */
-    bool_t* vis = NULL; /* visible flags for each object */
+    int* vis = NULL; /* visible flags for each object */
     uint obj_idx = 0;     /* object index (sent to query) */
     uint item_idx = 0;    /* render-item index */
     struct cmp_obj** vis_objs = NULL;  /* non-culled (visible) object list, shrinks in the process*/
@@ -493,10 +493,10 @@ struct scn_render_query* scn_create_query(uint scene_id, struct allocator* alloc
     }
 
     /* cull against frustum */
-    vis = (bool_t*)A_ALLOC(alloc, sizeof(bool_t)*vis_cnt, MID_SCN);
+    vis = (int*)A_ALLOC(alloc, sizeof(int)*vis_cnt, MID_SCN);
     if (vis == NULL)
         goto err_cleanup;
-    memset(vis, 0x00, sizeof(bool_t)*vis_cnt);
+    memset(vis, 0x00, sizeof(int)*vis_cnt);
     scene_cullspheres(vis, frust_planes, rq->bounds, 0, vis_cnt);
 
     /* create output buffers (mats, models, lights, etc. - in form of array) */
@@ -599,7 +599,7 @@ struct scn_render_query* scn_create_query_csm(uint scene_id, struct allocator* a
     struct cmp_obj** spatial_culled_objs;
     uint spatial_culled_cnt;
     struct aabb* bounds = NULL;
-    bool_t* culls = NULL;
+    int* culls = NULL;
     uint item_idx = 0;
     uint obj_idx = 0;
 
@@ -631,10 +631,10 @@ struct scn_render_query* scn_create_query_csm(uint scene_id, struct allocator* a
     }
 
     /* create models temp array and cull info array */
-    culls = (bool_t*)A_ALLOC(alloc, sizeof(bool_t)*spatial_culled_cnt, MID_SCN);
+    culls = (int*)A_ALLOC(alloc, sizeof(int)*spatial_culled_cnt, MID_SCN);
     if (culls == NULL)
         goto err_cleanup;
-    memset(culls, 0x00, sizeof(bool_t)*spatial_culled_cnt);
+    memset(culls, 0x00, sizeof(int)*spatial_culled_cnt);
 
     r = arr_create(alloc, &tmp_models, sizeof(struct scn_render_model),
         spatial_culled_cnt + (spatial_culled_cnt/2), spatial_culled_cnt, MID_SCN);
@@ -898,7 +898,7 @@ uint scene_add_light(struct cmp_obj* obj, uint bounds_idx, uint item_idx, struct
 {
     float intensity;
     cmphandle_t light_hdl = cmp_findinstance(obj->chain, cmp_light_type);
-    bool_t vis = cmp_light_applylod(light_hdl, &params->cam_pos, &intensity);
+    int vis = cmp_light_applylod(light_hdl, &params->cam_pos, &intensity);
     if (!vis)
         return 0;
 
@@ -921,7 +921,7 @@ uint scene_add_light(struct cmp_obj* obj, uint bounds_idx, uint item_idx, struct
 uint scene_add_model(struct cmp_obj* obj, uint bounds_idx, uint item_idx, struct array* mats,
     struct array* models, const struct gfx_view_params* params, OUT uint* obj_idx)
 {
-    bool_t vis = TRUE;
+    int vis = TRUE;
     struct cmp_model* m = (struct cmp_model*)cmp_getinstancedata(obj->model_cmp);
 
     /* apply LOD if model is owned by LOD component */
@@ -976,7 +976,7 @@ uint scene_add_model_shadow(struct cmp_obj* obj, uint bounds_idx, uint item_idx,
     struct array* mats, struct array* models, const struct gfx_view_params* params,
     OUT uint* obj_idx)
 {
-    bool_t vis = TRUE;
+    int vis = TRUE;
     struct cmp_model* m = (struct cmp_model*)cmp_getinstancedata(obj->model_shadow_cmp);
 
     /* apply LOD if model is owned by LOD component */
@@ -1050,7 +1050,7 @@ struct cmp_obj* scn_getobj(uint scene_id, uint obj_id)
     return objs[obj_id-1];
 }
 
-void scene_cull_aabbs_sweep(bool_t* vis, const struct aabb* frust_aabb, const struct vec3f* dir,
+void scene_cull_aabbs_sweep(int* vis, const struct aabb* frust_aabb, const struct vec3f* dir,
     const struct aabb* aabbs, uint startidx, uint endidx)
 {
     struct vec3f fmin;
@@ -1151,7 +1151,7 @@ void scene_cull_aabbs_sweep(bool_t* vis, const struct aabb* frust_aabb, const st
 }
 
 #if defined(_SIMD_SSE_)
-void scene_cullspheres(bool_t* vis, const struct plane frust[6], const struct sphere* bounds,
+void scene_cullspheres(int* vis, const struct plane frust[6], const struct sphere* bounds,
 		uint startidx, uint endidx)
 {
     PRF_OPENSAMPLE("frustum cull");
@@ -1216,7 +1216,7 @@ void scene_cullspheres(bool_t* vis, const struct plane frust[6], const struct sp
 #error "not implemented"
 #endif
 
-void scene_cullspheres_nosimd(bool_t* vis, const struct plane frust[6], const struct sphere* bounds,
+void scene_cullspheres_nosimd(int* vis, const struct plane frust[6], const struct sphere* bounds,
 		uint startidx, uint endidx)
 {
     PRF_OPENSAMPLE("frustum cull");
@@ -1253,7 +1253,7 @@ skip_sphere:
 
 /* draw occluders only within occ_far units */
 void scene_draw_occluders(struct allocator* alloc, struct cmp_obj** objs, uint obj_cnt,
-    const bool_t* vis, const struct gfx_view_params* params)
+    const int* vis, const struct gfx_view_params* params)
 {
     struct vec3f campos;
 
@@ -1304,7 +1304,7 @@ void scene_draw_occluders(struct allocator* alloc, struct cmp_obj** objs, uint o
  * @param objs (in/out) inputs objects, outputs shrinked (likely) array of visible objects
  * @return visible object count
  */
-int scene_test_occlusion(const bool_t* vis, INOUT struct cmp_obj** objs, uint* bound_idxs,
+int scene_test_occlusion(const int* vis, INOUT struct cmp_obj** objs, uint* bound_idxs,
     uint obj_cnt, const struct gfx_view_params* params)
 {
     PRF_OPENSAMPLE("occ-test");
@@ -1452,13 +1452,13 @@ result_t scene_grid_createcells(struct scn_grid* grid, float cell_size, const st
     memset(grid->items, 0x00, sizeof(struct linked_list*)*cell_cnt);
 
     /* visible cells (for debugging) */
-    grid->vis_cells = (bool_t*)ALLOC(sizeof(bool_t)*cell_cnt, MID_SCN);
+    grid->vis_cells = (int*)ALLOC(sizeof(int)*cell_cnt, MID_SCN);
     if (grid->vis_cells == NULL)    {
         ALIGNED_FREE(cells);
         FREE(grid->items);
         return RET_OUTOFMEMORY;
     }
-    memset(grid->vis_cells, 0x00, sizeof(bool_t)*cell_cnt);
+    memset(grid->vis_cells, 0x00, sizeof(int)*cell_cnt);
 
     /* */
     grid->cells = cells;
@@ -1626,8 +1626,8 @@ void scene_grid_pushsingle(struct scn_grid* grid, cmphandle_t bounds_hdl)
         const struct vec4f* cmin = &cells[2*i]; /* = x_min, z_min, x_min, z_min */
         const struct vec4f* cmax = &cells[2*i + 1]; /* = x_max, z_max, x_max, z_max */
 
-        bool_t x_out = (minpt.x > cmax->x) | (maxpt.x < cmin->x);
-        bool_t z_out = (minpt.z > cmax->y) | (maxpt.z < cmin->y);
+        int x_out = (minpt.x > cmax->x) | (maxpt.x < cmin->x);
+        int z_out = (minpt.z > cmax->y) | (maxpt.z < cmin->y);
 
         if (x_out | z_out)
             continue;
@@ -1821,7 +1821,7 @@ void scene_calc_frustum_projxz(struct plane frust_proj[4], const struct plane fr
 
 result_t scene_console_debuggrid(uint argc, const char** argv, void* param)
 {
-    bool_t show = TRUE;
+    int show = TRUE;
     if (argc == 1)
         show = str_tobool(argv[0]);
     else if (argc > 1)
@@ -2037,7 +2037,7 @@ result_t scene_console_setcellsize(uint argc, const char** argv, void* param)
 
 result_t scene_console_campos(uint argc, const char** argv, void* param)
 {
-    bool_t show = TRUE;
+    int show = TRUE;
     if (argc == 1)
         show = str_tobool(argv[0]);
     else if (argc > 1)

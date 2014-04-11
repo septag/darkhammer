@@ -38,7 +38,7 @@ _EXTERN_ void phx_scene_addactor(uint scene_id, phx_obj rigid_obj);
 void phx_scene_removeactor(uint scene_id, phx_obj rigid_obj);
 void phx_scene_wait(uint scene_id);
 void phx_scene_flush(uint scene_id);
-bool_t phx_scene_check(uint scene_id);
+int phx_scene_check(uint scene_id);
 void phx_scene_simulate(uint scene_id, float dt);
 struct phx_active_transform* phx_scene_activexforms(uint scene_id, struct allocator* alloc,
     OUT uint* xform_cnt);
@@ -57,11 +57,11 @@ void phx_destroy_rigid(phx_obj rigid_obj);
 phx_mtl phx_create_mtl(float friction_st, float friction_dyn, float restitution);
 void phx_destroy_mtl(phx_mtl mtl);
 
-phx_trimesh phx_create_trimesh(const void* data, bool_t make_gpugeo, struct allocator* tmp_alloc,
+phx_trimesh phx_create_trimesh(const void* data, int make_gpugeo, struct allocator* tmp_alloc,
                                uint thread_id);
 void phx_destroy_trimesh(phx_trimesh tri);
 
-phx_convexmesh phx_create_convexmesh(const void* data, bool_t make_gpugeo,
+phx_convexmesh phx_create_convexmesh(const void* data, int make_gpugeo,
     struct allocator* tmp_alloc, uint thread_id);
 void phx_destroy_convexmesh(phx_convexmesh convex);
 
@@ -94,32 +94,32 @@ void phx_destroy_trishape(phx_shape_tri tmshape);
 void phx_rigid_setmass(phx_obj rigid_obj, float mass, OPTIONAL const struct vec3f* local_cmass);
 void phx_rigid_setdensity(phx_obj rigid_obj, float density, const struct vec3f* local_cmass);
 void phx_rigid_applyforce(phx_obj rigid_obj, const struct vec3f* force, enum phx_force_mode mode,
-    bool_t wakeup, OPTIONAL const struct vec3f* pos);
+    int wakeup, OPTIONAL const struct vec3f* pos);
 void phx_rigid_applyforce_localpos(phx_obj rigid_obj, const struct vec3f* force,
-    enum phx_force_mode mode, bool_t wakeup, OPTIONAL const struct vec3f* local_pos);
+    enum phx_force_mode mode, int wakeup, OPTIONAL const struct vec3f* local_pos);
 void phx_rigid_applylocalforce_localpos(phx_obj rigid_obj, const struct vec3f* local_force,
-    enum phx_force_mode mode, bool_t wakeup, OPTIONAL const struct vec3f* local_pos);
+    enum phx_force_mode mode, int wakeup, OPTIONAL const struct vec3f* local_pos);
 
 void phx_rigid_applytorque(phx_obj rigid_obj, const struct vec3f* torque, enum phx_force_mode mode,
-    bool_t wakeup);
-void phx_rigid_clearforce(phx_obj rigid_obj, enum phx_force_mode mode, bool_t wakeup);
-void phx_rigid_cleartorque(phx_obj rigid_obj, enum phx_force_mode mode, bool_t wakeup);
-void phx_rigid_freeze(phx_obj rigid_obj, bool_t wakeup);
-void phx_rigid_setkinematic(phx_obj rigid_obj, bool_t enable);
+    int wakeup);
+void phx_rigid_clearforce(phx_obj rigid_obj, enum phx_force_mode mode, int wakeup);
+void phx_rigid_cleartorque(phx_obj rigid_obj, enum phx_force_mode mode, int wakeup);
+void phx_rigid_freeze(phx_obj rigid_obj, int wakeup);
+void phx_rigid_setkinematic(phx_obj rigid_obj, int enable);
 void phx_rigid_setkinamatic_xform(phx_obj rigid_obj, const struct xform3d* xf);
 void phx_rigid_setkinamatic_xform3m(phx_obj rigid_obj, const struct mat3f* mat);
 void phx_rigid_setdamping(phx_obj rigid_obj, float lin_damping, float ang_damping);
 void phx_rigid_setsolveritercnt(phx_obj rigid_obj, uint8 positer_min, uint8 veliter_min);
-void phx_rigid_enablegravity(phx_obj rigid_obj, bool_t enable);
+void phx_rigid_enablegravity(phx_obj rigid_obj, int enable);
 void phx_rigid_setxform(uint scene_id, phx_obj rigid_obj, const struct xform3d* xf);
 void phx_rigid_setxform_raw(phx_obj rigid_obj, const struct xform3d* xf);
 void phx_rigid_setvelocity(phx_obj rigid_obj, const struct vec3f* vel_lin,
-    const struct vec3f* vel_ang, bool_t wakeup);
+    const struct vec3f* vel_ang, int wakeup);
 
 /* shape */
-void phx_shape_settrigger(phx_obj shape, bool_t trigger);
+void phx_shape_settrigger(phx_obj shape, int trigger);
 void phx_shape_modify_box(phx_shape_box box, float hx, float hy, float hz);
-void phx_shape_setccd(phx_obj shape, bool_t enable);
+void phx_shape_setccd(phx_obj shape, int enable);
 void phx_shape_setpose(phx_obj shape, const struct xform3d* pose);
 
 /* trigger */

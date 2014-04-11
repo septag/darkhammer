@@ -342,7 +342,7 @@ INLINE struct vec2i* vec2i_muls(struct vec2i* v, const struct vec2i* v1, int k)
 /**
  * @ingroup vmath
  */
-INLINE bool_t vec2i_isequal(const struct vec2i* v1, const struct vec2i* v2)
+INLINE int vec2i_isequal(const struct vec2i* v1, const struct vec2i* v2)
 {
     return ((v1->x == v2->x) && (v1->y == v2->y));
 }
@@ -428,7 +428,7 @@ INLINE float vec2f_len(const struct vec2f* v)
 /**
  * @ingroup vmath
  */
-INLINE bool_t vec2f_isequal(const struct vec2f* v1, const struct vec2f* v2)
+INLINE int vec2f_isequal(const struct vec2f* v1, const struct vec2f* v2)
 {
     return (math_isequal(v1->x, v2->x) && math_isequal(v1->y, v2->y));
 }
@@ -573,7 +573,7 @@ INLINE struct vec4f* vec3_cross(struct vec4f* r, const struct vec4f* v1, const s
 /**
  * @ingroup vmath
  */
-INLINE bool_t vec3_isequal(const struct vec4f* v1, const struct vec4f* v2)
+INLINE int vec3_isequal(const struct vec4f* v1, const struct vec4f* v2)
 {
     return (math_isequal(v1->x, v2->x) && math_isequal(v1->y, v2->y) && math_isequal(v1->z, v2->z));
 }
@@ -726,7 +726,7 @@ INLINE struct vec4f* vec4_muls(struct vec4f* r, const struct vec4f* v1, float k)
 /**
  * @ingroup vmath
  */
-INLINE bool_t vec4_isequal(const struct vec4f* v1, const struct vec4f* v2)
+INLINE int vec4_isequal(const struct vec4f* v1, const struct vec4f* v2)
 {
     return (math_isequal(v1->x, v2->x) &&
             math_isequal(v1->y, v2->y) &&
@@ -780,7 +780,7 @@ INLINE struct quat4f* quat_setidentity(struct quat4f* r)
 /**
  * @ingroup vmath
  */
-INLINE bool_t quat_isqual(const struct quat4f* q1, const struct quat4f* q2)
+INLINE int quat_isqual(const struct quat4f* q1, const struct quat4f* q2)
 {
     return (math_isequal(q1->x, q2->x) &&
             math_isequal(q1->y, q2->y) &&

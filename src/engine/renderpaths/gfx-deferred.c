@@ -163,7 +163,7 @@ struct gfx_deferred
     struct array mtls;  /* item: gfx_cblock (raw - no gpu_buffer) */
 
     enum gfx_deferred_preview_mode prev_mode;
-    bool_t debug_tiles;
+    int debug_tiles;
 
     struct deferred_tiles tiles;
     gfx_buffer tile_buff;   /* item: deferred_tile_vertex */
@@ -183,8 +183,8 @@ struct gfx_deferred
 /*************************************************************************************************
  * fwd declarations
  */
-bool_t deferred_load_gbuffer_shaders(struct allocator* alloc);
-bool_t deferred_addshader(uint shader_id, uint rpath_flags, enum deferred_shader_group group);
+int deferred_load_gbuffer_shaders(struct allocator* alloc);
+int deferred_addshader(uint shader_id, uint rpath_flags, enum deferred_shader_group group);
 void deferred_unload_gbuffer_shaders();
 
 void deferred_submit_batchdata(gfx_cmdqueue cmdqueue, struct gfx_batch_item* batch_items,
@@ -202,16 +202,16 @@ void deferred_destroystates();
 
 result_t deferred_createprevbuffrt(uint width, uint height);
 void deferred_destroyprevbuffrt();
-bool_t deferred_load_prev_shaders(struct allocator* alloc);
+int deferred_load_prev_shaders(struct allocator* alloc);
 void deferred_unload_prev_shaders();
 
 void deferred_renderpreview(gfx_cmdqueue cmdqueue, enum gfx_deferred_preview_mode mode,
     const struct gfx_view_params* params);
 
-bool_t deferred_load_light_shaders(struct allocator* alloc);
+int deferred_load_light_shaders(struct allocator* alloc);
 void deferred_unload_light_shaders();
 
-bool_t deferred_load_light_shaders(struct allocator* alloc);
+int deferred_load_light_shaders(struct allocator* alloc);
 void deferred_unload_light_shaders();
 
 result_t deferred_createlitrt(uint width, uint height);
@@ -548,7 +548,7 @@ void gfx_deferred_rendergbuffer(gfx_cmdqueue cmdqueue, const struct gfx_view_par
 {
     PRF_OPENSAMPLE("gbuffer");
 
-    bool_t supports_shared_cbuff = gfx_check_feature(GFX_FEATURE_RANGED_CBUFFERS);
+    int supports_shared_cbuff = gfx_check_feature(GFX_FEATURE_RANGED_CBUFFERS);
     if (supports_shared_cbuff)
         deferred_submit_batchdata(cmdqueue, batch_items, batch_cnt, g_deferred->gbuff_sharedbuff);
 
@@ -680,10 +680,10 @@ result_t gfx_deferred_resize(uint width, uint height)
     return RET_OK;
 }
 
-bool_t deferred_load_gbuffer_shaders(struct allocator* alloc)
+int deferred_load_gbuffer_shaders(struct allocator* alloc)
 {
     /* gbuffer shaders */
-    bool_t r;
+    int r;
     char max_instances_str[8];
     char max_bones_str[8];
 
@@ -826,7 +826,7 @@ bool_t deferred_load_gbuffer_shaders(struct allocator* alloc)
     return TRUE;
 }
 
-bool_t deferred_addshader(uint shader_id, uint rpath_flags, enum deferred_shader_group group)
+int deferred_addshader(uint shader_id, uint rpath_flags, enum deferred_shader_group group)
 {
     if (shader_id == 0)
         return FALSE;
@@ -1072,7 +1072,7 @@ void deferred_destroyprevbuffrt()
     g_deferred->prev_tex = NULL;
 }
 
-bool_t deferred_load_prev_shaders(struct allocator* alloc)
+int deferred_load_prev_shaders(struct allocator* alloc)
 {
     gfx_shader_beginload(alloc, "shaders/fsq.vs", "shaders/gbuff-prev.ps", NULL, 2,
         "shaders/df-common.inc", "shaders/common.inc");
@@ -1273,7 +1273,7 @@ result_t deferred_console_setpreview(uint argc, const char** argv, void* param)
 
 result_t deferred_console_setdebugtiles(uint argc, const char** argv, void* param)
 {
-    bool_t enable = TRUE;
+    int enable = TRUE;
     if (argc == 1)
         enable = str_tobool(argv[0]);
     else if (argc > 1)
@@ -1286,9 +1286,9 @@ result_t deferred_console_setdebugtiles(uint argc, const char** argv, void* para
 }
 
 
-bool_t deferred_load_light_shaders(struct allocator* alloc)
+int deferred_load_light_shaders(struct allocator* alloc)
 {
-    bool_t r;
+    int r;
 
     char mtlsmax[16];
     char lightsmax[16];
@@ -2040,7 +2040,7 @@ void deferred_debugtiles(struct deferred_tiles* tiles,
 
 result_t deferred_console_showssao(uint argc, const char** argv, void* param)
 {
-    bool_t enable = TRUE;
+    int enable = TRUE;
     if (argc == 1)
         enable = str_tobool(argv[0]);
     else if (argc > 1)

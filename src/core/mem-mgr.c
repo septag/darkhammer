@@ -53,7 +53,7 @@ struct memid_desc
 /* global memory data used in alloc/free functions */
 struct mem_data
 {
-    bool_t trace;  /* trace memory ? */
+    int trace;  /* trace memory ? */
     struct mem_stats stats;  /* memory stats */
     struct linked_list* blocks; /* blocks of memory (linked-list) */
     uint id_cnt;
@@ -121,7 +121,7 @@ void heap_alignedfree(void* ptr, void* param)
 
 /*************************************************************************************************/
 /* */
-result_t mem_init(bool_t trace_mem)
+result_t mem_init(int trace_mem)
 {
     if (g_meminit)
         return RET_OK;
@@ -164,7 +164,7 @@ void mem_release()
     memset(&g_memdata, 0x00, sizeof(g_memdata));
 }
 
-bool_t mem_isinit()
+int mem_isinit()
 {
     return g_meminit;
 }
@@ -246,7 +246,7 @@ void mem_free(void* ptr)
 }
 
 
-bool_t mem_isoverrun()
+int mem_isoverrun()
 {
     return g_memdata.stats.alloc_bytes > g_memdata.stats.limit_bytes;
 }

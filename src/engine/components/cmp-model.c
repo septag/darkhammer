@@ -33,7 +33,7 @@
  * fwd declarations
  */
 void cmp_model_destroydata(struct cmp_obj* host_obj, struct cmp_model* data, cmphandle_t hdl,
-		bool_t release_mesh);
+		int release_mesh);
 
 result_t cmp_model_create(struct cmp_obj* host_obj, void* data, cmphandle_t hdl);
 void cmp_model_destroy(struct cmp_obj* host_obj, void* data, cmphandle_t hdl);
@@ -46,7 +46,7 @@ void cmp_model_destroyinstances(reshandle_t model_hdl, const struct cmp_instance
 void cmp_model_rebuildhinstances(struct allocator* alloc, struct allocator* tmp_alloc,
     reshandle_t model_hdl, const struct cmp_instance_desc** insts, uint cnt);
 void cmp_model_clearinstances(reshandle_t model_hdl, const struct cmp_instance_desc** insts,
-    uint cnt, bool_t reset_hdl);
+    uint cnt, int reset_hdl);
 void cmp_model_drawpose(const struct gfx_model_geo* geo, const struct gfx_model_posegpu* pose,
                         const struct gfx_view_params* params, const struct mat3f* world_mat,
                         float scale);
@@ -208,7 +208,7 @@ result_t cmp_model_modify(struct cmp_obj* obj, struct allocator* alloc,
 {
 	struct cmp_model* m = (struct cmp_model*)data;
 	uint filehash = hash_str(m->filepath);
-	bool_t reload = (m->filepath_hash == filehash);
+	int reload = (m->filepath_hash == filehash);
     m->filepath_hash = filehash;
 
 	/* destroy data before loading anything */
@@ -304,7 +304,7 @@ result_t cmp_model_modify(struct cmp_obj* obj, struct allocator* alloc,
 }
 
 void cmp_model_destroydata(struct cmp_obj* host_obj, struct cmp_model* data, cmphandle_t hdl,
-		bool_t release_mesh)
+		int release_mesh)
 {
 	/* destroy cmp_xform(s) except the first one which belongs to the host object */
     for (uint i = 0; i < data->xform_cnt; i++)
@@ -324,7 +324,7 @@ void cmp_model_destroydata(struct cmp_obj* host_obj, struct cmp_model* data, cmp
 	}
 }
 
-void cmp_model_reload(const char* filepath, reshandle_t hdl, bool_t manual)
+void cmp_model_reload(const char* filepath, reshandle_t hdl, int manual)
 {
     reshandle_t nhdl;
     uint cnt;
@@ -377,7 +377,7 @@ void cmp_model_rebuildhinstances(struct allocator* alloc, struct allocator* tmp_
 }
 
 void cmp_model_clearinstances(reshandle_t model_hdl, const struct cmp_instance_desc** insts,
-    uint cnt, bool_t reset_hdl)
+    uint cnt, int reset_hdl)
 {
     for (uint i = 0; i < cnt; i++) {
         const struct cmp_instance_desc* inst = insts[i];
@@ -442,7 +442,7 @@ void cmp_model_drawpose(const struct gfx_model_geo* geo, const struct gfx_model_
         cmp_model_calc_jointmat(&j1m, sk, i, pose->mats, world_mat);
 
         /* find child for the current joint and draw the bone */
-        bool_t nochild = FALSE;
+        int nochild = FALSE;
         for (uint k = 0; k < sk->joint_cnt; k++)  {
             struct gfx_model_joint* joint2 = &sk->joints[k];
             if (joint2->parent_id == i) {

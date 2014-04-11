@@ -38,11 +38,11 @@
 result_t cmp_lodmodel_create(struct cmp_obj* host_obj, void* data, cmphandle_t hdl);
 void cmp_lodmodel_destroy(struct cmp_obj* host_obj, void* data, cmphandle_t hdl);
 result_t lodmodel_loadmodel(struct cmp_obj* obj, cmphandle_t model_hdl, const char* filepath,
-    struct allocator* alloc, struct allocator* tmp_alloc, bool_t update_bounds);
+    struct allocator* alloc, struct allocator* tmp_alloc, int update_bounds);
 void lodmodel_buildidxs(struct cmp_lodmodel* lodmodel);
-cmphandle_t lodmodel_switchmodel(cmphandle_t cur_hdl, cmphandle_t new_hdl, bool_t* is_changed);
+cmphandle_t lodmodel_switchmodel(cmphandle_t cur_hdl, cmphandle_t new_hdl, int* is_changed);
 result_t lodmodel_loadmodel(struct cmp_obj* obj, cmphandle_t model_hdl, const char* filepath,
-    struct allocator* alloc, struct allocator* tmp_alloc, bool_t update_bounds);
+    struct allocator* alloc, struct allocator* tmp_alloc, int update_bounds);
 void cmp_lodmodel_debug(struct cmp_obj* obj, void* data, cmphandle_t cur_hdl, float dt,
         const struct gfx_view_params* params);
 void cmp_lodmodel_updatedeps(struct cmp_obj* obj);
@@ -50,7 +50,7 @@ void cmp_lodmodel_updatedeps(struct cmp_obj* obj);
 /*************************************************************************************************
  * inlines
  */
-INLINE bool_t lodmodel_checkmodel(struct cmp_lodmodel* lodmodel, uint lod_idx)
+INLINE int lodmodel_checkmodel(struct cmp_lodmodel* lodmodel, uint lod_idx)
 {
     return (lodmodel->models[LOD_INDEX_LOW] != INVALID_HANDLE) &&
         (((struct cmp_model*)cmp_getinstancedata(lodmodel->models[LOD_INDEX_LOW]))->model_hdl !=
@@ -109,7 +109,7 @@ void cmp_lodmodel_destroy(struct cmp_obj* host_obj, void* data, cmphandle_t hdl)
     host_obj->model_shadow_cmp = INVALID_HANDLE;
 }
 
-bool_t cmp_lodmodel_applylod(cmphandle_t lodmdl_hdl, const struct vec3f* campos)
+int cmp_lodmodel_applylod(cmphandle_t lodmdl_hdl, const struct vec3f* campos)
 {
     struct cmp_obj* host = cmp_getinstancehost(lodmdl_hdl);
     struct cmp_lodmodel* m = (struct cmp_lodmodel*)cmp_getinstancedata(lodmdl_hdl);
@@ -122,7 +122,7 @@ bool_t cmp_lodmodel_applylod(cmphandle_t lodmdl_hdl, const struct vec3f* campos)
     float r = b->ws_s.r;
     float dot_d = vec3_dot(&d, &d);
 
-    bool_t changed;
+    int changed;
 
     /* test high detail */
     float l = scheme->high_range + r;
@@ -158,7 +158,7 @@ bool_t cmp_lodmodel_applylod(cmphandle_t lodmdl_hdl, const struct vec3f* campos)
 }
 
 /* same as normal applylod, but uses 1 level lower LOD for every range (faster for shadows) */
-bool_t cmp_lodmodel_applylod_shadow(cmphandle_t lodmdl_hdl, const struct vec3f* campos)
+int cmp_lodmodel_applylod_shadow(cmphandle_t lodmdl_hdl, const struct vec3f* campos)
 {
     struct cmp_obj* host = cmp_getinstancehost(lodmdl_hdl);
     struct cmp_lodmodel* m = (struct cmp_lodmodel*)cmp_getinstancedata(lodmdl_hdl);
@@ -172,7 +172,7 @@ bool_t cmp_lodmodel_applylod_shadow(cmphandle_t lodmdl_hdl, const struct vec3f* 
     float dot_d = vec3_dot(&d, &d);
 
     /* test high detail */
-    bool_t changed;
+    int changed;
     float l = scheme->high_range + r;
     if (dot_d < l*l)    {
         host->model_shadow_cmp = lodmodel_switchmodel(host->model_shadow_cmp,
@@ -200,7 +200,7 @@ bool_t cmp_lodmodel_applylod_shadow(cmphandle_t lodmdl_hdl, const struct vec3f* 
 }
 
 
-cmphandle_t lodmodel_switchmodel(cmphandle_t cur_hdl, cmphandle_t new_hdl, bool_t* is_changed)
+cmphandle_t lodmodel_switchmodel(cmphandle_t cur_hdl, cmphandle_t new_hdl, int* is_changed)
 {
     if (cur_hdl == new_hdl) {
         *is_changed = FALSE;
@@ -328,7 +328,7 @@ void lodmodel_buildidxs(struct cmp_lodmodel* lodmodel)
 }
 
 result_t lodmodel_loadmodel(struct cmp_obj* obj, cmphandle_t model_hdl, const char* filepath,
-    struct allocator* alloc, struct allocator* tmp_alloc, bool_t update_bounds)
+    struct allocator* alloc, struct allocator* tmp_alloc, int update_bounds)
 {
     struct cmp_model* mdl = (struct cmp_model*)cmp_getinstancedata(model_hdl);
     strcpy(mdl->filepath, filepath);

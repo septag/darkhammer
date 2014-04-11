@@ -47,12 +47,12 @@ struct ui_graphline_data
     float total_cnt;
     float total_sum;
     float average;
-	bool_t enable_variable_yrange;
+	int enable_variable_yrange;
 	float y_min;
 	float y_max;
 	float y_cur_max;
 	float y_cur_min;
-	bool_t inloop;
+	int inloop;
 	fonthandle_t font;
 	struct vec2f* values;
 	struct vec2i* pts;	/* points for rendering */
@@ -98,7 +98,7 @@ INLINE struct vec2i* ui_transform_coord(struct vec2i* r, float x, float y,
 
 /*************************************************************************************************/
 ui_widget ui_create_graphline(const char* title, float y_min, float y_max,
-		uint sample_cnt, const struct rect2di rc, bool_t enable_variable_yrange)
+		uint sample_cnt, const struct rect2di rc, int enable_variable_yrange)
 {
 	struct ui_graphline_data* data = (struct ui_graphline_data*)
         ALLOC(sizeof(struct ui_graphline_data), MID_GUI);

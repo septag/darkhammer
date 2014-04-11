@@ -84,11 +84,11 @@ struct rs_load_data
     char filepath[128];
     enum rs_resource_type type;
     reshandle_t hdl;
-    bool_t reload;
+    int reload;
     union   {
         struct {
             uint first_mipidx;
-            bool_t srgb;
+            int srgb;
         } tex;
     }   params;
     struct linked_list lnode;
@@ -113,7 +113,7 @@ struct rs_unload_item
 
 struct rs_mgr
 {
-    bool_t init;
+    int init;
     uint flags;
     struct array ress; /* item = struct rs_resource */
     struct stack* freeslots; /* item = struct rs_freeslot_item */
@@ -163,13 +163,13 @@ void rs_script_reload(const char* filepath, reshandle_t hdl, uptr_t param1, uptr
 void rs_animctrl_reload(const char* filepath, reshandle_t hdl, uptr_t param1, uptr_t param2);
 
 reshandle_t rs_animreel_queueload(const char* reel_filepath, reshandle_t override_hdl);
-reshandle_t rs_texture_queueload(const char* tex_filepath, uint first_mipidx, bool_t srgb,
+reshandle_t rs_texture_queueload(const char* tex_filepath, uint first_mipidx, int srgb,
                                  reshandle_t override_hdl);
 reshandle_t rs_animctrl_queueload(const char* ctrl_filepath, reshandle_t override_hdl);
 reshandle_t rs_model_queueload(const char* model_filepath, reshandle_t override_hdl);
 reshandle_t rs_phxprefab_queueload(const char* phx_filepath, reshandle_t override_hdl);
 reshandle_t rs_script_queueload(const char* lua_filepath, reshandle_t override_hdl);
-bool_t rs_search_in_unloads(reshandle_t hdl);
+int rs_search_in_unloads(reshandle_t hdl);
 
 /*************************************************************************************************
  * Inlines
@@ -445,7 +445,7 @@ void rs_update()
             reshandle_t hdl = ldata->hdl;
 
             /* check the handle in unload list and unload immediately */
-            bool_t must_unload = rs_search_in_unloads(hdl);
+            int must_unload = rs_search_in_unloads(hdl);
 
             struct rs_resource* r = rs_resource_get(hdl);
             if (result->ptrs[i] != NULL)    {
@@ -498,7 +498,7 @@ void rs_update()
     }
 }
 
-bool_t rs_search_in_unloads(reshandle_t hdl)
+int rs_search_in_unloads(reshandle_t hdl)
 {
     struct linked_list* unode = g_rs.unload_items;
     while (unode != NULL)   {
@@ -557,7 +557,7 @@ void rs_animctrl_reload(const char* filepath, reshandle_t hdl, uptr_t param1, up
 }
 
 reshandle_t rs_load_texture(const char* tex_filepath, uint first_mipidx,
-		bool_t srgb, uint flags)
+		int srgb, uint flags)
 {
     reshandle_t res_hdl = INVALID_HANDLE;
     reshandle_t override_hdl = res_hdl;
@@ -624,7 +624,7 @@ reshandle_t rs_load_texture(const char* tex_filepath, uint first_mipidx,
     return res_hdl;
 }
 
-reshandle_t rs_texture_queueload(const char* tex_filepath, uint first_mipidx, bool_t srgb,
+reshandle_t rs_texture_queueload(const char* tex_filepath, uint first_mipidx, int srgb,
                                  reshandle_t override_hdl)
 {
     /* if we have an override handle, check in existing queue and see if it's already exists */
@@ -1323,7 +1323,7 @@ void rs_set_dataalloc(struct allocator* alloc)
     g_rs.alloc = alloc;
 }
 
-bool_t rs_isinit()
+int rs_isinit()
 {
     return g_rs.init;
 }

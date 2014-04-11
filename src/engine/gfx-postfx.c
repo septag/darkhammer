@@ -80,8 +80,8 @@ struct gfx_pfx_shadow
 {
     gfx_texture tex; /* can be reused (reference only mode) */
     gfx_rendertarget rt;
-    bool_t ref_mode;
-    bool_t prev_mode;
+    int ref_mode;
+    int prev_mode;
     gfx_sampler sampl_point;
     gfx_sampler sampl_cmp;
     uint shader_id;
@@ -122,10 +122,10 @@ struct gfx_pfx_tonemap
     float mid_grey;
     float lum_min;
     float lum_max;
-    bool_t bloom;
+    int bloom;
 
     struct timer* tm;
-    bool_t showlum;
+    int showlum;
 };
 
 struct gfx_pfx_fxaa
@@ -876,7 +876,7 @@ result_t gfx_pfx_shadowcsm_resize(struct gfx_pfx_shadow* pfx, uint width, uint h
 
 result_t pfx_console_shadowcsm_prev(uint argc, const char** argv, void* param)
 {
-    bool_t enable = TRUE;
+    int enable = TRUE;
     if (argc == 1)
         enable = str_tobool(argv[0]);
     else if (argc > 1)
@@ -1011,7 +1011,7 @@ INLINE void pfx_tonemap_destroyrt(struct gfx_pfx_tonemap* pfx)
 }
 
 struct gfx_pfx_tonemap* gfx_pfx_tonemap_create(uint width, uint height, float mid_grey,
-    float lum_min, float lum_max, bool_t bloom)
+    float lum_min, float lum_max, int bloom)
 {
     result_t r;
     struct gfx_pfx_tonemap* pfx = (struct gfx_pfx_tonemap*)ALLOC(sizeof(struct gfx_pfx_tonemap),
@@ -1279,7 +1279,7 @@ result_t gfx_pfx_tonemap_resize(struct gfx_pfx_tonemap* pfx, uint width, uint he
 
 result_t pfx_console_tonemap_showlum(uint argc, const char** argv, void* param)
 {
-    bool_t enable = TRUE;
+    int enable = TRUE;
     if (argc == 1)
         enable = str_tobool(argv[0]);
     else if (argc > 1)
@@ -1344,7 +1344,7 @@ result_t gfx_console_tonemap_setparams(uint argc, const char** argv, void* param
 
 
 void gfx_pfx_tonemap_setparams(struct gfx_pfx_tonemap* pfx, float midgrey,
-    float lum_min, float lum_max, bool_t bloom)
+    float lum_min, float lum_max, int bloom)
 {
     pfx->mid_grey = midgrey;
     pfx->lum_max = lum_max;

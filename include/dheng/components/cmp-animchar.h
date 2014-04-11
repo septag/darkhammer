@@ -58,7 +58,7 @@ static const uint16 cmp_animchar_type = 0x99e4;
 /* */
 result_t cmp_animchar_register(struct allocator* alloc);
 
-void cmp_animchar_reload(const char* filepath, reshandle_t hdl, bool_t manual);
+void cmp_animchar_reload(const char* filepath, reshandle_t hdl, int manual);
 void cmp_animchar_reelchanged(reshandle_t reel_hdl);
 result_t cmp_animchar_bind(struct cmp_obj* obj, void* data, struct allocator* alloc,
     struct allocator* tmp_alloc, reshandle_t hdl);
@@ -67,18 +67,18 @@ result_t cmp_animchar_bind_noalloc(struct cmp_obj* obj, cmphandle_t hdl);
 void cmp_animchar_unbind(cmphandle_t hdl);
 
 /* parameter manipulation */
-ENGINE_API void cmp_animchar_setparamb(cmphandle_t hdl, const char* name, bool_t value);
+ENGINE_API void cmp_animchar_setparamb(cmphandle_t hdl, const char* name, int value);
 ENGINE_API void cmp_animchar_setparami(cmphandle_t hdl, const char* name, int value);
 ENGINE_API void cmp_animchar_setparamf(cmphandle_t hdl, const char* name, float value);
 ENGINE_API float cmp_animchar_getparamf(cmphandle_t hdl, const char* name);
 ENGINE_API int cmp_animchar_getparami(cmphandle_t hdl, const char* name);
-ENGINE_API bool_t cmp_animchar_getparamb(cmphandle_t hdl, const char* name);
+ENGINE_API int cmp_animchar_getparamb(cmphandle_t hdl, const char* name);
 ENGINE_API enum anim_ctrl_paramtype cmp_animchar_getparamtype(cmphandle_t hdl, const char* name);
 
 /* debugging */
-ENGINE_API bool_t cmp_animchar_get_curstate(cmphandle_t hdl, const char* layer_name, 
+ENGINE_API int cmp_animchar_get_curstate(cmphandle_t hdl, const char* layer_name, 
     OUT char* state, OPTIONAL OUT float* progress);
-ENGINE_API bool_t cmp_animchar_get_curtransition(cmphandle_t hdl, const char* layer_name, 
+ENGINE_API int cmp_animchar_get_curtransition(cmphandle_t hdl, const char* layer_name, 
     OUT char* state_a, OUT char* state_b, OPTIONAL OUT float* progress);
 
 

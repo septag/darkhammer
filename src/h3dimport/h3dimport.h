@@ -22,8 +22,8 @@
 
 struct import_params_texture
 {
-	bool_t fast_mode;
-	bool_t force_dxt3;
+	int fast_mode;
+	int force_dxt3;
 };
 
 enum import_type
@@ -51,11 +51,11 @@ struct import_params
 	char texture_dir[DH_PATH_MAX];
 	char texture_dir_alias[DH_PATH_MAX];
     char clips_json_filepath[DH_PATH_MAX];
-	bool_t verbose;
-	bool_t calc_tangents;
-    bool_t list;    /* list can work for models/physics files */
-    bool_t list_mtls;
-    bool_t toff;    /* texture-compression off */
+	int verbose;
+	int calc_tangents;
+    int list;    /* list can work for models/physics files */
+    int list_mtls;
+    int toff;    /* texture-compression off */
     float scale;
     enum coord_type coord;
 	struct import_params_texture tex_params;

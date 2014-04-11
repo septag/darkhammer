@@ -163,7 +163,7 @@ class _API:
         _API.app_release = dhapplib.app_release
 
         _API.app_window_alwaysactive = dhapplib.app_window_alwaysactive
-        _API.argtypes = [c_uint]
+        _API.argtypes = [c_int]
 
         _API.app_window_swapbuffers = dhapplib.app_window_swapbuffers
 
@@ -198,15 +198,11 @@ class _API:
         _API.input_update = dhapplib.input_update
         _API.input_kb_getkey = dhapplib.input_kb_getkey
         _API.input_kb_getkey.restype = c_uint
-        _API.input_kb_getkey.argtypes = [c_uint, c_uint]
-
-        _API.input_kb_getkey = dhapplib.input_kb_getkey
-        _API.input_kb_getkey.restype = c_uint
-        _API.input_kb_getkey.argtypes = [c_uint, c_uint]
+        _API.input_kb_getkey.argtypes = [c_uint, c_int]
 
         _API.input_mouse_getkey = dhapplib.input_mouse_getkey
         _API.input_mouse_getkey.restype = c_uint
-        _API.input_mouse_getkey.argtypes = [c_uint, c_uint]
+        _API.input_mouse_getkey.argtypes = [c_uint, c_int]
 
         _API.input_mouse_getpos = dhapplib.input_mouse_getpos
         _API.input_mouse_getpos.restype = POINTER(Vec2i)
@@ -216,7 +212,7 @@ class _API:
         _API.input_mouse_smooth.argtypes = [POINTER(c_float), POINTER(c_float), c_float, c_float,
             c_float, c_float]
 
-        _API.input_mouse_lockcursor = dhapplib.input_kb_unlockkey
+        _API.input_mouse_lockcursor = dhapplib.input_mouse_lockcursor
         _API.input_mouse_lockcursor.argtypes = [c_int, c_int]
 
         _API.input_mouse_unlockcursor = dhapplib.input_mouse_unlockcursor
@@ -421,13 +417,13 @@ class Input:
     def is_keydown(key, once = False):
         if not App.is_init:
             return
-        return _API.input_kb_getkey(c_uint(key), c_uint(once))
+        return _API.input_kb_getkey(c_uint(key), c_int(once))
 
     @staticmethod
     def is_mousedown(key, once = False):
         if not App.is_init:
             return
-        return _API.input_mouse_getkey(c_uint(key), c_uint(once))
+        return _API.input_mouse_getkey(c_uint(key), c_int(once))
 
     @staticmethod
     def __update_mouse_pos(smooth = True, smoothness = 60, dt = 0):

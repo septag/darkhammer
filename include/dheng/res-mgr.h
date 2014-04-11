@@ -74,7 +74,7 @@ void rs_release_resources();
 void rs_releasemgr();
 
 void rs_reportleaks();
-bool_t rs_isinit();
+int rs_isinit();
 void rs_update();
 
 /* unloads pointer only, resource data in res-mgr remains intact */
@@ -93,7 +93,7 @@ void rs_unloadptr(reshandle_t hdl);
  * @ingroup res
  */
 ENGINE_API reshandle_t rs_load_texture(const char* tex_filepath, uint first_mipidx,
-		bool_t srgb, uint flags);
+		int srgb, uint flags);
 /**
  * Loads model and returns a valid model resource handle if successful
  * @param model_filepath path to model file, must be h3dm file (with .h3dm extension)

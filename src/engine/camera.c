@@ -73,7 +73,7 @@ void cam_init(struct camera* cam, const struct vec4f* pos, const struct vec4f* l
     cam->pitch_min = -PI_HALF + EPSILON + math_torad(5.0f);
 }
 
-void cam_set_pitchconst(struct camera* cam, bool_t enable, float pitch_min, float pitch_max)
+void cam_set_pitchconst(struct camera* cam, int enable, float pitch_min, float pitch_max)
 {
     cam->const_pitch = enable;
     cam->pitch_max = pitch_max;
@@ -371,7 +371,7 @@ void cam_fps_set_keys_straferight(struct camera_fps* cfps, enum input_key key1, 
     cfps->strafe_right_keys[1] = key2;
 }
 
-void cam_fps_set_smoothing(struct camera_fps* cfps, bool_t smooth)
+void cam_fps_set_smoothing(struct camera_fps* cfps, int smooth)
 {
     cfps->smooth = smooth;
 }

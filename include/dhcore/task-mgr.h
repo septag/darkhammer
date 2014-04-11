@@ -53,7 +53,7 @@ CORE_API uint tsk_dispatch_exclusive(pfn_tsk_run run_fn, const uint* thread_idxs
                                        uint thread_cnt, void* params, void* result);
 CORE_API void tsk_destroy(uint job_id);
 CORE_API void tsk_wait(uint job_id);
-CORE_API bool_t tsk_check_finished(uint job_id);
+CORE_API int tsk_check_finished(uint job_id);
 
 CORE_API struct allocator* tsk_get_localalloc(uint thread_id);
 CORE_API struct allocator* tsk_get_tmpalloc(uint thread_id);

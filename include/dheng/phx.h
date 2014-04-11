@@ -31,10 +31,10 @@ void phx_parseparams(struct phx_params* params, json_t j);
 result_t phx_init(const struct init_params* params);
 void phx_release();
 
-void phx_update_xforms(bool_t simulated);
+void phx_update_xforms(int simulated);
 
 /* simulation update: returns FALSE if simulation didn't need any update */
-bool_t phx_update_sim(float dt);
+int phx_update_sim(float dt);
 void phx_wait();
 
 void phx_setactive(uint scene_id);

@@ -27,7 +27,7 @@ struct cmp_lodmodel
     char filepath_md[128];
     char filepath_lo[128];
     char scheme_name[32];
-    bool_t exclude_shadows;
+    int exclude_shadows;
 
     /* internal */
     cmphandle_t models[CMP_LOD_MODELS_MAX]; /* 0:highest detail, N-1:lowest detail */
@@ -58,7 +58,7 @@ static const struct cmp_value cmp_lodmodel_values[] = {
     {"scheme", CMP_VALUE_STRING, offsetof(struct cmp_lodmodel, scheme_name), 32, 1,
     cmp_lodmodel_modify_scheme, ""},
     {"exclude_shadows", CMP_VALUE_BOOL, offsetof(struct cmp_lodmodel, exclude_shadows),
-    sizeof(bool_t), 1,  cmp_lodmodel_modify_shadows, ""}
+    sizeof(int), 1,  cmp_lodmodel_modify_shadows, ""}
 };
 static const uint cmp_lodmodel_type = 0x2ac8;
 
@@ -66,7 +66,7 @@ static const uint cmp_lodmodel_type = 0x2ac8;
 result_t cmp_lodmodel_register(struct allocator* alloc);
 
 /* used by scene-mgr */
-ENGINE_API bool_t cmp_lodmodel_applylod(cmphandle_t lodmdl_hdl, const struct vec3f* campos);
-ENGINE_API bool_t cmp_lodmodel_applylod_shadow(cmphandle_t lodmdl_hdl, const struct vec3f* campos);
+ENGINE_API int cmp_lodmodel_applylod(cmphandle_t lodmdl_hdl, const struct vec3f* campos);
+ENGINE_API int cmp_lodmodel_applylod_shadow(cmphandle_t lodmdl_hdl, const struct vec3f* campos);
 
 #endif /* __CMPMODELLOD_H__ */

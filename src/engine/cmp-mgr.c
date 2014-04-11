@@ -1041,7 +1041,7 @@ result_t cmp_value_get2f(OUT float* rfv, cmphandle_t hdl, const char* name)
     return RET_OK;
 }
 
-result_t cmp_value_setb(cmphandle_t hdl, const char* name, bool_t value)
+result_t cmp_value_setb(cmphandle_t hdl, const char* name, int value)
 {
     const struct cmp_value* cval;
     struct cmp_obj* host;
@@ -1049,7 +1049,7 @@ result_t cmp_value_setb(cmphandle_t hdl, const char* name, bool_t value)
     uint8* data = cmp_get_valuedata(hdl, name, &host, &mod_fn, &cval);
     if (data != NULL)   {
         ASSERT(cval->type == CMP_VALUE_BOOL);
-        *((bool_t*)(data + cval->offset)) = value;
+        *((int*)(data + cval->offset)) = value;
         if (mod_fn != NULL)
             return mod_fn(host, g_cmp.alloc, g_cmp.tmp_alloc, data, hdl);
         else
@@ -1058,7 +1058,7 @@ result_t cmp_value_setb(cmphandle_t hdl, const char* name, bool_t value)
     return RET_FAIL;
 }
 
- result_t cmp_value_getb(OUT bool_t* rb, cmphandle_t hdl, const char* name)
+ result_t cmp_value_getb(OUT int* rb, cmphandle_t hdl, const char* name)
  {
      const struct cmp_value* cval;
      struct cmp_obj* host;
@@ -1068,7 +1068,7 @@ result_t cmp_value_setb(cmphandle_t hdl, const char* name, bool_t value)
          return RET_FAIL;
 
      ASSERT(cval->type == CMP_VALUE_BOOL);
-     *rb = *((bool_t*)(data + cval->offset));
+     *rb = *((int*)(data + cval->offset));
      return RET_OK;
  }
 

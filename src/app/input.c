@@ -44,8 +44,8 @@ typedef GLFWwindow* wplatform_t;
 void input_make_keymap_platform(uint keymap[INPUT_KEY_CNT]);
 void input_mouse_getpos_platform(wplatform_t wnd_hdl, OUT int* x, OUT int* y);
 void input_mouse_setpos_platform(wplatform_t wnd_hdl, int x, int y);
-bool_t input_mouse_getkey_platform(wplatform_t wnd_hdl, enum input_mouse_key mkey);
-bool_t input_kb_getkey_platform(wplatform_t wnd_hdl, const uint keymap[INPUT_KEY_CNT],
+int input_mouse_getkey_platform(wplatform_t wnd_hdl, enum input_mouse_key mkey);
+int input_kb_getkey_platform(wplatform_t wnd_hdl, const uint keymap[INPUT_KEY_CNT],
                                 enum input_key key);
 wplatform_t app_window_getplatform_w();
 
@@ -93,13 +93,13 @@ void input_update()
     }
 }
 
-bool_t input_kb_getkey(enum input_key key, bool_t once)
+int input_kb_getkey(enum input_key key, int once)
 {
     ASSERT(g_input.init);
 
     uint idx = (uint)key;
     uint8 lock_flag = g_input.kb_locked[idx];
-    bool_t keypressed = input_kb_getkey_platform(app_window_getplatform_w(), g_input.keymap, key);
+    int keypressed = input_kb_getkey_platform(app_window_getplatform_w(), g_input.keymap, key);
 
     if (!once)   {
         return ((!(lock_flag & 0x1) && keypressed) || ((lock_flag >> 1) & 0x1));
@@ -122,13 +122,13 @@ struct vec2i* input_mouse_getpos(struct vec2i* pos)
     return vec2i_seti(pos, g_input.mousex, g_input.mousey);
 }
 
-bool_t input_mouse_getkey(enum input_mouse_key mkey, bool_t once)
+int input_mouse_getkey(enum input_mouse_key mkey, int once)
 {
     ASSERT(g_input.init);
 
     uint idx = (uint)mkey;
     uint8 lock_flag = g_input.mouse_keylocked[idx];
-    bool_t keypressed = input_mouse_getkey_platform(app_window_getplatform_w(), mkey);
+    int keypressed = input_mouse_getkey_platform(app_window_getplatform_w(), mkey);
 
     if (!once)  {
         return ((!(lock_flag & 0x1) && keypressed) || ((lock_flag >> 1) & 0x1));
@@ -188,7 +188,7 @@ void input_mouse_unlockcursor()
     g_input.mousey_locked = -1;
 }
 
-void input_kb_lockkey(enum input_key key, bool_t pressed)
+void input_kb_lockkey(enum input_key key, int pressed)
 {
     ASSERT(g_input.init);
     ASSERT(key != INPUT_KEY_CNT);
@@ -202,7 +202,7 @@ void input_kb_unlockkey(enum input_key key)
     g_input.kb_locked[(uint)key] = FALSE;
 }
 
-void input_mouse_lockkey(enum input_mouse_key key, bool_t pressed)
+void input_mouse_lockkey(enum input_mouse_key key, int pressed)
 {
     ASSERT(g_input.init);
     g_input.mouse_keylocked[(uint)key] = (uint8)((pressed << 1) | TRUE);

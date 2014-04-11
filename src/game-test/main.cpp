@@ -64,7 +64,7 @@ void set_datadir()
     fio_addvdir(data_path, FALSE);
 }
 
-bool_t load_props()
+int load_props()
 {
     set_datadir();  /* important for loading resources */
 
@@ -166,7 +166,7 @@ void update_callback()
 }
 
 /* pause/resume engine, on app activation/deactivation */
-void activate_callback(bool_t active)
+void activate_callback(int active)
 {
     if (active)
         eng_resume();

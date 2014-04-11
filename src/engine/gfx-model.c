@@ -33,14 +33,14 @@
 /*************************************************************************************************
  * forward declarations
  */
-bool_t model_loadnode(struct gfx_model_node* node, file_t f, struct allocator* alloc);
-bool_t model_loadmesh(struct gfx_model_mesh* mesh, file_t f, struct allocator* alloc);
-bool_t model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
+int model_loadnode(struct gfx_model_node* node, file_t f, struct allocator* alloc);
+int model_loadmesh(struct gfx_model_mesh* mesh, file_t f, struct allocator* alloc);
+int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
 		struct allocator* tmp_alloc, uint thread_id);
-bool_t model_loadmtl(struct gfx_model_mtl* mtl, file_t f, struct allocator* alloc);
-bool_t model_loadocc(struct gfx_model_occ* occ, file_t f, struct allocator* alloc);
+int model_loadmtl(struct gfx_model_mtl* mtl, file_t f, struct allocator* alloc);
+int model_loadocc(struct gfx_model_occ* occ, file_t f, struct allocator* alloc);
 
-bool_t model_checkvertid(const uint* vert_ids, uint vert_id_cnt, enum gfx_input_element_id id);
+int model_checkvertid(const uint* vert_ids, uint vert_id_cnt, enum gfx_input_element_id id);
 gfx_buffer model_loadvbuffer(file_t f, uint vert_cnt, uint elem_sz, struct allocator* tmp_alloc,
                              uint thread_id);
 
@@ -58,14 +58,14 @@ void model_update_alphaflags(struct gfx_model_instance* inst);
 const struct mat3f* model_loadmat_pq(struct mat3f* rm, const float* pos, const float* quat);
 const struct mat3f* model_loadmat(struct mat3f* rm, const float* f);
 
-bool_t gfx_model_create_inputlayout(struct gfx_model_geo* geo);
+int gfx_model_create_inputlayout(struct gfx_model_geo* geo);
 uint gfx_model_choose_elem_buffidx(enum gfx_input_element_id id, OUT uint* offset);
 size_t gfx_model_choose_vbuff_size(uint idx);
 
 /*************************************************************************************************
  * inlines
  */
-INLINE bool_t model_map_issrgb(enum gfx_model_maptype type)
+INLINE int model_map_issrgb(enum gfx_model_maptype type)
 {
     switch (type)   {
     case GFX_MODEL_DIFFUSEMAP:
@@ -291,7 +291,7 @@ err_cleanup:
 	return NULL;
 }
 
-bool_t model_loadnode(struct gfx_model_node* node, file_t f, struct allocator* alloc)
+int model_loadnode(struct gfx_model_node* node, file_t f, struct allocator* alloc)
 {
 	struct h3d_node h3dnode;
     fio_read(f, &h3dnode, sizeof(h3dnode), 1);
@@ -315,7 +315,7 @@ bool_t model_loadnode(struct gfx_model_node* node, file_t f, struct allocator* a
 }
 
 
-bool_t model_loadmesh(struct gfx_model_mesh* mesh, file_t f, struct allocator* alloc)
+int model_loadmesh(struct gfx_model_mesh* mesh, file_t f, struct allocator* alloc)
 {
 	struct h3d_mesh h3dmesh;
     fio_read(f, &h3dmesh, sizeof(h3dmesh), 1);
@@ -337,7 +337,7 @@ bool_t model_loadmesh(struct gfx_model_mesh* mesh, file_t f, struct allocator* a
 }
 
 
-bool_t model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
+int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
 		struct allocator* tmp_alloc, uint thread_id)
 {
 	struct h3d_geo h3dgeo;
@@ -382,11 +382,11 @@ bool_t model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* allo
 
 	/* vertices */
 	/* base data */
-    bool_t has_pos = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
+    int has_pos = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
         GFX_INPUTELEMENT_ID_POSITION);
-    bool_t has_norm = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
+    int has_norm = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
         GFX_INPUTELEMENT_ID_NORMAL);
-    bool_t has_coord = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
+    int has_coord = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
         GFX_INPUTELEMENT_ID_TEXCOORD0);
 
 	if (has_pos | has_norm | has_coord)	{
@@ -403,9 +403,9 @@ bool_t model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* allo
 		geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_TEXCOORD0;
 
     /* skin data */
-    bool_t has_bindex = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
+    int has_bindex = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
         GFX_INPUTELEMENT_ID_BLENDINDEX);
-    bool_t has_bweight = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
+    int has_bweight = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
         GFX_INPUTELEMENT_ID_BLENDWEIGHT);
     if (has_bindex | has_bweight)   {
         geo->vbuffers[GFX_MODEL_BUFFER_SKIN] = model_loadvbuffer(f, h3dgeo.vert_cnt,
@@ -420,9 +420,9 @@ bool_t model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* allo
         geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_BLENDWEIGHT;
 
     /* normal-map coord data */
-    bool_t has_tangent = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
+    int has_tangent = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
         GFX_INPUTELEMENT_ID_TANGENT);
-    bool_t has_binorm = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
+    int has_binorm = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
         GFX_INPUTELEMENT_ID_BINORMAL);
     if (has_tangent | has_binorm)   {
         geo->vbuffers[GFX_MODEL_BUFFER_NMAP] = model_loadvbuffer(f, h3dgeo.vert_cnt,
@@ -436,9 +436,9 @@ bool_t model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* allo
         geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_BINORMAL;
 
     /* Extra data */
-    bool_t has_coord1 = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
+    int has_coord1 = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
         GFX_INPUTELEMENT_ID_TEXCOORD1);
-    bool_t has_color = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
+    int has_color = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
         GFX_INPUTELEMENT_ID_COLOR);
     if (has_coord1 | has_color) {
         geo->vbuffers[GFX_MODEL_BUFFER_EXTRA] = model_loadvbuffer(f, h3dgeo.vert_cnt,
@@ -540,7 +540,7 @@ const struct mat3f* model_loadmat(struct mat3f* rm, const float* f)
 }
 
 
-bool_t model_checkvertid(const uint* vert_ids, uint vert_id_cnt, enum gfx_input_element_id id)
+int model_checkvertid(const uint* vert_ids, uint vert_id_cnt, enum gfx_input_element_id id)
 {
 	for (uint i = 0; i < vert_id_cnt; i++)	{
 		if (vert_ids[i] == id)
@@ -568,7 +568,7 @@ gfx_buffer model_loadvbuffer(file_t f, uint vert_cnt, uint elem_sz, struct alloc
 	return gbuf;
 }
 
-bool_t model_loadmtl(struct gfx_model_mtl* mtl, file_t f, struct allocator* alloc)
+int model_loadmtl(struct gfx_model_mtl* mtl, file_t f, struct allocator* alloc)
 {
 	struct h3d_mtl h3dmtl;
     fio_read(f, &h3dmtl, sizeof(h3dmtl), 1);
@@ -649,7 +649,7 @@ struct gfx_model_instance* gfx_model_createinstance(struct allocator* alloc,
         m->mtl_cnt*sizeof(struct gfx_model_mtlgpu) +
         m->geo_cnt*sizeof(struct gfx_model_posegpu) +
         sizeof(uint)*unique_cnt +
-        sizeof(bool_t)*m->renderable_cnt +
+        sizeof(int)*m->renderable_cnt +
         skeleton_cnt*16 +
         joint_cnt*sizeof(struct mat3f)*3;
 
@@ -723,8 +723,8 @@ struct gfx_model_instance* gfx_model_createinstance(struct allocator* alloc,
 	}
 
     /* create alpha flags */
-    inst->alpha_flags = (bool_t*)A_ALLOC(&stack_alloc, sizeof(bool_t)*m->renderable_cnt, MID_GFX);
-    memset(inst->alpha_flags, 0x00, sizeof(bool_t)*m->renderable_cnt);
+    inst->alpha_flags = (int*)A_ALLOC(&stack_alloc, sizeof(int)*m->renderable_cnt, MID_GFX);
+    memset(inst->alpha_flags, 0x00, sizeof(int)*m->renderable_cnt);
 
 	/* update data of materials */
 	gfx_model_updatemtls(inst);
@@ -774,7 +774,7 @@ void model_update_alphaflags(struct gfx_model_instance* inst)
 	for (uint i = 0; i < m->renderable_cnt; i++)	{
 		struct gfx_model_node* n = &m->nodes[m->renderable_idxs[i]];
 		struct gfx_model_mesh* mesh = &m->meshes[n->mesh_id];
-        bool_t has_alpha = FALSE;
+        int has_alpha = FALSE;
 
 		for (uint k = 0; k < mesh->submesh_cnt && !has_alpha; k++)	{
 			uint mtl_id = mesh->submeshes[k].mtl_id;
@@ -866,7 +866,7 @@ struct gfx_model_mtlgpu* model_load_gpumtl(struct allocator* main_alloc,
     /* load textures */
     for (uint i = 0; i < mtl->map_cnt; i++)	{
     	enum gfx_model_maptype type = mtl->maps[i].type;
-        bool_t srgb = FALSE;
+        int srgb = FALSE;
         if (type == GFX_MODEL_DIFFUSEMAP || type == GFX_MODEL_REFLECTIONMAP ||
             type == GFX_MODEL_EMISSIVEMAP)
         {
@@ -1102,7 +1102,7 @@ void gfx_model_setmtl(gfx_cmdqueue cmdqueue, struct gfx_shader* shader,
 #endif
 }
 
-bool_t model_loadocc(struct gfx_model_occ* occ, file_t f, struct allocator* alloc)
+int model_loadocc(struct gfx_model_occ* occ, file_t f, struct allocator* alloc)
 {
     struct h3d_occ h3docc;
     fio_read(f, &h3docc, sizeof(struct h3d_occ), 1);

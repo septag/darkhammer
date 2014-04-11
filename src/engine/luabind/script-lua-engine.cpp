@@ -285,7 +285,7 @@ void CharacterAnim::setParam(const char* name, bool value)
     if (ctrl == NULL || inst == NULL)
         return;
 
-    anim_ctrl_set_paramb(ctrl, inst, name, (bool_t)value);
+    anim_ctrl_set_paramb(ctrl, inst, name, (int)value);
 }
 
 fl64 CharacterAnim::getParam(const char* name)

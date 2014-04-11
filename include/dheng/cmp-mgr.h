@@ -391,7 +391,7 @@ ENGINE_API result_t cmp_value_get2f(OUT float* rfv, cmphandle_t hdl, const char*
  * @see cmp_value @see pfn_cmp_modify
  * @ingroup cmp
  */
-ENGINE_API result_t cmp_value_setb(cmphandle_t hdl, const char* name, bool_t value);
+ENGINE_API result_t cmp_value_setb(cmphandle_t hdl, const char* name, int value);
 
 /**
  * Gets boolean value inside a component instance
@@ -401,7 +401,7 @@ ENGINE_API result_t cmp_value_setb(cmphandle_t hdl, const char* name, bool_t val
  * @see cmp_value
  * @ingroup cmp
  */
-ENGINE_API result_t cmp_value_getb(OUT bool_t* rb, cmphandle_t hdl, const char* name);
+ENGINE_API result_t cmp_value_getb(OUT int* rb, cmphandle_t hdl, const char* name);
 
 /**
  * Modify matrix value inside a component instance. if value is registered with

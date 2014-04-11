@@ -31,7 +31,7 @@ struct timer_mgr
  * globals
  */
 static struct timer_mgr g_tmmgr;
-static bool_t g_tm_zero = FALSE;
+static int g_tm_zero = FALSE;
 
 /*************************************************************************************************/
 result_t timer_initmgr()
@@ -55,7 +55,7 @@ void timer_releasemgr()
     memset(&g_tmmgr, 0x00, sizeof(struct timer_mgr));
 }
 
-struct timer* timer_createinstance(bool_t start)
+struct timer* timer_createinstance(int start)
 {
     struct timer* tm = (struct timer*)mem_pool_alloc(&g_tmmgr.timer_pool);
     ASSERT(tm != NULL);

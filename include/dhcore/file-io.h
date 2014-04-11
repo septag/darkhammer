@@ -80,7 +80,7 @@ void fio_releasemgr();
  * (Requires @e _FILEMON_ compiler preprocessor)
  * @ingroup fileio
  */
-CORE_API bool_t fio_addvdir(const char* directory, bool_t monitor);
+CORE_API int fio_addvdir(const char* directory, int monitor);
 
 /**
  * Clears virtual directories
@@ -122,7 +122,7 @@ CORE_API file_t fio_createmem(struct allocator* alloc, const char* name, uint me
  * @ingroup fileio
   */
 CORE_API file_t fio_openmem(struct allocator* alloc, const char* filepath,
-                                bool_t ignore_vfs, uint mem_id);
+                                int ignore_vfs, uint mem_id);
 /**
  * Attach a memory buffer to the file for reading, attached buffer should not be -
  * managed (deallocated) by caller anymore
@@ -160,7 +160,7 @@ CORE_API file_t fio_createdisk(const char* filepath);
  * @return valid file handle or NULL if failed
  * @ingroup fileio
  */
-CORE_API file_t fio_opendisk(const char* filepath, bool_t ignore_vfs);
+CORE_API file_t fio_opendisk(const char* filepath, int ignore_vfs);
 
 /**
  * Close an opened file
@@ -218,7 +218,7 @@ CORE_API const char* fio_getpath(file_t f);
  * Checks if file is already opened
  * @ingroup fileio
  */
-CORE_API bool_t fio_isopen(file_t f);
+CORE_API int fio_isopen(file_t f);
 
 /**
  * Get opened file type

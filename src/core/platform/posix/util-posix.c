@@ -93,13 +93,13 @@ char* util_gettempdir(char* outdir)
     return strcpy(outdir, "/tmp");
 }
 
-bool_t util_makedir(const char* dir)
+int util_makedir(const char* dir)
 {
     return mkdir(dir, 777) == 0;
 }
 
 /* reference: http://stackoverflow.com/questions/2180079/how-can-i-copy-a-file-on-unix-using-c */
-bool_t util_copyfile(const char* dest, const char* src)
+int util_copyfile(const char* dest, const char* src)
 {
     int input, output;
     if ((input = open(src, O_RDONLY)) == -1)
@@ -110,17 +110,17 @@ bool_t util_copyfile(const char* dest, const char* src)
         return FALSE;
     }
     #ifdef _LINUX_
-    bool_t result = sendfile(output, input, NULL, 0) != -1;
+    int result = sendfile(output, input, NULL, 0) != -1;
     #else // __APPLE__
     off_t bytesCopied;
-    bool_t result = sendfile(output, input, 0, &bytesCopied, 0, 0) != -1;
+    int result = sendfile(output, input, 0, &bytesCopied, 0, 0) != -1;
     #endif
     close(input);
     close(output);
     return result;
 }
 
-bool_t util_pathisdir(const char* path)
+int util_pathisdir(const char* path)
 {
     struct stat s;
     if (stat(path, &s) == 0)
@@ -134,12 +134,12 @@ void util_sleep(uint msecs)
     usleep(msecs*1000);
 }
 
-bool_t util_movefile(const char* dest, const char* src)
+int util_movefile(const char* dest, const char* src)
 {
     return rename(src, dest) == 0;
 }
 
-bool_t util_delfile(const char* filepath)
+int util_delfile(const char* filepath)
 {
     return unlink(filepath);
 }

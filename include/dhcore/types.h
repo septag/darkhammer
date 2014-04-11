@@ -154,9 +154,6 @@ typedef uint64 uptr_t;
 typedef uint uptr_t;
 #endif
 
-/* bool_t value for non-cplusplus apps */
-typedef uint bool_t;
-
 /* TRUE/FALSE definitions */
 #ifndef TRUE
 #define TRUE    1

@@ -46,7 +46,7 @@ struct pak_file
     struct hashtable_open table; /* hash-table for referencing pak files */
     struct array items; /* file items in the pak (see pak-file.c) */
     enum compress_mode compress_mode; /* compression mode (see zip.h) */
-    bool_t init_create;
+    int init_create;
     struct allocator table_alloc;
 };
 
@@ -79,7 +79,7 @@ CORE_API void pak_close(struct pak_file* pak);
  * checks if pak file is opened
  * @ingroup pak
  */
-CORE_API bool_t pak_isopen(struct pak_file* pak);
+CORE_API int pak_isopen(struct pak_file* pak);
 
 /**
  * compress and put an opened file into pak

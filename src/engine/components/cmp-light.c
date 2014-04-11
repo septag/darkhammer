@@ -226,7 +226,7 @@ result_t cmp_light_modifylod(struct cmp_obj* obj, struct allocator* alloc,
     return RET_OK;
 }
 
-bool_t cmp_light_applylod(cmphandle_t light_hdl, const struct vec3f* campos, OUT float* intensity)
+int cmp_light_applylod(cmphandle_t light_hdl, const struct vec3f* campos, OUT float* intensity)
 {
     struct cmp_obj* host = cmp_getinstancehost(light_hdl);
     struct cmp_light* light = (struct cmp_light*)cmp_getinstancedata(light_hdl);

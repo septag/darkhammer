@@ -36,10 +36,10 @@ class _API:
         # core.h
         _API.core_init = dhcorelib.core_init
         _API.core_init.restype = c_int
-        _API.core_init.argtypes = [c_uint]
+        _API.core_init.argtypes = [c_int]
 
         _API.core_release = dhcorelib.core_release
-        _API.core_release.argtypes = [c_uint]
+        _API.core_release.argtypes = [c_int]
 
         # err.h
         _API.err_getstring = dhcorelib.err_getstring
@@ -48,31 +48,27 @@ class _API:
         # log.h
         _API.log_outputconsole = dhcorelib.log_outputconsole
         _API.log_outputconsole.restype = c_uint
-        _API.log_outputconsole.argtypes = [c_uint]
+        _API.log_outputconsole.argtypes = [c_int]
 
         _API.log_outputfile = dhcorelib.log_outputfile
         _API.log_outputfile.restype = c_uint
-        _API.log_outputfile.argtypes = [c_uint, c_char_p]
+        _API.log_outputfile.argtypes = [c_int, c_char_p]
 
         _API.log_isfile = dhcorelib.log_isfile
-        _API.log_isfile.restype = c_uint
+        _API.log_isfile.restype = c_int
 
         _API.log_isconsole = dhcorelib.log_isconsole
-        _API.log_isconsole.restype = c_uint
+        _API.log_isconsole.restype = c_int
 
         _API.log_print = dhcorelib.log_print
         _API.log_print.argtypes = [c_uint, c_char_p]
 
         # file-io.h
         _API.fio_addvdir = dhcorelib.fio_addvdir
-        _API.fio_addvdir.restype = c_uint
-        _API.fio_addvdir.argtypes = [c_char_p, c_uint]
+        _API.fio_addvdir.restype = c_int
+        _API.fio_addvdir.argtypes = [c_char_p, c_int]
 
         # vec-math.h
-        _API.mat3_mul = dhcorelib.mat3_mul
-        _API.mat3_mul.restype = POINTER(Matrix3)
-        _API.mat3_mul.argtypes = [POINTER(Matrix3), POINTER(Matrix3), POINTER(Matrix3)]
-
         _API.vec3_transformsrt = dhcorelib.vec3_transformsrt
         _API.vec3_transformsrt.restype = POINTER(Vec3)
         _API.vec3_transformsrt.argtypes = [POINTER(Vec3), POINTER(Vec3), POINTER(Matrix3)]
@@ -153,15 +149,15 @@ class Log:
     def get_console_output(self):
         return bool(_API.log_isconsole())
     def set_console_output(self, enable):
-        _API.log_outputconsole(c_uint(enable))
+        _API.log_outputconsole(c_int(enable))
     console_output = property(get_console_output, set_console_output)
 
     def get_file_output(self):
         return bool(_API.log_isfile())
     def set_file_output(self, logfile):
-        _API.log_outputfile(c_uint(True), create_string_buffer(logfile.encode('ascii')))
+        _API.log_outputfile(c_int(True), create_string_buffer(logfile.encode('ascii')))
     def del_file_output(self):
-        _API.log_outputfile(c_uint(False), c_char_p(None))
+        _API.log_outputfile(c_int(False), c_char_p(None))
     file_output = property(get_file_output, set_file_output, del_file_output)  
 
     def msg(log_type, msg):
@@ -180,12 +176,12 @@ class Core:
 
     @staticmethod
     def init(flags = InitFlags.ALL):
-        if IS_FAIL(_API.core_init(c_uint(flags))):
+        if IS_FAIL(_API.core_init(c_int(flags))):
             raise Exception(_API.err_getstring()) 
 
     @staticmethod
     def release(report_leaks = True):
-        _API.core_release(c_uint(report_leaks))
+        _API.core_release(c_int(report_leaks))
 
 
 class Vec3(Structure):
@@ -434,13 +430,24 @@ class Matrix3(Structure):
 
     def __mul__(a, b):
         if type(b) is float or type(b) is int:
-            m = Matrix3()
-            _API.mat3_muls(byref(m), byref(a), c_float(b))
-            return m
+            return Matrix3(\
+                a.m11*b,   a.m21*b,   a.m31*b,   a.m41*b,
+                a.m12*b,   a.m22*b,   a.m32*b,   a.m42*b,
+                a.m13*b,   a.m23*b,   a.m33*b,   a.m43*b)
         else:
-            m = Matrix3()
-            _API.mat3_mul(byref(m), byref(a), byref(b))
-            return m
+            return Matrix3(\
+                a.m11*b.m11 + a.m12*b.m21 + a.m13*b.m31,
+                a.m11*b.m12 + a.m12*b.m22 + a.m13*b.m32,
+                a.m11*b.m13 + a.m12*b.m23 + a.m13*b.m33,
+                a.m21*b.m11 + a.m22*b.m21 + a.m23*b.m31,
+                a.m21*b.m12 + a.m22*b.m22 + a.m23*b.m32,
+                a.m21*b.m13 + a.m22*b.m23 + a.m23*b.m33,
+                a.m31*b.m11 + a.m32*b.m21 + a.m33*b.m31,
+                a.m31*b.m12 + a.m32*b.m22 + a.m33*b.m32,
+                a.m31*b.m13 + a.m32*b.m23 + a.m33*b.m33,
+                a.m41*b.m11 + a.m42*b.m21 + a.m43*b.m31 + b.m41,
+                a.m41*b.m12 + a.m42*b.m22 + a.m43*b.m32 + b.m42,
+                a.m41*b.m13 + a.m42*b.m23 + a.m43*b.m33 + b.m43);
 
     def translate(self, x, y, z):
         self.m41 = x
@@ -539,7 +546,7 @@ class FileIO:
     @staticmethod
     def add_virtual_path(path, monitor=False):
         path = os.path.abspath(os.path.expanduser(path))
-        if not _API.fio_addvdir(to_cstr(path), c_uint(monitor)):
+        if not _API.fio_addvdir(to_cstr(path), c_int(monitor)):
             raise Exception(Errors.last_error())
 
 _API.init(debug = ('--debug' in sys.argv))

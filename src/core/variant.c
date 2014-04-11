@@ -27,7 +27,7 @@ struct variant* var_setv(struct variant* rv, const struct variant* v)
     return rv;
 }
 
-struct variant* var_setb(struct variant* v, bool_t b)
+struct variant* var_setb(struct variant* v, int b)
 {
     v->type = VARIANT_BOOL;
     v->b = b;
@@ -188,7 +188,7 @@ float var_getf(const struct variant* v)
     return v->f;
 }
 
-bool_t var_getb(const struct variant* v)
+int var_getb(const struct variant* v)
 {
     ASSERT(v->type == VARIANT_BOOL);
     return v->b;

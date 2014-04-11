@@ -27,9 +27,9 @@ struct import_texture_info
 	uint64 size;
 };
 
-_EXTERN_ bool_t import_process_texture(const char* img_filepath, enum h3d_texture_type type,
+_EXTERN_ int import_process_texture(const char* img_filepath, enum h3d_texture_type type,
 	const struct import_params* params, char* img_filename, struct import_texture_info* info);
 _EXTERN_ const char* import_get_textureusage(enum h3d_texture_type type);
-_EXTERN_ bool_t import_texture(const struct import_params* params);
+_EXTERN_ int import_texture(const struct import_params* params);
 
 #endif /* TEXTURE_IMPORT_H_ */

@@ -89,13 +89,13 @@ result_t gfx_pfx_shadowcsm_resize(struct gfx_pfx_shadow* pfx, uint width, uint h
  * tonemaping postfx
  */
 struct gfx_pfx_tonemap* gfx_pfx_tonemap_create(uint width, uint height, float mid_grey,
-    float lum_min, float lum_max, bool_t bloom);
+    float lum_min, float lum_max, int bloom);
 void gfx_pfx_tonemap_destroy(struct gfx_pfx_tonemap* pfx);
 gfx_texture gfx_pfx_tonemap_render(gfx_cmdqueue cmdqueue, struct gfx_pfx_tonemap* pfx,
     const struct gfx_view_params* params, gfx_texture hdr_tex, OUT gfx_texture* bloom_tex);
 result_t gfx_pfx_tonemap_resize(struct gfx_pfx_tonemap* pfx, uint width, uint height);
 void gfx_pfx_tonemap_setparams(struct gfx_pfx_tonemap* pfx, float midgrey,
-    float exposure_min, float exposure_max, bool_t bloom);
+    float exposure_min, float exposure_max, int bloom);
 
 /**
  * fxaa

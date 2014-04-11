@@ -131,7 +131,7 @@ INLINE struct rect2di* rect2di_seti(struct rect2di* rc, int x, int y, int w, int
     return rc;
 }
 
-INLINE bool_t rect2di_isequal(const struct rect2di rc1, const struct rect2di rc2)
+INLINE int rect2di_isequal(const struct rect2di rc1, const struct rect2di rc2)
 {
 	return (rc1.x == rc2.x && rc1.y == rc2.y && rc1.w == rc2.w && rc1.h == rc2.h);
 }
@@ -146,7 +146,7 @@ INLINE struct rect2di* rect2di_grow(struct rect2di* rr, const struct rect2di* r,
     return rect2di_seti(rr, r->x - grow, r->y - grow, r->w + 2*grow, r->h + 2*grow);
 }
 
-INLINE bool_t rect2di_testpt(const struct rect2di* rc, const struct vec2i* pt)
+INLINE int rect2di_testpt(const struct rect2di* rc, const struct vec2i* pt)
 {
     return (pt->x > rc->x)&(pt->x < (rc->x + rc->w))&(pt->y > rc->y)&(pt->y < (rc->y + rc->h));
 }
@@ -160,7 +160,7 @@ INLINE struct rect2df* rect2df_setf(struct rect2df* rc, float x, float y, float 
     return rc;
 }
 
-INLINE bool_t rect2df_isequal(const struct rect2df rc1, const struct rect2df rc2)
+INLINE int rect2df_isequal(const struct rect2df rc1, const struct rect2df rc2)
 {
 	return (rc1.x == rc2.x && rc1.y == rc2.y && rc1.w == rc2.w && rc1.h == rc2.h);
 }
@@ -233,7 +233,7 @@ INLINE struct aabb* aabb_setzero(struct aabb* r)
     return r;
 }
 
-INLINE bool_t aabb_iszero(const struct aabb* b)
+INLINE int aabb_iszero(const struct aabb* b)
 {
     return (b->minpt.x == FL32_MAX && b->minpt.y == FL32_MAX && b->minpt.z == FL32_MAX) &&
            (b->maxpt.x == -FL32_MAX && b->maxpt.y == -FL32_MAX && b->maxpt.z == -FL32_MAX);
@@ -334,14 +334,14 @@ INLINE struct aabb* aabb_from_sphere(struct aabb* rb, const struct sphere* s)
     return rb;
 }
 
-INLINE bool_t sphere_ptinv(const struct sphere* s, const struct vec4f* pt)
+INLINE int sphere_ptinv(const struct sphere* s, const struct vec4f* pt)
 {
     struct vec4f d;
     vec3_setf(&d, pt->x - s->x, pt->y - s->y, pt->z - s->z);
     return ((vec3_dot(&d, &d) - s->r*s->r) < EPSILON);
 }
 
-INLINE bool_t sphere_ptinf(const struct sphere* s, float x, float y, float z)
+INLINE int sphere_ptinf(const struct sphere* s, float x, float y, float z)
 {
     struct vec4f d;
     vec3_setf(&d, x - s->x, y - s->y, z - s->z);
@@ -357,7 +357,7 @@ CORE_API struct aabb* aabb_merge(struct aabb* rb, const struct aabb* b1, const s
 CORE_API struct aabb* aabb_xform(struct aabb* rb, const struct aabb* b, const struct mat3f* mat);
 CORE_API struct sphere* sphere_xform(struct sphere* rs, const struct sphere* s,
 		const struct mat3f* m);
-CORE_API bool_t sphere_intersects(const struct sphere* s1, const struct sphere* s2);
+CORE_API int sphere_intersects(const struct sphere* s1, const struct sphere* s2);
 
 /**
  * intersects plane with ray

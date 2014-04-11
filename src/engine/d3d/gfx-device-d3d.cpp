@@ -55,8 +55,8 @@ struct gfx_device
     gfx_rasterstate default_raster;
     gfx_depthstencilstate default_depthstencil;
     gfx_blendstate default_blend;
-    bool_t threaded_creates;
-    bool_t threaded_cmdqueues;
+    int threaded_creates;
+    int threaded_cmdqueues;
 };
 
 /* globals */
@@ -89,7 +89,7 @@ INLINE void destroy_obj(struct gfx_obj_data* obj)
 
 INLINE enum D3D11_FILTER sampler_choose_filter(
     enum gfx_filter_mode filter_min, enum gfx_filter_mode filter_mag,
-    enum gfx_filter_mode filter_mip, bool_t anisotropic, bool_t has_cmp)
+    enum gfx_filter_mode filter_mip, int anisotropic, int has_cmp)
 {
     if (anisotropic)
         return !has_cmp ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_COMPARISON_ANISOTROPIC;
@@ -128,7 +128,7 @@ INLINE enum D3D11_FILTER sampler_choose_filter(
 
 }
 
-INLINE bool_t texture_has_alpha(enum gfx_format fmt)
+INLINE int texture_has_alpha(enum gfx_format fmt)
 {
     return (fmt == GFX_FORMAT_BC2 ||
     fmt == GFX_FORMAT_BC3 ||
@@ -140,7 +140,7 @@ INLINE bool_t texture_has_alpha(enum gfx_format fmt)
     fmt == GFX_FORMAT_R10G10B10A2_UNORM);
 }
 
-INLINE bool_t texture_is_depth(enum gfx_format fmt)
+INLINE int texture_is_depth(enum gfx_format fmt)
 {
     return (fmt == GFX_FORMAT_DEPTH16 ||
         fmt == GFX_FORMAT_DEPTH24_STENCIL8 ||
@@ -750,7 +750,7 @@ gfx_buffer gfx_create_texture(enum gfx_texture_type type, uint width, uint heigh
     return obj;
 }
 
-gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt, bool_t has_mipmap)
+gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt, int has_mipmap)
 {
     HRESULT dxhr;
     ID3D11Texture2D* tex;
@@ -759,7 +759,7 @@ gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt, b
     ID3D11DepthStencilView* dsv = NULL;
     DXGI_FORMAT fmt_raw = texture_get_rawfmt(fmt);
     DXGI_FORMAT fmt_srv = texture_get_srvfmt(fmt);
-    bool_t is_depth = texture_is_depth(fmt);
+    int is_depth = texture_is_depth(fmt);
     uint mipcnt = 1;
     if (has_mipmap) {
         mipcnt = 1 + (uint)floorf(log10f((float)maxui(width, height))/log10f(2.0f));
@@ -851,7 +851,7 @@ gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
     ID3D11DepthStencilView* dsv = NULL;
     DXGI_FORMAT fmt_raw = texture_get_rawfmt(fmt);
     DXGI_FORMAT fmt_srv = texture_get_srvfmt(fmt);
-    bool_t is_depth = texture_is_depth(fmt);
+    int is_depth = texture_is_depth(fmt);
 
     D3D11_TEXTURE2D_DESC d3d_desc;
     d3d_desc.Width = width;
@@ -946,7 +946,7 @@ gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format f
     ID3D11DepthStencilView* dsv = NULL;
     DXGI_FORMAT fmt_raw = texture_get_rawfmt(fmt);
     DXGI_FORMAT fmt_srv = texture_get_srvfmt(fmt);
-    bool_t is_depth = texture_is_depth(fmt);
+    int is_depth = texture_is_depth(fmt);
 
     D3D11_TEXTURE2D_DESC d3d_desc;
     d3d_desc.Width = width;
@@ -1513,7 +1513,7 @@ const struct gfx_gpu_memstats* gfx_get_memstats()
     return &g_dev.memstats;
 }
 
-bool_t gfx_check_feature(enum gfx_feature ft)
+int gfx_check_feature(enum gfx_feature ft)
 {
     switch (ft) {
     case GFX_FEATURE_THREADED_CREATES:

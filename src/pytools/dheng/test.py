@@ -48,6 +48,7 @@ try:
 except Exception as e:
     dhlog.Log.fatal(str(e))
 else:
+    App.show_window()
     testdata_path = os.path.join(Engine.get_share_dir(), 'test-data')
     FileIO.add_virtual_path(testdata_path)
 

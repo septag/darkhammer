@@ -144,12 +144,12 @@ CORE_API int sock_tcpsend(socket_t sock, const void* buffer, int size);
  * @param timeout timeout in milliseconds
  * @ingroup socket
  */
-CORE_API bool_t sock_pollrecv(socket_t sock, uint timeout);
+CORE_API int sock_pollrecv(socket_t sock, uint timeout);
 /**
  * blocks the program and checks if we can send data through the socket
  * @param timeout timeout in milliseconds
  * @ingroup socket
  */
-CORE_API bool_t sock_pollsend(socket_t sock, uint timeout);
+CORE_API int sock_pollsend(socket_t sock, uint timeout);
 
 #endif /* __NETSOCKET_H__ */

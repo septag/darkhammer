@@ -80,7 +80,7 @@ CORE_API result_t core_init(uint flags);
  * @param report_leaks report memory leaks to the logger
  * @ingroup core
  */
-CORE_API void core_release(bool_t report_leaks);
+CORE_API void core_release(int report_leaks);
 
 
 #endif /* __CORE_H__ */

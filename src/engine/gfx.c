@@ -120,19 +120,21 @@ struct gfx_renderer
     gfx_sampler sampl_lin;
     gfx_sampler sampl_point;
     gfx_depthstencilstate ds_always;
-    bool_t show_worldbounds;
+    int show_worldbounds;
 
     reshandle_t tex_blank_black;
-    bool_t preview_render;
+    int preview_render;
 
     struct gfx_device_info info;
+    int rtv_width;
+    int rtv_height;
 };
 
 /*************************************************************************************************
  * fwd
  */
 result_t gfx_rpath_register(uint obj_type_comb, uint rpath_flags, const struct gfx_rpath* rpath);
-bool_t gfx_register_renderpaths();
+int gfx_register_renderpaths();
 result_t gfx_rpath_init();
 void gfx_rpath_release();
 result_t gfx_rpath_init_registered();
@@ -286,7 +288,7 @@ result_t gfx_init(const struct gfx_params* params)
 
 
     /* shader cache/manager */
-    bool_t disable_cache = BIT_CHECK(params->flags, GFX_FLAG_DEBUG) &&
+    int disable_cache = BIT_CHECK(params->flags, GFX_FLAG_DEBUG) &&
         BIT_CHECK(params->flags, GFX_FLAG_REBUILDSHADERS);
     if (IS_FAIL(gfx_shader_initmgr(disable_cache)))	{
         err_print(__FILE__, __LINE__, "gfx-init failed: could not initialize shader cache");
@@ -301,7 +303,7 @@ result_t gfx_init(const struct gfx_params* params)
 		err_print(__FILE__, __LINE__, "gfx-init failed: could not initilialize command-queue");
 		return RET_FAIL;
 	}
-    gfx_cmdqueue_setrtvsize(g_gfx.cmdqueue, params->width, params->height);
+    gfx_set_wndsize((int)params->width, (int)params->height);
 
 	/* font-manager */
 	if (IS_FAIL(gfx_font_initmgr()))	{
@@ -439,8 +441,8 @@ void gfx_release()
 
 void gfx_render()
 {
-	int width = (int)g_gfx.params.width;
-	int height = (int)g_gfx.params.height;
+	int width = (int)g_gfx.rtv_width;
+	int height = (int)g_gfx.rtv_height;
 
 	float widthf = (float)width;
 	float heightf = (float)height;
@@ -569,21 +571,30 @@ void gfx_set_debug_renderfunc(pfn_debug_render fn)
 	g_gfx.debug_render_fn = fn;
 }
 
-/* update size varialbes for device/cmdqueue */
-void gfx_set_rtvsize(uint width, uint height)
+void gfx_set_wndsize(int width, int height)
 {
-    /* apply resizing to all cmdqueues */
-    if (g_gfx.cmdqueue != NULL)
-        gfx_cmdqueue_setrtvsize(g_gfx.cmdqueue, width, height);
-
+    gfx_set_rtvsize(width, height);
     g_gfx.params.width = width;
     g_gfx.params.height = height;
 }
 
-void gfx_get_rtvsize(OUT uint* width, OUT uint* height)
+void gfx_get_wndsize(OUT int* width, OUT int* height)
 {
     *width = g_gfx.params.width;
     *height = g_gfx.params.height;
+}
+
+/* update size varialbes for device/cmdqueue */
+void gfx_set_rtvsize(int width, int height)
+{
+    g_gfx.rtv_width = width;
+    g_gfx.rtv_height = height;
+}
+
+void gfx_get_rtvsize(OUT int* width, OUT int* height)
+{
+    *width = g_gfx.rtv_width;
+    *height = g_gfx.rtv_height;
 }
 
 gfx_cmdqueue gfx_get_cmdqueue(uint id)
@@ -594,7 +605,7 @@ gfx_cmdqueue gfx_get_cmdqueue(uint id)
 		return NULL;
 }
 
-bool_t gfx_register_renderpaths()
+int gfx_register_renderpaths()
 {
 	result_t r;
     uint rpflags;
@@ -1259,7 +1270,7 @@ void gfx_draw_fullscreenquad()
 
 result_t gfx_console_showcullinfo(uint argc, const char** argv, void* param)
 {
-    bool_t show = TRUE;
+    int show = TRUE;
     if (argc == 1)
         show = str_tobool(argv[0]);
     else if (argc > 1)
@@ -1293,11 +1304,11 @@ int gfx_hud_rendercullinfo(gfx_cmdqueue cmdqueue, int x, int y, int line_stride,
 
 void gfx_resize(uint width, uint height)
 {
-    gfx_set_rtvsize(width, height);
-
     if (g_gfx.params.width == width && g_gfx.params.height == height)
         return;
-    
+
+    gfx_set_wndsize((int)width, (int)height);
+
     if (g_gfx.rpaths.item_cnt == 0)
         return;
 
@@ -1394,7 +1405,7 @@ void gfx_composite_render(gfx_cmdqueue cmdqueue, gfx_texture src_tex, gfx_textur
 
 result_t gfx_console_showdrawinfo(uint argc, const char** argv, void* param)
 {
-    bool_t show = TRUE;
+    int show = TRUE;
     if (argc == 1)
         show = str_tobool(argv[0]);
     else if (argc > 1)
@@ -1410,7 +1421,7 @@ result_t gfx_console_showdrawinfo(uint argc, const char** argv, void* param)
 
 result_t gfx_console_showbounds(uint argc, const char** argv, void* param)
 {
-    bool_t show = TRUE;
+    int show = TRUE;
     if (argc == 1)
         show = str_tobool(argv[0]);
     else if (argc > 1)
@@ -1492,7 +1503,7 @@ void gfx_render_grid(gfx_cmdqueue cmdqueue, const struct gfx_view_params* params
     gfx_canvas_coords(&center_mat, &params->cam_pos, 0.5f);
 }
 
-void gfx_set_gridcallback(bool_t enable)
+void gfx_set_gridcallback(int enable)
 {
     if (enable)
         gfx_set_debug_renderfunc(gfx_render_grid);

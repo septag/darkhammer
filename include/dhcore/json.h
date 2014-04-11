@@ -71,7 +71,7 @@ CORE_API json_t json_parsestring(const char* str);
  * @param trim trims output JSON data (no formatting) to be more optimized and compact
  * @ingroup JSON
  */
-CORE_API result_t json_savetofile(json_t j, const char* filepath, bool_t trim);
+CORE_API result_t json_savetofile(json_t j, const char* filepath, int trim);
 
 /**
  * Save JSON data to file handle
@@ -79,7 +79,7 @@ CORE_API result_t json_savetofile(json_t j, const char* filepath, bool_t trim);
  * @param trim trims output JSON data (no formatting) to be more optimized and compact
  * @ingroup JSON
  */
-CORE_API result_t json_savetofilef(json_t j, file_t f, bool_t trim);
+CORE_API result_t json_savetofilef(json_t j, file_t f, int trim);
 
 /**
  * Save JSON data to buffer, returns resulting string. user should call json_deletebuffer after
@@ -89,7 +89,7 @@ CORE_API result_t json_savetofilef(json_t j, file_t f, bool_t trim);
  * @see json_deletebuffer
  * @ingroup JSON
  */
-CORE_API char* json_savetobuffer(json_t j, size_t* outsize, bool_t trim);
+CORE_API char* json_savetobuffer(json_t j, size_t* outsize, int trim);
 
 /**
  * Deletes previously created JSON buffer @see json_savetobuffer
@@ -122,7 +122,7 @@ CORE_API void json_sets(json_t j, const char* str);
 /**
  * @ingroup JSON
  */
-CORE_API void json_setb(json_t j, bool_t b);
+CORE_API void json_setb(json_t j, int b);
 
 /**
  * @ingroup JSON
@@ -142,7 +142,7 @@ CORE_API const char* json_gets(json_t j);
 /**
  * @ingroup JSON
  */
-CORE_API bool_t json_getb(json_t j);
+CORE_API int json_getb(json_t j);
 
 /**
  * @ingroup JSON
@@ -162,7 +162,7 @@ CORE_API const char* json_gets_child(json_t parent, const char* name, const char
 /**
  * @ingroup JSON
  */
-CORE_API bool_t json_getb_child(json_t parent, const char* name, bool_t def_value);
+CORE_API int json_getb_child(json_t parent, const char* name, int def_value);
 
 /**
  * get array size (number of items) from a JSON array item
@@ -198,7 +198,7 @@ CORE_API json_t json_create_obj();
 /**
  * @ingroup JSON
  */
-CORE_API json_t json_create_bool(bool_t b);
+CORE_API json_t json_create_bool(int b);
 
 /**
  * @ingroup JSON

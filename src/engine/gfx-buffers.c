@@ -38,7 +38,7 @@ void* gfx_ringbuffer_map(gfx_cmdqueue cmdqueue, struct gfx_ringbuffer* rbuff,
 		OUT uint* offset, OUT uint* size)
 {
 	enum gfx_map_mode mode;
-	bool_t sync = TRUE;
+	int sync = TRUE;
 	if (rbuff->offset == 0)	{
 		mode = GFX_MAP_WRITE_DISCARD;
 	}	else	{
@@ -97,9 +97,9 @@ void* gfx_contbuffer_map(gfx_cmdqueue cmdqueue, struct gfx_contbuffer* cbuff,
 		cbuff->offset = 0;
 
 #if defined(_GL_)
-    bool_t sync = (cbuff->offset == 0);
+    int sync = (cbuff->offset == 0);
 #else
-    bool_t sync = TRUE;
+    int sync = TRUE;
 #endif
 
 	void* p = gfx_buffer_map(cmdqueue, cbuff->buff,
@@ -162,7 +162,7 @@ sharedbuffer_pos_t gfx_sharedbuffer_write(struct gfx_sharedbuffer* ubuff, gfx_cm
      */
     uint offset = ubuff->offset;
     uint map_mode;
-    bool_t sync;
+    int sync;
 
     if (offset > 0) {
         map_mode = GFX_MAP_WRITE_DISCARDRANGE;

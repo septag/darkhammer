@@ -35,7 +35,7 @@ void* thread_callback(void* param);
 
 struct mt_event_signal
 {
-    bool_t signal;
+    int signal;
     mt_mutex signal_mtx;
     pthread_cond_t cond;
 };

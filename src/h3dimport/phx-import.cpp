@@ -106,15 +106,15 @@ class import_phx_log : public PxErrorCallback
 ezxml_t import_phx_findobj(ezxml_t xroot, const char* name);
 struct rigid_ext* import_phx_createrigid(ezxml_t xrigid, ezxml_t xroot, struct array* geos,
     struct array* mtls);
-bool_t import_phx_createshape(struct shape_ext* shape, ezxml_t xshape, ezxml_t xroot,
+int import_phx_createshape(struct shape_ext* shape, ezxml_t xshape, ezxml_t xroot,
     struct array* geos, struct array* mtls);
 void import_phx_destroyshape(struct shape_ext* shape);
 void import_phx_destroyrigid(struct rigid_ext* rigid);
-bool_t import_phx_createconvexmesh(struct pgeo_ext* geo, ezxml_t xcmesh, ezxml_t xroot);
-bool_t import_phx_createtrimesh(struct pgeo_ext* geo, ezxml_t xtrimesh, ezxml_t xroot);
+int import_phx_createconvexmesh(struct pgeo_ext* geo, ezxml_t xcmesh, ezxml_t xroot);
+int import_phx_createtrimesh(struct pgeo_ext* geo, ezxml_t xtrimesh, ezxml_t xroot);
 void import_phx_getpose(OUT float pos[3], OUT float rot[4], ezxml_t xpose);
 uint import_phx_createmtl(struct array* mtls, ezxml_t xmtlref, ezxml_t xroot);
-bool_t import_writephx(const char* filepath, const struct phx_ext* p);
+int import_writephx(const char* filepath, const struct phx_ext* p);
 void import_phx_transform_pose(INOUT float pos[3], INOUT float rot[4], const struct mat3f* mat);
 
 /*************************************************************************************************
@@ -152,7 +152,7 @@ INLINE uint import_phx_findmtl(const struct h3d_phx_mtl* mtl, const struct h3d_p
 }
 
 /*************************************************************************************************/
-bool_t import_phx_list(const struct import_params* params)
+int import_phx_list(const struct import_params* params)
 {
     ezxml_t xroot = ezxml_parse_file(params->in_filepath);
     const char* err = ezxml_error(xroot);
@@ -188,7 +188,7 @@ bool_t import_phx_list(const struct import_params* params)
     return TRUE;
 }
 
-bool_t import_phx(const struct import_params* params)
+int import_phx(const struct import_params* params)
 {
     ezxml_t xroot = ezxml_parse_file(params->in_filepath);
     const char* err = ezxml_error(xroot);
@@ -246,7 +246,7 @@ bool_t import_phx(const struct import_params* params)
     arr_create(mem_heap(), &mtls, sizeof(struct h3d_phx_mtl), 5, 5, 0);
     ASSERT(geos.buffer);
     ASSERT(mtls.buffer);
-    bool_t result = FALSE;
+    int result = FALSE;
 
     /* determine the type of xobj */
     if (str_isequal(ezxml_name(xobj), "PxRigidStatic") ||
@@ -428,7 +428,7 @@ ezxml_t import_phx_findobj(ezxml_t xroot, const char* name)
     return NULL;
 }
 
-bool_t import_phx_createshape(struct shape_ext* shape, ezxml_t xshape, ezxml_t xroot,
+int import_phx_createshape(struct shape_ext* shape, ezxml_t xshape, ezxml_t xroot,
     struct array* geos, struct array* mtls)
 {
     /* geometry */
@@ -518,7 +518,7 @@ void import_phx_destroyrigid(struct rigid_ext* rigid)
     FREE(rigid);
 }
 
-bool_t import_phx_createconvexmesh(struct pgeo_ext* geo, ezxml_t xcmesh, ezxml_t xroot)
+int import_phx_createconvexmesh(struct pgeo_ext* geo, ezxml_t xcmesh, ezxml_t xroot)
 {
     /* search root for specific convesmesh ID */
     const char* cmesh_ref = ezxml_txt(xcmesh);
@@ -588,7 +588,7 @@ bool_t import_phx_createconvexmesh(struct pgeo_ext* geo, ezxml_t xcmesh, ezxml_t
     return TRUE;
 }
 
-bool_t import_phx_createtrimesh(struct pgeo_ext* geo, ezxml_t xtrimesh, ezxml_t xroot)
+int import_phx_createtrimesh(struct pgeo_ext* geo, ezxml_t xtrimesh, ezxml_t xroot)
 {
     /* search root for specific convesmesh ID */
     const char* trimesh_ref = ezxml_txt(xtrimesh);
@@ -763,7 +763,7 @@ uint import_phx_createmtl(struct array* mtls, ezxml_t xmtlref, ezxml_t xroot)
     return INVALID_INDEX;
 }
 
-bool_t import_writephx(const char* filepath, const struct phx_ext* p)
+int import_writephx(const char* filepath, const struct phx_ext* p)
 {
     char filepath_tmp[DH_PATH_MAX];
     strcat(strcpy(filepath_tmp, filepath), ".tmp");

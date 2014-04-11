@@ -56,7 +56,7 @@ static const struct color g_color_grey = {0.3f, 0.3f, 0.3f, 1.0f};
 static const struct color g_color_yellow = {1.0f, 1.0f, 0.0f, 1.0f};
 #endif
 
-INLINE bool_t color_isequal(const struct color* c1, const struct color* c2)
+INLINE int color_isequal(const struct color* c1, const struct color* c2)
 {
     return (c1->r == c2->r) && (c1->g == c2->g) && (c1->b == c2->b) && (c1->a == c2->a);
 }

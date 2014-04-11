@@ -20,6 +20,7 @@
 #include "dhcore/timer.h"
 #include "dhcore/util.h"
 
+#include "gfx.h"
 #include "gfx-canvas.h"
 #include "gfx-font.h"
 #include "gfx-cmdqueue.h"
@@ -66,7 +67,7 @@ struct debug_image_item
     struct linked_list node;
     uint width;
     uint height;
-    bool_t fullscreen;
+    int fullscreen;
     gfx_texture img_tex;
     char caption[32];
     void* param;
@@ -77,12 +78,12 @@ struct debug_console
 	fonthandle_t log_font;
 	fonthandle_t cmd_font;
 
-	bool_t active;
-	bool_t cursor;
+	int active;
+	int cursor;
 	uint line_idx;
 	uint cursor_idx;
-	bool_t slide_dwn;
-	bool_t slide_up;
+	int slide_dwn;
+	int slide_up;
 	int y;
 	int prev_y;
 	uint lines_perpage;
@@ -158,7 +159,7 @@ void hud_console_release();
 void hud_console_render(gfx_cmdqueue cmdqueue);
 void hud_console_update();
 void hud_console_input(char c, enum input_key key);
-void hud_console_activate(bool_t active);
+void hud_console_activate(int active);
 void hud_console_savecmd(const char* cmd);
 uint hud_console_loadcmd(int idx);
 
@@ -168,7 +169,7 @@ void hud_zero()
 	memset(&g_hud, 0x00, sizeof(g_hud));
 }
 
-result_t hud_init(bool_t init_console)
+result_t hud_init(int init_console)
 {
 	g_hud.label_font = gfx_font_register(eng_get_lsralloc(), "fonts/monospace12/monospace12.fnt",
 			NULL, "monospace", 12, 0);
@@ -318,12 +319,10 @@ void hud_render(gfx_cmdqueue cmdqueue)
 
 void hud_render_labels(gfx_cmdqueue cmdqueue)
 {
-	uint width, height;
 	int x = 5;
 	int y = 5;
 	struct linked_list* node = g_hud.labels;
 
-	gfx_cmdqueue_getrtvsize(cmdqueue, &width, &height);
 	gfx_canvas_setfont(g_hud.label_font);
 	int line_height = (int)gfx_font_getf(g_hud.label_font)->line_height;
     int line_stride = line_height + CONSOLE_LINE_SPACING;
@@ -371,16 +370,16 @@ void hud_render_graphs(gfx_cmdqueue cmdqueue)
 {
 	static float graph_tm = 0.0f;
 	if (g_hud.graphs != NULL)	{
-		bool_t update_values = FALSE;
+		int update_values = FALSE;
 		graph_tm += g_hud.update_timer->dt;
 		if (graph_tm > GRAPH_UPDATE_INTERVAL)	{
 			graph_tm = 0.0f;
 			update_values = TRUE;
 		}
 
-        uint width, height;
+        int width, height;
         int y = 5;
-        gfx_cmdqueue_getrtvsize(cmdqueue, &width, &height);
+        gfx_get_rtvsize(&width, &height);
 		gfx_canvas_setalpha(0.75f);
 
 		struct linked_list* node = g_hud.graphs;
@@ -429,9 +428,9 @@ void hud_console_render(gfx_cmdqueue cmdqueue)
 	/* drawing */
 	uint line_height = gfx_font_getf(console->log_font)->line_height;
 	uint line_height_cmd = gfx_font_getf(console->cmd_font)->line_height;
-	uint width, height;
+	int width, height;
 
-	gfx_cmdqueue_getrtvsize(cmdqueue, &width, &height);
+	gfx_get_rtvsize(&width, &height);
 
 	/* */
 	struct rect2di rc;
@@ -653,7 +652,7 @@ void hud_console_input(char c, enum input_key key)
 	console->cursor_idx = idx;
 }
 
-void hud_console_activate(bool_t active)
+void hud_console_activate(int active)
 {
 	struct debug_console* console = g_hud.console;
 	if (active)	{
@@ -707,7 +706,7 @@ uint hud_console_loadcmd(int idx)
 	return (uint)strlen(console->cmd);
 }
 
-void hud_add_image(const char* alias, gfx_texture img_tex, bool_t fullscreen,
+void hud_add_image(const char* alias, gfx_texture img_tex, int fullscreen,
     uint width, uint height, const char* caption)
 {
     uint name_hash = hash_str(alias);
@@ -741,8 +740,8 @@ void hud_render_images(gfx_cmdqueue cmdqueue)
 {
     if (g_hud.imgs != NULL)	{
         struct rect2di rc;
-        uint width, height;
-        gfx_cmdqueue_getrtvsize(cmdqueue, &width, &height);
+        int width, height;
+        gfx_get_rtvsize(&width, &height);
         gfx_canvas_setfont(g_hud.label_font);
         gfx_canvas_settextcolor(&g_color_yellow);
         int line_height = (int)gfx_font_getf(g_hud.label_font)->line_height;
@@ -798,7 +797,7 @@ void hud_render_images(gfx_cmdqueue cmdqueue)
     }
 }
 
-bool_t hud_console_isactive()
+int hud_console_isactive()
 {
     return (g_hud.console != NULL) && g_hud.console->active;
 }

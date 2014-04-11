@@ -129,7 +129,7 @@ typedef CRITICAL_SECTION    mt_mutex;
  */
 
 /**
- * @fn bool_t mt_mutex_try(mt_mutex* m)
+ * @fn int mt_mutex_try(mt_mutex* m)
  * Try locking the mutex object, passes if mutex is already locked, if not, then locks the mutex
  * @return TRUE if mutex is successfully locked, FALSE if mutex was already locked before
  * @ingroup mt
@@ -140,13 +140,13 @@ INLINE void mt_mutex_init(mt_mutex* m)  {   pthread_mutex_init(m, NULL);    }
 INLINE void mt_mutex_release(mt_mutex* m) {   pthread_mutex_destroy(m);   }
 INLINE void mt_mutex_lock(mt_mutex* m)    {   pthread_mutex_lock(m);  }
 INLINE void mt_mutex_unlock(mt_mutex* m)  {   pthread_mutex_unlock(m);    }
-INLINE bool_t mt_mutex_try(mt_mutex* m) {return (pthread_mutex_trylock(m) == 0);}
+INLINE int mt_mutex_try(mt_mutex* m) {return (pthread_mutex_trylock(m) == 0);}
 #elif defined(_WIN_)
 INLINE void mt_mutex_init(mt_mutex* m)  {   InitializeCriticalSection(m);   }
 INLINE void mt_mutex_release(mt_mutex* m) {   DeleteCriticalSection(m);   }
 INLINE void mt_mutex_lock(mt_mutex* m)    {   EnterCriticalSection(m);    }
 INLINE void mt_mutex_unlock(mt_mutex* m)  {   LeaveCriticalSection(m);    }
-INLINE bool_t mt_mutex_try(mt_mutex* m) { return TryEnterCriticalSection(m); }
+INLINE int mt_mutex_try(mt_mutex* m) { return TryEnterCriticalSection(m); }
 #endif
 
 

@@ -42,7 +42,7 @@ struct gfx_cmdqueue_s
 {
     ID3D11DeviceContext* context;
     struct gfx_framestats stats;
-    bool_t shaders_set[GFX_PROGRAM_MAX_SHADERS];
+    int shaders_set[GFX_PROGRAM_MAX_SHADERS];
     gfx_depthstencilstate default_depthstencil;
     gfx_rasterstate default_raster;
     gfx_blendstate default_blend;
@@ -273,7 +273,7 @@ void gfx_input_setlayout(gfx_cmdqueue cmdqueue, gfx_inputlayout inputlayout)
 
 void gfx_program_set(gfx_cmdqueue cmdqueue, gfx_program prog)
 {
-    bool_t shaders_set[GFX_PROGRAM_MAX_SHADERS];
+    int shaders_set[GFX_PROGRAM_MAX_SHADERS];
     memset(shaders_set, 0x00, sizeof(shaders_set));
 
     for (uint i = 0; i < prog->desc.prog.shader_cnt; i++) {
@@ -476,7 +476,7 @@ void gfx_output_setviewportbias(gfx_cmdqueue cmdqueue, int x, int y, int width, 
 
 
 void* gfx_buffer_map(gfx_cmdqueue cmdqueue, gfx_buffer buffer, uint offset, uint size,
-    uint mode /* enum gfx_map_mode */, bool_t sync_cpu)
+    uint mode /* enum gfx_map_mode */, int sync_cpu)
 {
     ASSERT(buffer->type == GFX_OBJ_BUFFER);
 

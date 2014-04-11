@@ -59,10 +59,10 @@ struct hash_incr
  * Test for 128bit hash equality
  * @ingroup hash
  */
-INLINE bool_t hash_isequal(hash_t h1, hash_t h2);
+INLINE int hash_isequal(hash_t h1, hash_t h2);
 
 #if defined(_X64_)
-INLINE bool_t hash_isequal(hash_t h1, hash_t h2)
+INLINE int hash_isequal(hash_t h1, hash_t h2)
 {
     return (h1.h[0] == h2.h[0] && h1.h[1] == h2.h[1]);
 }
@@ -80,7 +80,7 @@ INLINE void hash_zero(hash_t* h)
 }
 
 #else
-INLINE bool_t hash_isequal(hash_t h1, hash_t h2)
+INLINE int hash_isequal(hash_t h1, hash_t h2)
 {
     return (h1.h[0] == h2.h[0] && h1.h[1] == h2.h[1] && h1.h[2] == h2.h[2] && h1.h[3] == h2.h[3]);
 }

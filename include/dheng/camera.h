@@ -56,7 +56,7 @@ struct ALIGN16 camera
     float pitch_cur;
     float yaw_cur;
 
-    bool_t const_pitch; /* constraint pitch */
+    int const_pitch; /* constraint pitch */
     float pitch_max;
     float pitch_min;
 };
@@ -79,7 +79,7 @@ struct ALIGN16 camera_fps
     float move_speed;
 
     /* smoothing */
-    bool_t smooth;
+    int smooth;
     float mouse_smoothness;
     float move_smoothness;
 
@@ -129,7 +129,7 @@ ENGINE_API void cam_init(struct camera* cam, const struct vec4f* pos, const stru
  * @param if enable=TRUE, pitch_max defines the maximum allowed pitch when looking down (in radians)
  * @ingroup cam
  */
-ENGINE_API void cam_set_pitchconst(struct camera* cam, bool_t enable,
+ENGINE_API void cam_set_pitchconst(struct camera* cam, int enable,
     float pitch_min, float pitch_max);
 
 /**
@@ -294,7 +294,7 @@ ENGINE_API void cam_fps_set_keys_straferight(struct camera_fps* cfps, enum input
  * @param smooth By default smoothing is TRUE, to disable it, set this parameter to FALSE
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_smoothing(struct camera_fps* cfps, bool_t smooth);
+ENGINE_API void cam_fps_set_smoothing(struct camera_fps* cfps, int smooth);
 
 /**
  * Set smoothing values for FPS camera, smoothing values are usually between 50~100, but you

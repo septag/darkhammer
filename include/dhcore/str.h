@@ -35,12 +35,12 @@
  * checks equality of two strings - case sensitive
  * @ingroup str
  */
-CORE_API bool_t str_isequal(const char* str1, const char* str2);
+CORE_API int str_isequal(const char* str1, const char* str2);
 /**
  * checks equality of two strings - case insensitive
  * @ingroup str
  */
-CORE_API bool_t str_isequal_nocase(const char* str1, const char* str2);
+CORE_API int str_isequal_nocase(const char* str1, const char* str2);
 /**
  * converts integer 'n' to string ('instr')
  * @ingroup str
@@ -55,7 +55,7 @@ CORE_API char* str_ftos(char* instr, float f);
  * converts boolean 'b' to string
  * @ingroup str
  */
-CORE_API char* str_btos(char* instr, bool_t b);
+CORE_API char* str_btos(char* instr, int b);
 /**
  * converts string to integer
  * @ingroup str
@@ -70,7 +70,7 @@ CORE_API float str_tofl32(const char* str);
  * converts string to bool, ('false', '0', '') defines FALSE and ('true', '1') defines TRUE
  * @ingroup str
  */
-CORE_API bool_t str_tobool(const char* str);
+CORE_API int str_tobool(const char* str);
 /**
  * trims string 'instr' from sequence of characters defined by 'trim_chars'
  * @param instr input string
@@ -102,7 +102,7 @@ CORE_API wchar* str_mbtowide(wchar* outstr, const char* instr, uint outstr_size)
  * checks if string is empty (='')
  * @ingroup str
  */
-INLINE bool_t str_isempty(const char* str)
+INLINE int str_isempty(const char* str)
 {
     return (str[0] == 0);
 }
@@ -187,7 +187,7 @@ CORE_API char* path_goup(char* outpath, const char* inpath);
  * check if file is valid (exists)
  * @ingroup str
  */
-CORE_API bool_t path_isfilevalid(const char* inpath);
+CORE_API int path_isfilevalid(const char* inpath);
 
 /**
  * join multiple paths (or filenames) into one \n

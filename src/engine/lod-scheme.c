@@ -48,7 +48,7 @@ void lod_zero()
 result_t lod_initmgr()
 {
     result_t r;
-    bool_t has_default;
+    int has_default;
 
     /* open lod-scheme.json file and read scheme data */
     file_t f = fio_openmem(mem_heap(), "lod-scheme.json", FALSE, MID_BASE);

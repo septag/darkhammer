@@ -61,17 +61,17 @@ char* util_gettempdir(char* outdir)
     return outdir;
 }
 
-bool_t util_makedir(const char* dir)
+int util_makedir(const char* dir)
 {
     return CreateDirectory(dir, NULL);
 }
 
-bool_t util_copyfile(const char* dest, const char* src)
+int util_copyfile(const char* dest, const char* src)
 {
     return CopyFile(src, dest, FALSE);
 }
 
-bool_t util_pathisdir(const char* path)
+int util_pathisdir(const char* path)
 {
     return (GetFileAttributes(path) & FILE_ATTRIBUTE_DIRECTORY);
 }
@@ -81,12 +81,12 @@ void util_sleep(uint msecs)
     Sleep(msecs);
 }
 
-bool_t util_movefile(const char* dest, const char* src)
+int util_movefile(const char* dest, const char* src)
 {
     return MoveFileEx(src, dest, MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING);
 }
 
-bool_t util_delfile(const char* filepath)
+int util_delfile(const char* filepath)
 {
     return DeleteFile(filepath);
 }

@@ -32,7 +32,7 @@ typedef struct ui_widget_s* ui_widget;
 /* */
 /* graph - line */
 ui_widget ui_create_graphline(const char* title, float y_min, float y_max,
-		uint sample_cnt, const struct rect2di rc, bool_t enable_variable_yrange);
+		uint sample_cnt, const struct rect2di rc, int enable_variable_yrange);
 void ui_destroy_graphline(ui_widget graph);
 void ui_graphline_addvalue(ui_widget g, float y);
 

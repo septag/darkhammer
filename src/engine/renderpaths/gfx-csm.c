@@ -80,7 +80,7 @@ struct gfx_csm
     struct mat4f shadow_mats[CSM_CASCADE_CNT];
     struct aabb frustum_bounds;
     struct vec3f light_dir;
-    bool_t debug_csm;
+    int debug_csm;
     gfx_sampler sampl_linear;
     struct gfx_sharedbuffer* sharedbuff;    /* shared buffer for csm drawing pass */
 };
@@ -92,12 +92,12 @@ result_t csm_create_shadowrt(uint width, uint height);
 void csm_destroy_shadowrt();
 result_t csm_create_prevrt(uint width, uint height);
 void csm_destroy_prevrt();
-bool_t csm_load_shaders(struct allocator* alloc);
+int csm_load_shaders(struct allocator* alloc);
 void csm_unload_shaders();
-bool_t csm_load_prev_shaders(struct allocator* alloc);
+int csm_load_prev_shaders(struct allocator* alloc);
 void csm_unload_prev_shaders();
 
-bool_t csm_add_shader(uint shader_id, uint rpath_flags);
+int csm_add_shader(uint shader_id, uint rpath_flags);
 result_t csm_create_states();
 void csm_destroy_states();
 
@@ -249,7 +249,7 @@ void gfx_csm_render(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
 
     PRF_OPENSAMPLE("rpath-csm");
 
-    bool_t supports_shared_cbuff = gfx_check_feature(GFX_FEATURE_RANGED_CBUFFERS);
+    int supports_shared_cbuff = gfx_check_feature(GFX_FEATURE_RANGED_CBUFFERS);
     if (supports_shared_cbuff)
         csm_submit_batchdata(cmdqueue, batch_items, batch_cnt, g_csm->sharedbuff);
 
@@ -426,7 +426,7 @@ void csm_drawbatchnode(gfx_cmdqueue cmdqueue, struct gfx_batch_node* bnode,
         uint subset_idx = mesh->submeshes[bnode->sub_idx].subset_id;
         struct gfx_model_geosubset* subset = &geo->subsets[subset_idx];
 
-        bool_t is_doublesided = BIT_CHECK(gmodel->mtls[mtl_id].flags, GFX_MODEL_MTLFLAG_DOUBLESIDED);
+        int is_doublesided = BIT_CHECK(gmodel->mtls[mtl_id].flags, GFX_MODEL_MTLFLAG_DOUBLESIDED);
         if (is_doublesided)
             gfx_output_setrasterstate(cmdqueue, g_csm->rs_bias_doublesided);
 
@@ -503,9 +503,9 @@ void csm_destroy_prevrt()
     }
 }
 
-bool_t csm_load_shaders(struct allocator* alloc)
+int csm_load_shaders(struct allocator* alloc)
 {
-    bool_t r;
+    int r;
     char max_instances_str[8];
     char cascade_cnt_str[8];
     char max_bones_str[8];
@@ -580,7 +580,7 @@ void csm_unload_shaders()
         gfx_shader_unload(g_csm->shaders[i].shader_id);
 }
 
-bool_t csm_add_shader(uint shader_id, uint rpath_flags)
+int csm_add_shader(uint shader_id, uint rpath_flags)
 {
     ASSERT(g_csm->shader_cnt < CSM_SHADER_CNT);
 
@@ -897,7 +897,7 @@ const struct vec4f* gfx_csm_get_cascades(const struct mat3f* view)
 
 result_t csm_console_debugcsm(uint argc, const char** argv, void* param)
 {
-    bool_t enable = TRUE;
+    int enable = TRUE;
     if (argc == 1)
         enable = str_tobool(argv[0]);
     else if (argc > 1)
@@ -917,7 +917,7 @@ result_t csm_console_debugcsm(uint argc, const char** argv, void* param)
     return RET_OK;
 }
 
-bool_t csm_load_prev_shaders(struct allocator* alloc)
+int csm_load_prev_shaders(struct allocator* alloc)
 {
     char cascadecnt[10];
     enum gfx_hwver hwver = gfx_get_hwver();

@@ -59,7 +59,7 @@ struct gfx_dev_delayed_signal
 {
     uint thread_id;
     uint signal_id;
-    bool_t waiting;
+    int waiting;
     uint pending_cnt; /* pending creates count */
     uint creates_cnt; /* actual creates count */
     uint err_cnt;
@@ -123,7 +123,7 @@ struct gfx_device
                                          will be added to this list */
     mt_event objcreate_event;
     struct array objcreate_signals; /* item: gfx_dev_delayed_signal */
-    bool_t release_delayed;
+    int release_delayed;
 
     enum gfx_hwver ver;
 };
@@ -141,9 +141,9 @@ void APIENTRY gfx_debug_callback(GLenum source, GLenum type, GLuint id, GLenum s
 		GLsizei length, const GLchar* message, GLvoid* userParam);
 void shader_make_defines(char* define_code,
 		const struct gfx_shader_define* defines, uint define_cnt);
-bool_t texture_is_compressed(enum gfx_format fmt);
+int texture_is_compressed(enum gfx_format fmt);
 GLenum texture_get_glformat(enum gfx_format fmt, OUT GLenum* type, OUT GLenum* internal_fmt);
-bool_t texture_has_alpha(enum gfx_format fmt);
+int texture_has_alpha(enum gfx_format fmt);
 
 GLuint gfx_create_buffer_gl(enum gfx_buffer_type type, enum gfx_mem_hint memhint,
                             uint size, const void* data);
@@ -1262,7 +1262,7 @@ struct gfx_dev_delayed_signal* gfx_delayed_getsignal(uint thread_id)
 
 
 gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt,
-    bool_t has_mipmap)
+    int has_mipmap)
 {
 	GLenum gl_fmt;
 	GLenum gl_type;
@@ -1327,7 +1327,7 @@ GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height
     glGenTextures(1, &tex_id);
     glBindTexture((GLenum)type, tex_id);
 
-    bool_t is_compressed = texture_is_compressed(fmt);
+    int is_compressed = texture_is_compressed(fmt);
     if (!is_compressed)
         gl_fmt = texture_get_glformat(fmt, &gl_type, &gl_internal);
 
@@ -1601,7 +1601,7 @@ void gfx_destroy_rendertarget(gfx_rendertarget rt)
 	destroy_obj(rt);
 }
 
-bool_t texture_is_compressed(enum gfx_format fmt)
+int texture_is_compressed(enum gfx_format fmt)
 {
 	switch (fmt)	{
 	case GFX_FORMAT_BC1:
@@ -1620,7 +1620,7 @@ bool_t texture_is_compressed(enum gfx_format fmt)
 	}
 }
 
-bool_t texture_has_alpha(enum gfx_format fmt)
+int texture_has_alpha(enum gfx_format fmt)
 {
     return (fmt == GFX_FORMAT_BC2 ||
             fmt == GFX_FORMAT_BC3 ||
@@ -1871,7 +1871,7 @@ const struct gfx_gpu_memstats* gfx_get_memstats()
     return &g_gfxdev.memstats;
 }
 
-bool_t gfx_check_feature(enum gfx_feature ft)
+int gfx_check_feature(enum gfx_feature ft)
 {
     switch (ft) {
     case GFX_FEATURE_THREADED_CREATES:

@@ -38,7 +38,7 @@ struct gfx_model_posegpu;
 struct scn_render_model
 {
 	cmphandle_t model_hdl;
-	bool_t sun_shadows;	/* we have to render for sun shadow map? */
+	int sun_shadows;	/* we have to render for sun shadow map? */
 	struct gfx_model* gmodel;
     struct gfx_model_posegpu* pose; /* valid posegpu, for skinned meshes */
 	struct gfx_model_instance* inst;

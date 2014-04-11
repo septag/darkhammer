@@ -257,8 +257,8 @@ struct phx_device
     class PxDefaultCpuDispatcher* dispatcher;
     void* scratch_buff;
     size_t scratch_sz;
-    bool_t ext_init;
-    bool_t optimize_mem;
+    int ext_init;
+    int optimize_mem;
 };
 
 /*************************************************************************************************
@@ -678,7 +678,7 @@ void phx_scene_wait(uint scene_id)
     phx_getscene(scene_id)->fetchResults(true);
 }
 
-bool_t phx_scene_check(uint scene_id)
+int phx_scene_check(uint scene_id)
 {
     return phx_getscene(scene_id)->checkResults() ? TRUE : FALSE;
 }
@@ -1087,7 +1087,7 @@ void phx_destroy_trishape(phx_shape_tri tmshape)
     phx_destroyobj(tmshape);
 }
 
-phx_convexmesh phx_create_convexmesh(const void* data, bool_t make_gpugeo,
+phx_convexmesh phx_create_convexmesh(const void* data, int make_gpugeo,
     struct allocator* tmp_alloc, uint thread_id)
 {
 	phx_stream stream(data);
@@ -1169,7 +1169,7 @@ void phx_destroy_convexmesh(phx_convexmesh convex)
     }
 }
 
-phx_trimesh phx_create_trimesh(const void* data, bool_t make_gpugeo, struct allocator* tmp_alloc,
+phx_trimesh phx_create_trimesh(const void* data, int make_gpugeo, struct allocator* tmp_alloc,
                                uint thread_id)
 {
 	phx_stream stream(data);
@@ -1289,44 +1289,44 @@ void phx_rigid_setdensity(phx_obj rigid_obj, float density, const struct vec3f* 
 }
 
 void phx_rigid_applyforce(phx_obj rigid_obj, const struct vec3f* force, enum phx_force_mode mode,
-    bool_t wakeup, OPTIONAL const struct vec3f* pos)
+    int wakeup, OPTIONAL const struct vec3f* pos)
 {
     ((PxRigidBody*)rigid_obj->api_obj)->addForce(phx_vec3topx(force), phx_fmodetopx(mode),
         wakeup != FALSE);
 }
 
 void phx_rigid_applyforce_localpos(phx_obj rigid_obj, const struct vec3f* force,
-    enum phx_force_mode mode, bool_t wakeup, OPTIONAL const struct vec3f* local_pos)
+    enum phx_force_mode mode, int wakeup, OPTIONAL const struct vec3f* local_pos)
 {
     PxRigidBodyExt::addForceAtLocalPos(*((PxRigidBody*)rigid_obj->api_obj),
         phx_vec3topx(force), phx_vec3topx(local_pos), phx_fmodetopx(mode), wakeup != FALSE);
 }
 
 void phx_rigid_applylocalforce_localpos(phx_obj rigid_obj, const struct vec3f* local_force,
-    enum phx_force_mode mode, bool_t wakeup, OPTIONAL const struct vec3f* local_pos)
+    enum phx_force_mode mode, int wakeup, OPTIONAL const struct vec3f* local_pos)
 {
     PxRigidBodyExt::addLocalForceAtLocalPos(*((PxRigidBody*)rigid_obj->api_obj),
         phx_vec3topx(local_force), phx_vec3topx(local_pos), phx_fmodetopx(mode), wakeup != FALSE);
 }
 
 void phx_rigid_applytorque(phx_obj rigid_obj, const struct vec3f* torque, enum phx_force_mode mode,
-    bool_t wakeup)
+    int wakeup)
 {
     ((PxRigidBody*)rigid_obj->api_obj)->addTorque(phx_vec3topx(torque), phx_fmodetopx(mode),
         wakeup != FALSE);
 }
 
-void phx_rigid_clearforce(phx_obj rigid_obj, enum phx_force_mode mode, bool_t wakeup)
+void phx_rigid_clearforce(phx_obj rigid_obj, enum phx_force_mode mode, int wakeup)
 {
     ((PxRigidBody*)rigid_obj->api_obj)->clearForce(phx_fmodetopx(mode), wakeup != FALSE);
 }
 
-void phx_rigid_cleartorque(phx_obj rigid_obj, enum phx_force_mode mode, bool_t wakeup)
+void phx_rigid_cleartorque(phx_obj rigid_obj, enum phx_force_mode mode, int wakeup)
 {
     ((PxRigidBody*)rigid_obj->api_obj)->clearTorque(phx_fmodetopx(mode), wakeup != FALSE);
 }
 
-void phx_rigid_freeze(phx_obj rigid_obj, bool_t wakeup)
+void phx_rigid_freeze(phx_obj rigid_obj, int wakeup)
 {
     /* clear any velocities that rigid object has */
     PxRigidBody* rbody = (PxRigidBody*)rigid_obj->api_obj;
@@ -1334,7 +1334,7 @@ void phx_rigid_freeze(phx_obj rigid_obj, bool_t wakeup)
     rbody->setLinearVelocity(PxVec3(0.0f, 0.0f, 0.0f), wakeup != FALSE);
 }
 
-void phx_rigid_setkinematic(phx_obj rigid_obj, bool_t enable)
+void phx_rigid_setkinematic(phx_obj rigid_obj, int enable)
 {
     ASSERT(rigid_obj->type == PHX_OBJ_RIGID_DYN);
 
@@ -1371,7 +1371,7 @@ void phx_rigid_setsolveritercnt(phx_obj rigid_obj, uint8 positer_min, uint8 veli
     ((PxRigidDynamic*)rigid_obj->api_obj)->setSolverIterationCounts(positer_min, veliter_min);
 }
 
-void phx_rigid_enablegravity(phx_obj rigid_obj, bool_t enable)
+void phx_rigid_enablegravity(phx_obj rigid_obj, int enable)
 {
     ASSERT(rigid_obj->type == PHX_OBJ_RIGID_DYN);
     ((PxRigidDynamic*)rigid_obj->api_obj)->setActorFlag(PxActorFlag::eDISABLE_GRAVITY,
@@ -1474,7 +1474,7 @@ void phx_getmemstats(struct phx_memstats* stats)
     }
 }
 
-void phx_shape_setccd(phx_obj shape, bool_t enable)
+void phx_shape_setccd(phx_obj shape, int enable)
 {
     PxShape* pxshape = (PxShape*)shape->api_obj;
     pxshape->setFlag(PxShapeFlag::eUSE_SWEPT_BOUNDS, enable != FALSE);
@@ -1516,7 +1516,7 @@ void phx_rigid_setxform_raw(phx_obj rigid_obj, const struct xform3d* xf)
 }
 
 void phx_rigid_setvelocity(phx_obj rigid_obj, const struct vec3f* vel_lin,
-    const struct vec3f* vel_ang, bool_t wakeup)
+    const struct vec3f* vel_ang, int wakeup)
 {
     ASSERT(rigid_obj->type == PHX_OBJ_RIGID_DYN);
 
@@ -1525,7 +1525,7 @@ void phx_rigid_setvelocity(phx_obj rigid_obj, const struct vec3f* vel_lin,
     rigid->setLinearVelocity(phx_vec3topx(vel_lin), wakeup != FALSE);
 }
 
-void phx_shape_settrigger(phx_obj shape, bool_t trigger)
+void phx_shape_settrigger(phx_obj shape, int trigger)
 {
     PxShape* pxshape = (PxShape*)shape->api_obj;
     pxshape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, trigger == FALSE);

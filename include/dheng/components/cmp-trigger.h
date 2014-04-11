@@ -31,13 +31,13 @@ struct cmp_trigger
     struct vec3f box;
     struct vec3f local_pos;
     struct quat4f local_rot;
-    bool_t is_static;
+    int is_static;
     uint collision_filter;
 
     /* internal */
     phx_obj rbody;
     uint px_sceneid;  /* owner scene */
-    bool_t triggered;
+    int triggered;
     pfn_cmp_trigger_callback trigger_fn;
     void* param;
 };
@@ -61,7 +61,7 @@ static const struct cmp_value cmp_trigger_values[] = {
     1, cmp_trigger_modifylocalpos, ""},
     {"local_rot", CMP_VALUE_FLOAT4, offsetof(struct cmp_trigger, local_rot), sizeof(struct quat4f),
     1, cmp_trigger_modifylocalrot, ""},
-    {"static", CMP_VALUE_BOOL, offsetof(struct cmp_trigger, is_static), sizeof(bool_t), 1,
+    {"static", CMP_VALUE_BOOL, offsetof(struct cmp_trigger, is_static), sizeof(int), 1,
     cmp_trigger_modifystatic, ""},
     {"collision_filter", CMP_VALUE_UINT, offsetof(struct cmp_trigger, collision_filter),
     sizeof(uint), 1, cmp_trigger_modifycolfilter, ""}

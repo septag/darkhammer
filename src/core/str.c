@@ -53,12 +53,12 @@ INLINE char* str_realloc(char* s, uint newsz)
 }
 
 /* */
-bool_t str_isequal(const char* str1, const char* str2)
+int str_isequal(const char* str1, const char* str2)
 {
     return (strcmp(str1, str2) == 0);
 }
 
-bool_t str_isequal_nocase(const char* str1, const char* str2)
+int str_isequal_nocase(const char* str1, const char* str2)
 {
 #if defined(_MSVC_)
     return (_stricmp(str1, str2) == 0);
@@ -79,7 +79,7 @@ char* str_ftos(char* instr, float f)
     return instr;
 }
 
-char* str_btos(char* instr, bool_t b)
+char* str_btos(char* instr, int b)
 {
     if (b == TRUE)  instr[0] = '1';
     else            instr[0] = '0';
@@ -97,7 +97,7 @@ float str_tofl32(const char* str)
     return (float)atof(str);
 }
 
-bool_t str_tobool(const char* str)
+int str_tobool(const char* str)
 {
     if (str_isequal(str, "") || str_isequal(str, "0") || str_isequal_nocase(str, "false"))
         return FALSE;
@@ -116,7 +116,7 @@ char* str_trim(char* outstr, uint outstr_size, const char* instr, const char* tr
 
     while ((src = instr[i++]) != 0 && c < (outstr_size-1))     {
         uint k = 0;
-        bool_t found_trim = FALSE;
+        int found_trim = FALSE;
 
         while ((trim = trim_chars[k++]) != 0 && !found_trim)     {
             if (src == trim)
@@ -431,7 +431,7 @@ char* path_goup(char* outpath, const char* inpath)
     return outpath;
 }
 
-bool_t path_isfilevalid(const char* inpath)
+int path_isfilevalid(const char* inpath)
 {
     FILE* f = fopen(inpath, "rb");
     if (f != NULL)

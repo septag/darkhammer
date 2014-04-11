@@ -77,7 +77,7 @@ struct shader_load_item
 
 struct shader_mgr
 {
-	bool_t disable_cache;
+	int disable_cache;
 	struct array cache;	/* item = shader_cache_item */
     struct array shaders;   /* item = gfx_shader* */
 	uint cur_driver_hash;
@@ -215,7 +215,7 @@ void gfx_shader_zero()
 	memset(&g_shader_mgr, 0x00, sizeof(struct shader_mgr));
 }
 
-result_t gfx_shader_initmgr(bool_t disable_cache)
+result_t gfx_shader_initmgr(int disable_cache)
 {
 	log_print(LOG_INFO, "init shader-mgr ...");
 
@@ -892,7 +892,7 @@ void gfx_shader_bind(gfx_cmdqueue cmdqueue, struct gfx_shader* shader)
 }
 
 /*************************************************************************************************/
-bool_t gfx_cb_isvalid(struct gfx_cblock* cb, uint name_hash)
+int gfx_cb_isvalid(struct gfx_cblock* cb, uint name_hash)
 {
     return shader_find_constantcb(cb, name_hash) != NULL;
 }

@@ -63,8 +63,8 @@ struct engine
     struct init_params params;
     struct frame_stats frame_stats;
     struct timer* timer;
-    bool_t simulate_mode;
-    bool_t init;
+    int simulate_mode;
+    int init;
     struct hwinfo hwinfo;
     size_t tmp_sz;  /* temp memory size (for each thread we have one) */
 
@@ -92,11 +92,11 @@ result_t eng_console_showft(uint argc, const char ** argv, void* param);
 result_t eng_console_showgraph(uint argc, const char ** argv, void* param);
 result_t eng_console_lockfps(uint argc, const char** argv, void* param);
 
-int eng_hud_drawcallgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, bool_t update,
+int eng_hud_drawcallgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, int update,
     void* param);
-int eng_hud_drawftgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, bool_t update,
+int eng_hud_drawftgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, int update,
     void* param);
-int eng_hud_drawfpsgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, bool_t update,
+int eng_hud_drawfpsgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, int update,
     void* param);
 int eng_hud_drawfps(gfx_cmdqueue cmdqueue, int x, int y, int line_stride, void* param);
 int eng_hud_drawft(gfx_cmdqueue cmdqueue, int x, int y, int line_stride, void* param);
@@ -452,7 +452,7 @@ void eng_update()
     /* variables for fps calculation */
     static float elapsed_tm = 0.0f;
     static uint frame_cnt = 0;
-    static bool_t simulated = FALSE;
+    static int simulated = FALSE;
 
     /* reset frame stack on start of each frame */
     struct allocator* tmp_alloc = tsk_get_tmpalloc(0);
@@ -617,7 +617,7 @@ void eng_world_regvars()
 
 result_t eng_console_showfps(uint argc, const char** argv, void* param)
 {
-    bool_t value = TRUE;
+    int value = TRUE;
     if (argc == 1)
         value = str_tobool(argv[0]);
     if (value)
@@ -630,7 +630,7 @@ result_t eng_console_showfps(uint argc, const char** argv, void* param)
 
 result_t eng_console_showft(uint argc, const char** argv, void* param)
 {
-    bool_t value = TRUE;
+    int value = TRUE;
     if (argc == 1)
         value = str_tobool(argv[0]);
     if (value)
@@ -665,7 +665,7 @@ result_t eng_console_showgraph(uint argc, const char** argv, void* param)
 {
     if (argc != 1 && argc != 2)
         return RET_INVALIDARG;
-    bool_t show = TRUE;
+    int show = TRUE;
     if (argc == 2)
         show = str_tobool(argv[1]);
 
@@ -704,7 +704,7 @@ result_t eng_console_showgraph(uint argc, const char** argv, void* param)
     return RET_OK;
 }
 
-int eng_hud_drawfpsgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, bool_t update,
+int eng_hud_drawfpsgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, int update,
     void* param)
 {
     const struct frame_stats* stats = eng_get_framestats();
@@ -718,7 +718,7 @@ int eng_hud_drawfpsgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, 
     return y + GRAPH_HEIGHT;
 }
 
-int eng_hud_drawftgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, bool_t update,
+int eng_hud_drawftgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, int update,
     void* param)
 {
     const struct frame_stats* stats = eng_get_framestats();
@@ -732,7 +732,7 @@ int eng_hud_drawftgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y, b
 }
 
 int eng_hud_drawcallgraph(gfx_cmdqueue cmdqueue, ui_widget widget, int x, int y,
-    bool_t update, void* param)
+    int update, void* param)
 {
     const struct gfx_framestats* stats = gfx_get_framestats(cmdqueue);
     if (update)

@@ -79,7 +79,7 @@ void phx_release()
     log_printf(LOG_TEXT, "physics released.");
 }
 
-void phx_update_xforms(bool_t simulated)
+void phx_update_xforms(int simulated)
 {
     static const float steptm_max = STEP_LEN;
     uint scene_id = g_phx.active_scene;
@@ -158,7 +158,7 @@ void phx_update_xforms(bool_t simulated)
     A_LOAD(tmp_alloc);
 }
 
-bool_t phx_update_sim(float dt)
+int phx_update_sim(float dt)
 {
     static const float step = STEP_LEN;
     uint scene_id = g_phx.active_scene;
