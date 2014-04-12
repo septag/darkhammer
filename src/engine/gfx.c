@@ -297,9 +297,7 @@ result_t gfx_init(const struct gfx_params* params)
 
     /* default cmdqueue */
     g_gfx.cmdqueue = gfx_create_cmdqueue();
-	if (g_gfx.cmdqueue == NULL ||
-        IS_FAIL(gfx_initcmdqueue(g_gfx.cmdqueue, app_gfx_getcontext())))
-    {
+	if (g_gfx.cmdqueue == NULL || IS_FAIL(gfx_initcmdqueue(g_gfx.cmdqueue)))    {
 		err_print(__FILE__, __LINE__, "gfx-init failed: could not initilialize command-queue");
 		return RET_FAIL;
 	}

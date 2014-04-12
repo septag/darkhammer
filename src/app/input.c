@@ -37,7 +37,8 @@ static struct input_mgr g_input;
 typedef struct GLFWwindow GLFWwindow;
 typedef GLFWwindow* wplatform_t;
 #elif defined(_D3D_)
-#error "TODO"
+#include "dhcore/win.h"
+typedef HWND wplatform_t;
 #endif
 
 /* multiplatform functions that are implemented in their own .c files */
@@ -96,6 +97,8 @@ void input_update()
 int input_kb_getkey(enum input_key key, int once)
 {
     ASSERT(g_input.init);
+    if (!app_window_isactive())
+        return FALSE;
 
     uint idx = (uint)key;
     uint8 lock_flag = g_input.kb_locked[idx];
@@ -125,6 +128,9 @@ struct vec2i* input_mouse_getpos(struct vec2i* pos)
 int input_mouse_getkey(enum input_mouse_key mkey, int once)
 {
     ASSERT(g_input.init);
+
+    if (!app_window_isactive())
+        return FALSE;
 
     uint idx = (uint)mkey;
     uint8 lock_flag = g_input.mouse_keylocked[idx];

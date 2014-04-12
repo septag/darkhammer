@@ -110,7 +110,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)..\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lua.lib;mongoose-dbg.lib;dhcore-dbg.lib;d3dcompiler.lib;dxguid.lib;d3d11.lib;dxgi.lib;PhysX3DEBUG_x64.lib;PhysX3CommonDEBUG_x64.lib;PhysX3ExtensionsDEBUG.lib;PhysxProfileSDKDEBUG.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua.lib;mongoose-dbg.lib;dhcore-dbg.lib;dhapp-dbg.lib;d3dcompiler.lib;dxguid.lib;d3d11.lib;dxgi.lib;PhysX3DEBUG_x64.lib;PhysX3CommonDEBUG_x64.lib;PhysX3ExtensionsDEBUG.lib;PhysxProfileSDKDEBUG.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)..\lib\$(TargetName).lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
@@ -152,7 +152,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(SolutionDir)..\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lua.lib;mongoose.lib;dhcore.lib;PhysX3_x64.lib;PhysX3Common_x64.lib;PhysX3Extensions.lib;PhysxProfileSDK.lib;d3dcompiler.lib;dxguid.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua.lib;mongoose.lib;dhcore.lib;dhapp.lib;PhysX3_x64.lib;PhysX3Common_x64.lib;PhysX3Extensions.lib;PhysxProfileSDK.lib;d3dcompiler.lib;dxguid.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)..\lib\$(TargetName).lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
@@ -162,7 +162,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\dheng\anim.h" />
-    <ClInclude Include="..\..\include\dheng\app.h" />
     <ClInclude Include="..\..\include\dheng\camera.h" />
     <ClInclude Include="..\..\include\dheng\cmp-mgr.h" />
     <ClInclude Include="..\..\include\dheng\cmp-types.h" />
@@ -202,7 +201,6 @@
     <ClInclude Include="..\..\include\dheng\gl\gfx-types-gl.h" />
     <ClInclude Include="..\..\include\dheng\gui.h" />
     <ClInclude Include="..\..\include\dheng\h3d-types.h" />
-    <ClInclude Include="..\..\include\dheng\hwinfo.h" />
     <ClInclude Include="..\..\include\dheng\init-params.h" />
     <ClInclude Include="..\..\include\dheng\input.h" />
     <ClInclude Include="..\..\include\dheng\lod-scheme.h" />
@@ -221,16 +219,10 @@
     <ClInclude Include="..\..\include\dheng\scene-mgr.h" />
     <ClInclude Include="..\..\include\dheng\script.h" />
     <ClInclude Include="..\..\include\dheng\world-mgr.h" />
-    <ClInclude Include="..\..\src\engine\gl\glfw-keycodes.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\..\src\engine\platform\win\win-keycodes.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\engine\anim.c" />
-    <ClCompile Include="..\..\src\engine\app.c" />
     <ClCompile Include="..\..\src\engine\camera.c" />
     <ClCompile Include="..\..\src\engine\cmp-mgr.c" />
     <ClCompile Include="..\..\src\engine\cmp-register-main.c" />
@@ -247,7 +239,6 @@
     <ClCompile Include="..\..\src\engine\components\cmp-trigger.c" />
     <ClCompile Include="..\..\src\engine\components\cmp-xform.c" />
     <ClCompile Include="..\..\src\engine\console.c" />
-    <ClCompile Include="..\..\src\engine\d3d\app-d3d.cpp" />
     <ClCompile Include="..\..\src\engine\d3d\gfx-cmdqueue-d3d.cpp" />
     <ClCompile Include="..\..\src\engine\d3d\gfx-device-d3d.cpp" />
     <ClCompile Include="..\..\src\engine\d3d\gfx-shader-d3d.cpp" />
@@ -263,10 +254,6 @@
     <ClCompile Include="..\..\src\engine\gfx-shader.c" />
     <ClCompile Include="..\..\src\engine\gfx-texture.c" />
     <ClCompile Include="..\..\src\engine\gfx.c" />
-    <ClCompile Include="..\..\src\engine\gl\app-gl.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\src\engine\gl\gfx-cmdqueue-gl.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -279,13 +266,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\gl\input-glfw.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\src\engine\gui.c" />
-    <ClCompile Include="..\..\src\engine\hwinfo.c" />
-    <ClCompile Include="..\..\src\engine\input.c" />
     <ClCompile Include="..\..\src\engine\lod-scheme.c" />
     <ClCompile Include="..\..\src\engine\luabind\luacore_wrap.cxx" />
     <ClCompile Include="..\..\src\engine\luabind\luaengine_wrap.cxx" />
@@ -294,17 +275,7 @@
     <ClCompile Include="..\..\src\engine\phx-prefab.c" />
     <ClCompile Include="..\..\src\engine\phx.c" />
     <ClCompile Include="..\..\src\engine\physx\phx-device-px.cpp" />
-    <ClCompile Include="..\..\src\engine\platform\win\hwinfo-win.c" />
-    <ClCompile Include="..\..\src\engine\platform\win\input-win.c" />
     <ClCompile Include="..\..\src\engine\prf-mgr.c" />
-    <ClCompile Include="..\..\src\engine\pybind\pyalloc.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\pybind\pyengine_wrap.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\src\engine\renderpaths\gfx-csm.c" />
     <ClCompile Include="..\..\src\engine\renderpaths\gfx-deferred.c" />
     <ClCompile Include="..\..\src\engine\renderpaths\gfx-fwd.c" />
@@ -316,10 +287,6 @@
   <ItemGroup>
     <None Include="..\..\src\engine\luabind\luacore.i" />
     <None Include="..\..\src\engine\luabind\luaengine.i" />
-    <None Include="..\..\src\engine\pybind\pyengine.i">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

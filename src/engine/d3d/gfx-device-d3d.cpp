@@ -19,15 +19,19 @@
 
 #if defined(_MSVC_)
 /* win8.1 sdk inculdes some d3d types that triggeres "redifinition" warnings with external DX-SDK */
-#pragma warning(disable: 4005)
+//#pragma warning(disable: 4005)
 #endif
-#include "dhcore/win.h"
 
 #include <stdio.h>
+#include <dxgi.h>
 #include <d3d11.h>
-//#include <d3d11_1.h>
 #include <D3Dcompiler.h>
 #include <D3Dcommon.h>
+
+#include "dhcore/win.h"
+
+#include "dhapp/app.h"
+
 
 #include "dhcore/pool-alloc.h"
 #include "dhcore/color.h"
@@ -37,7 +41,7 @@
 #include "mem-ids.h"
 #include "gfx.h"
 #include "gfx-texture.h"
-#include "app.h"
+
 
 #if !defined(RELEASE)
 #define RELEASE(x)  if ((x) != NULL)  {   (x)->Release();    (x) = NULL;   }
@@ -57,19 +61,31 @@ struct gfx_device
     gfx_blendstate default_blend;
     int threaded_creates;
     int threaded_cmdqueues;
+    enum gfx_hwver ver;
 };
 
 /* globals */
-struct gfx_device g_dev;
-
-/* fwd */
-/* implemented in app-d3d.cpp */
-ID3D11Device* app_d3d_getdev();
+struct gfx_device g_gfxdev;
 
 /* inlines */
+INLINE const char* get_hwverstr(enum gfx_hwver hwver)
+{
+    switch (hwver)  {
+    case GFX_HWVER_D3D10_0:
+        return "10.0";
+    case GFX_HWVER_D3D10_1:
+        return "10.1";
+    case GFX_HWVER_D3D11_0:
+        return "11.0";
+    case GFX_HWVER_D3D11_1:
+        return "11.1";
+    }
+    return "";
+}
+
 INLINE struct gfx_obj_data* create_obj(uptr_t api_obj, enum gfx_obj_type type)
 {
-	struct gfx_obj_data* obj = (struct gfx_obj_data*)mem_pool_alloc_ts(&g_dev.obj_pool);
+	struct gfx_obj_data* obj = (struct gfx_obj_data*)mem_pool_alloc_ts(&g_gfxdev.obj_pool);
     ASSERT(obj != NULL);
     memset(obj, 0x00, sizeof(struct gfx_obj_data));
     obj->api_obj = (uptr_t)api_obj;
@@ -84,7 +100,7 @@ INLINE void destroy_obj(struct gfx_obj_data* obj)
     ID3D11DeviceChild* d3d_obj =  (ID3D11DeviceChild*)obj->api_obj;
     RELEASE(d3d_obj);
     obj->type = GFX_OBJ_NULL;
-    mem_pool_free_ts(&g_dev.obj_pool, obj);
+    mem_pool_free_ts(&g_gfxdev.obj_pool, obj);
 }
 
 INLINE enum D3D11_FILTER sampler_choose_filter(
@@ -328,7 +344,7 @@ ID3D11InputLayout* gfx_create_inputlayout_fromshader(const void* vs_data, uint v
 /* */
 void gfx_zerodev()
 {
-    memset(&g_dev, 0x00, sizeof(struct gfx_device));
+    memset(&g_gfxdev, 0x00, sizeof(struct gfx_device));
 }
 
 result_t gfx_initdev(const struct gfx_params* params)
@@ -336,18 +352,18 @@ result_t gfx_initdev(const struct gfx_params* params)
     result_t r;
     HRESULT dxhr;
 
-    memcpy(&g_dev.params, params, sizeof(struct gfx_params));
+    memcpy(&g_gfxdev.params, params, sizeof(struct gfx_params));
 
     log_print(LOG_INFO, "  init gfx-device ...");
 
-    r = mem_pool_create_ts(mem_heap(), &g_dev.obj_pool, sizeof(struct gfx_obj_data), 100, MID_GFX);
+    r = mem_pool_create_ts(mem_heap(), &g_gfxdev.obj_pool, sizeof(struct gfx_obj_data), 100, MID_GFX);
     if (IS_FAIL(r))     {
         err_print(__FILE__, __LINE__, "gfx-device init failed: could not create object pool");
         return RET_FAIL;
     }
 
     /* check features support */
-    ID3D11Device* dev = app_d3d_getdev();
+    ID3D11Device* dev = app_d3d_getdevice();
     D3D11_FEATURE_DATA_THREADING topt;
     dxhr = dev->CheckFeatureSupport(D3D11_FEATURE_THREADING, &topt, sizeof(topt));
     if (FAILED(dxhr))   {
@@ -359,10 +375,11 @@ result_t gfx_initdev(const struct gfx_params* params)
         log_print(LOG_WARNING, "Device doesn't have multi-thread resource creation support, "
             "background resource loading will be disabled");
     }   else    {
-        g_dev.threaded_creates = TRUE;
+        g_gfxdev.threaded_creates = TRUE;
     }
 
-    g_dev.threaded_cmdqueues = topt.DriverCommandLists;
+    g_gfxdev.threaded_cmdqueues = topt.DriverCommandLists;
+    g_gfxdev.ver = app_d3d_getver();
 
     /* D3D 11.1 */
     /*
@@ -385,11 +402,11 @@ result_t gfx_initdev(const struct gfx_params* params)
 void gfx_releasedev()
 {
     /* detect leaks and delete remaining objects */
-    uint leaks_cnt = mem_pool_getleaks_ts(&g_dev.obj_pool);
+    uint leaks_cnt = mem_pool_getleaks_ts(&g_gfxdev.obj_pool);
     if (leaks_cnt > 0)
         log_printf(LOG_WARNING, "gfx-device: total %d leaks found", leaks_cnt);
 
-    mem_pool_destroy_ts(&g_dev.obj_pool);
+    mem_pool_destroy_ts(&g_gfxdev.obj_pool);
 
     gfx_zerodev();
 }
@@ -424,7 +441,7 @@ gfx_depthstencilstate gfx_create_depthstencilstate(const struct gfx_depthstencil
         (ds->stencil_backface_desc.depthfail_op);
 
     ID3D11DepthStencilState* d;
-    dxhr = app_d3d_getdev()->CreateDepthStencilState(&d3d_desc, &d);
+    dxhr = app_d3d_getdevice()->CreateDepthStencilState(&d3d_desc, &d);
     if (FAILED(dxhr))
         return NULL;
 
@@ -455,7 +472,7 @@ gfx_rasterstate gfx_create_rasterstate(const struct gfx_rasterizer_desc* raster)
     d3d_desc.SlopeScaledDepthBias = raster->slopescaled_depthbias;
 
     ID3D11RasterizerState* rs;
-    dxhr = app_d3d_getdev()->CreateRasterizerState(&d3d_desc, &rs);
+    dxhr = app_d3d_getdevice()->CreateRasterizerState(&d3d_desc, &rs);
     if (FAILED(dxhr))
         return NULL;
 
@@ -487,7 +504,7 @@ gfx_blendstate gfx_create_blendstate(const struct gfx_blend_desc* blend)
     d3d_desc.IndependentBlendEnable = FALSE;
 
     ID3D11BlendState* b;
-    dxhr = app_d3d_getdev()->CreateBlendState(&d3d_desc, &b);
+    dxhr = app_d3d_getdevice()->CreateBlendState(&d3d_desc, &b);
     if (FAILED(dxhr))
         return NULL;
 
@@ -522,7 +539,7 @@ gfx_sampler gfx_create_sampler(const struct gfx_sampler_desc* desc)
     d3d_desc.MaxLOD = (FLOAT)desc->lod_max;
 
     ID3D11SamplerState* s;
-    dxhr = app_d3d_getdev()->CreateSamplerState(&d3d_desc, &s);
+    dxhr = app_d3d_getdevice()->CreateSamplerState(&d3d_desc, &s);
     if (FAILED(dxhr))
         return NULL;
 
@@ -584,9 +601,9 @@ gfx_buffer gfx_create_buffer(enum gfx_buffer_type type, enum gfx_mem_hint memhin
         d3d_data.pSysMem = data;
         d3d_data.SysMemPitch = 0;
         d3d_data.SysMemSlicePitch = 0;
-        dxhr = app_d3d_getdev()->CreateBuffer(&d3d_desc, &d3d_data, &b);
+        dxhr = app_d3d_getdevice()->CreateBuffer(&d3d_desc, &d3d_data, &b);
     }    else    {
-        dxhr = app_d3d_getdev()->CreateBuffer(&d3d_desc, NULL, &b);
+        dxhr = app_d3d_getdevice()->CreateBuffer(&d3d_desc, NULL, &b);
     }
 
     if (FAILED(dxhr))
@@ -599,7 +616,7 @@ gfx_buffer gfx_create_buffer(enum gfx_buffer_type type, enum gfx_mem_hint memhin
         viewdesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
         viewdesc.Buffer.ElementOffset = 0;
         viewdesc.Buffer.ElementWidth = size / 16;
-        dxhr = app_d3d_getdev()->CreateShaderResourceView(b, &viewdesc, &d3d_srv);
+        dxhr = app_d3d_getdevice()->CreateShaderResourceView(b, &viewdesc, &d3d_srv);
         if (FAILED(dxhr))
             return NULL;
     }
@@ -611,15 +628,15 @@ gfx_buffer gfx_create_buffer(enum gfx_buffer_type type, enum gfx_mem_hint memhin
     obj->desc.buff.d3d_srv = d3d_srv;
     obj->desc.buff.alignment = 16;
 
-    g_dev.memstats.buffer_cnt ++;
-    g_dev.memstats.buffers += size;
+    g_gfxdev.memstats.buffer_cnt ++;
+    g_gfxdev.memstats.buffers += size;
     return obj;
 }
 
 void gfx_destroy_buffer(gfx_buffer buff)
 {
-    g_dev.memstats.buffer_cnt --;
-    g_dev.memstats.buffers -= buff->desc.buff.size;
+    g_gfxdev.memstats.buffer_cnt --;
+    g_gfxdev.memstats.buffers -= buff->desc.buff.size;
 
     if (buff->desc.buff.d3d_srv != NULL)
         ((ID3D11ShaderResourceView*)buff->desc.buff.d3d_srv)->Release();
@@ -682,7 +699,7 @@ gfx_buffer gfx_create_texture(enum gfx_texture_type type, uint width, uint heigh
                 D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
             d3d_desc.SampleDesc.Count = 1;
             d3d_desc.SampleDesc.Quality = 0;
-            dxhr = app_d3d_getdev()->CreateTexture2D(&d3d_desc, d3d_data, (ID3D11Texture2D**)&tex);
+            dxhr = app_d3d_getdevice()->CreateTexture2D(&d3d_desc, d3d_data, (ID3D11Texture2D**)&tex);
         }
         break;
 
@@ -698,7 +715,7 @@ gfx_buffer gfx_create_texture(enum gfx_texture_type type, uint width, uint heigh
             d3d_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
             d3d_desc.CPUAccessFlags = cpu_access;
             d3d_desc.MiscFlags = 0;
-            dxhr = app_d3d_getdev()->CreateTexture1D(&d3d_desc, d3d_data, (ID3D11Texture1D**)&tex);
+            dxhr = app_d3d_getdevice()->CreateTexture1D(&d3d_desc, d3d_data, (ID3D11Texture1D**)&tex);
         }
         break;
 
@@ -714,7 +731,7 @@ gfx_buffer gfx_create_texture(enum gfx_texture_type type, uint width, uint heigh
             d3d_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
             d3d_desc.CPUAccessFlags = cpu_access;
             d3d_desc.MiscFlags = 0;
-            dxhr = app_d3d_getdev()->CreateTexture3D(&d3d_desc, d3d_data, (ID3D11Texture3D**)&tex);
+            dxhr = app_d3d_getdevice()->CreateTexture3D(&d3d_desc, d3d_data, (ID3D11Texture3D**)&tex);
         }
         break;
     }
@@ -726,7 +743,7 @@ gfx_buffer gfx_create_texture(enum gfx_texture_type type, uint width, uint heigh
 
     /* shader res-view */
     ID3D11ShaderResourceView* srv;
-    dxhr = app_d3d_getdev()->CreateShaderResourceView((ID3D11Resource*)tex, NULL, &srv);
+    dxhr = app_d3d_getdevice()->CreateShaderResourceView((ID3D11Resource*)tex, NULL, &srv);
     if (FAILED(dxhr))   {
         tex->Release();
         return NULL;
@@ -744,8 +761,8 @@ gfx_buffer gfx_create_texture(enum gfx_texture_type type, uint width, uint heigh
     obj->desc.tex.is_rt = FALSE;
     obj->desc.tex.mip_cnt = mip_cnt;
 
-    g_dev.memstats.texture_cnt ++;
-    g_dev.memstats.textures += total_size;
+    g_gfxdev.memstats.texture_cnt ++;
+    g_gfxdev.memstats.textures += total_size;
 
     return obj;
 }
@@ -782,7 +799,7 @@ gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt, i
     d3d_desc.MiscFlags = has_mipmap ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
     d3d_desc.SampleDesc.Count = 1;
     d3d_desc.SampleDesc.Quality = 0;
-    dxhr = app_d3d_getdev()->CreateTexture2D(&d3d_desc, NULL, (ID3D11Texture2D**)&tex);
+    dxhr = app_d3d_getdevice()->CreateTexture2D(&d3d_desc, NULL, (ID3D11Texture2D**)&tex);
     if (FAILED(dxhr))
         return NULL;
 
@@ -793,7 +810,7 @@ gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt, i
     srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srv_desc.Texture2D.MipLevels = 1;
     srv_desc.Texture2D.MostDetailedMip = 0;
-    dxhr = app_d3d_getdev()->CreateShaderResourceView(tex, &srv_desc, &srv);
+    dxhr = app_d3d_getdevice()->CreateShaderResourceView(tex, &srv_desc, &srv);
     if (FAILED(dxhr))   {
         tex->Release();
         return NULL;
@@ -807,7 +824,7 @@ gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt, i
         rtv_desc.Format = (DXGI_FORMAT)texture_get_nonsrgb(fmt);
         rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
         rtv_desc.Texture2D.MipSlice = 0;
-        dxhr = app_d3d_getdev()->CreateRenderTargetView(tex, &rtv_desc, &rtv);
+        dxhr = app_d3d_getdevice()->CreateRenderTargetView(tex, &rtv_desc, &rtv);
     }   else    {
         D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc;
         memset(&dsv_desc, 0x00, sizeof(dsv_desc));
@@ -815,7 +832,7 @@ gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt, i
         dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
         dsv_desc.Flags = 0;
         dsv_desc.Texture2D.MipSlice = 0;
-        dxhr = app_d3d_getdev()->CreateDepthStencilView(tex, &dsv_desc, &dsv);
+        dxhr = app_d3d_getdevice()->CreateDepthStencilView(tex, &dsv_desc, &dsv);
     }
     if (FAILED(dxhr))   {
         tex->Release();
@@ -835,8 +852,8 @@ gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt, i
     obj->desc.tex.is_rt = TRUE;
     obj->desc.tex.mip_cnt = mipcnt;
 
-    g_dev.memstats.rttexture_cnt ++;
-    g_dev.memstats.rt_textures += obj->desc.tex.size;
+    g_gfxdev.memstats.rttexture_cnt ++;
+    g_gfxdev.memstats.rt_textures += obj->desc.tex.size;
 
     return obj;
 }
@@ -870,7 +887,7 @@ gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
     d3d_desc.MiscFlags = 0;
     d3d_desc.SampleDesc.Count = 1;
     d3d_desc.SampleDesc.Quality = 0;
-    dxhr = app_d3d_getdev()->CreateTexture2D(&d3d_desc, NULL, (ID3D11Texture2D**)&tex);
+    dxhr = app_d3d_getdevice()->CreateTexture2D(&d3d_desc, NULL, (ID3D11Texture2D**)&tex);
     if (FAILED(dxhr))
         return NULL;
 
@@ -884,7 +901,7 @@ gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
     srv_desc.Texture2DArray.FirstArraySlice = 0;
     srv_desc.Texture2DArray.MostDetailedMip = 0;
 
-    dxhr = app_d3d_getdev()->CreateShaderResourceView(tex, &srv_desc, &srv);
+    dxhr = app_d3d_getdevice()->CreateShaderResourceView(tex, &srv_desc, &srv);
     if (FAILED(dxhr))   {
         tex->Release();
         return NULL;
@@ -900,7 +917,7 @@ gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
         rtv_desc.Texture2DArray.ArraySize = arr_cnt;
         rtv_desc.Texture2DArray.MipSlice = 0;
         rtv_desc.Texture2DArray.FirstArraySlice = 0;
-        dxhr = app_d3d_getdev()->CreateRenderTargetView(tex, &rtv_desc, &rtv);
+        dxhr = app_d3d_getdevice()->CreateRenderTargetView(tex, &rtv_desc, &rtv);
     }   else    {
         D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc;
         memset(&dsv_desc, 0x00, sizeof(dsv_desc));
@@ -910,7 +927,7 @@ gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
         dsv_desc.Texture2DArray.ArraySize = arr_cnt;
         dsv_desc.Texture2DArray.FirstArraySlice = 0;
         dsv_desc.Texture2DArray.MipSlice = 0;
-        dxhr = app_d3d_getdev()->CreateDepthStencilView(tex, &dsv_desc, &dsv);
+        dxhr = app_d3d_getdevice()->CreateDepthStencilView(tex, &dsv_desc, &dsv);
     }
     if (FAILED(dxhr))   {
         tex->Release();
@@ -930,8 +947,8 @@ gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
     obj->desc.tex.is_rt = TRUE;
     obj->desc.tex.mip_cnt = 1;
 
-    g_dev.memstats.rttexture_cnt ++;
-    g_dev.memstats.rt_textures += obj->desc.tex.size;
+    g_gfxdev.memstats.rttexture_cnt ++;
+    g_gfxdev.memstats.rt_textures += obj->desc.tex.size;
 
     return obj;
 }
@@ -964,7 +981,7 @@ gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format f
         d3d_desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
     else
         d3d_desc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
-    dxhr = app_d3d_getdev()->CreateTexture2D(&d3d_desc, NULL, (ID3D11Texture2D**)&tex);
+    dxhr = app_d3d_getdevice()->CreateTexture2D(&d3d_desc, NULL, (ID3D11Texture2D**)&tex);
     if (FAILED(dxhr))
         return NULL;
 
@@ -975,7 +992,7 @@ gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format f
     srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
     srv_desc.TextureCube.MostDetailedMip = 0;
     srv_desc.TextureCube.MipLevels = 1;
-    dxhr = app_d3d_getdev()->CreateShaderResourceView(tex, &srv_desc, &srv);
+    dxhr = app_d3d_getdevice()->CreateShaderResourceView(tex, &srv_desc, &srv);
     if (FAILED(dxhr))   {
         tex->Release();
         return NULL;
@@ -990,7 +1007,7 @@ gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format f
         rtv_desc.Texture2DArray.ArraySize = 6;
         rtv_desc.Texture2DArray.FirstArraySlice = 0;
         rtv_desc.Texture2DArray.MipSlice = 0;
-        dxhr = app_d3d_getdev()->CreateRenderTargetView(tex, &rtv_desc, &rtv);
+        dxhr = app_d3d_getdevice()->CreateRenderTargetView(tex, &rtv_desc, &rtv);
     }   else    {
         D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc;
         memset(&dsv_desc, 0x00, sizeof(dsv_desc));
@@ -1000,7 +1017,7 @@ gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format f
         dsv_desc.Texture2DArray.ArraySize = 6;
         dsv_desc.Texture2DArray.FirstArraySlice = 0;
         dsv_desc.Texture2DArray.MipSlice = 0;
-        dxhr = app_d3d_getdev()->CreateDepthStencilView(tex, &dsv_desc, &dsv);
+        dxhr = app_d3d_getdevice()->CreateDepthStencilView(tex, &dsv_desc, &dsv);
     }
     if (FAILED(dxhr))   {
         tex->Release();
@@ -1021,19 +1038,19 @@ gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format f
     obj->desc.tex.is_rt = TRUE;
     obj->desc.tex.mip_cnt = 1;
 
-    g_dev.memstats.rttexture_cnt ++;
-    g_dev.memstats.rt_textures += obj->desc.tex.size;
+    g_gfxdev.memstats.rttexture_cnt ++;
+    g_gfxdev.memstats.rt_textures += obj->desc.tex.size;
     return obj;
 }
 
 void gfx_destroy_texture(gfx_texture tex)
 {
     if (!tex->desc.tex.is_rt)   {
-        g_dev.memstats.texture_cnt --;
-        g_dev.memstats.textures -= tex->desc.tex.size;
+        g_gfxdev.memstats.texture_cnt --;
+        g_gfxdev.memstats.textures -= tex->desc.tex.size;
     }   else    {
-        g_dev.memstats.rttexture_cnt --;
-        g_dev.memstats.rt_textures -= tex->desc.tex.size;
+        g_gfxdev.memstats.rttexture_cnt --;
+        g_gfxdev.memstats.rt_textures -= tex->desc.tex.size;
     }
 
     ID3D11DeviceChild* srv = (ID3D11DeviceChild*)tex->desc.tex.d3d_srv;
@@ -1207,7 +1224,7 @@ gfx_program gfx_create_program(const struct gfx_shader_data* source_data,
 
     /* compile flags/treat warnings as errors */
     uint flags = D3DCOMPILE_WARNINGS_ARE_ERRORS;
-    if(BIT_CHECK(g_dev.params.flags, GFX_FLAG_DEBUG))
+    if(BIT_CHECK(g_gfxdev.params.flags, GFX_FLAG_DEBUG))
         BIT_ADD(flags, D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION);
     else
         BIT_ADD(flags, D3DCOMPILE_OPTIMIZATION_LEVEL3);
@@ -1285,7 +1302,7 @@ gfx_program gfx_create_program(const struct gfx_shader_data* source_data,
 
     /* link shaders/create shader objects */
     if (vs_blob != NULL)    {
-        dxhr = app_d3d_getdev()->CreateVertexShader(vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
+        dxhr = app_d3d_getdevice()->CreateVertexShader(vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
             NULL, &vs);
         if (FAILED(dxhr))   {
             err_print(__FILE__, __LINE__, "hlsl-compiler failed: could not create vertex-shader");
@@ -1298,7 +1315,7 @@ gfx_program gfx_create_program(const struct gfx_shader_data* source_data,
     }
 
     if (ps_blob != NULL)    {
-        dxhr = app_d3d_getdev()->CreatePixelShader(ps_blob->GetBufferPointer(), ps_blob->GetBufferSize(),
+        dxhr = app_d3d_getdevice()->CreatePixelShader(ps_blob->GetBufferPointer(), ps_blob->GetBufferSize(),
             NULL, &ps);
         if (FAILED(dxhr))   {
             err_print(__FILE__, __LINE__, "hlsl-compiler failed: could not create pixel-shader");
@@ -1311,7 +1328,7 @@ gfx_program gfx_create_program(const struct gfx_shader_data* source_data,
     }
 
     if (gs_blob != NULL)    {
-        dxhr = app_d3d_getdev()->CreateGeometryShader(gs_blob->GetBufferPointer(), gs_blob->GetBufferSize(),
+        dxhr = app_d3d_getdevice()->CreateGeometryShader(gs_blob->GetBufferPointer(), gs_blob->GetBufferSize(),
             NULL, &gs);
         if (FAILED(dxhr))   {
             err_print(__FILE__, __LINE__, "hlsl-compiler failed: could not create geometry-shader");
@@ -1395,7 +1412,7 @@ gfx_program gfx_create_program_bin(const struct gfx_program_bin_desc* bindesc)
 
     /* shader linking */
     ASSERT(bindesc->vs != NULL);
-    dxhr = app_d3d_getdev()->CreateVertexShader(bindesc->vs, bindesc->vs_sz, NULL, &vs);
+    dxhr = app_d3d_getdevice()->CreateVertexShader(bindesc->vs, bindesc->vs_sz, NULL, &vs);
     if (FAILED(dxhr) ||
         FAILED(D3DReflect(bindesc->vs, bindesc->vs_sz, IID_ID3D11ShaderReflection,
         (void**)&vs_refl)))
@@ -1409,7 +1426,7 @@ gfx_program gfx_create_program_bin(const struct gfx_program_bin_desc* bindesc)
     shader_cnt ++;
 
     if (bindesc->ps != NULL)    {
-        dxhr = app_d3d_getdev()->CreatePixelShader(bindesc->ps, bindesc->ps_sz, NULL, &ps);
+        dxhr = app_d3d_getdevice()->CreatePixelShader(bindesc->ps, bindesc->ps_sz, NULL, &ps);
         if (FAILED(dxhr) ||
             FAILED(D3DReflect(bindesc->ps, bindesc->ps_sz, IID_ID3D11ShaderReflection,
             (void**)&ps_refl)))
@@ -1424,7 +1441,7 @@ gfx_program gfx_create_program_bin(const struct gfx_program_bin_desc* bindesc)
     }
 
     if (bindesc->gs != NULL)    {
-        dxhr = app_d3d_getdev()->CreateGeometryShader(bindesc->gs, bindesc->gs_sz, NULL, &gs);
+        dxhr = app_d3d_getdevice()->CreateGeometryShader(bindesc->gs, bindesc->gs_sz, NULL, &gs);
         if (FAILED(dxhr) ||
             FAILED(D3DReflect(bindesc->gs, bindesc->gs_sz, IID_ID3D11ShaderReflection,
             (void**)&gs_refl)))
@@ -1488,7 +1505,7 @@ ID3D11InputLayout* gfx_create_inputlayout_fromshader(const void* vs_data, uint v
     }
 
     ID3D11InputLayout* il = NULL;
-    app_d3d_getdev()->CreateInputLayout(elems, binding_cnt, vs_data, vs_size, &il);
+    app_d3d_getdevice()->CreateInputLayout(elems, binding_cnt, vs_data, vs_size, &il);
     return il;
 }
 
@@ -1510,14 +1527,14 @@ void gfx_destroy_program(gfx_program prog)
 
 const struct gfx_gpu_memstats* gfx_get_memstats()
 {
-    return &g_dev.memstats;
+    return &g_gfxdev.memstats;
 }
 
 int gfx_check_feature(enum gfx_feature ft)
 {
     switch (ft) {
     case GFX_FEATURE_THREADED_CREATES:
-        return g_dev.threaded_creates;
+        return g_gfxdev.threaded_creates;
     case GFX_FEATURE_RANGED_CBUFFERS:
         return FALSE;   /* not implemented */
     default:
@@ -1546,5 +1563,69 @@ void gfx_delayed_finalizeobjects()
 {
 }
 
+const char* gfx_get_driverstr()
+{
+    static char info[256];
+
+    DXGI_ADAPTER_DESC desc;
+    HRESULT dxhr = app_d3d_getadapter()->GetDesc(&desc);
+    if (FAILED(dxhr))
+        return NULL;
+
+    char gpu_desc[128];
+    str_widetomb(gpu_desc, desc.Description, sizeof(gpu_desc));
+
+    sprintf(info, "%s r%d v%s %s",
+        gpu_desc,
+        desc.Revision,
+        get_hwverstr(g_gfxdev.ver),
+#if defined(_X64_)
+        "x64"
+#elif defined(_X86_)
+        "x86"
+#else
+        "[]"
+#endif
+        );
+    return info;
+}
+
+void gfx_get_devinfo(struct gfx_device_info* info)
+{
+    memset(info, 0x00, sizeof(struct gfx_device_info));
+
+    IDXGIAdapter* adapter = app_d3d_getadapter();
+    if (adapter == NULL)
+        return;
+
+    DXGI_ADAPTER_DESC desc;
+    HRESULT dxhr = adapter->GetDesc(&desc);
+    if (FAILED(dxhr))
+        return;
+
+    /* basic info */
+    str_widetomb(info->desc, desc.Description, sizeof(info->desc));
+    switch (desc.VendorId)        {
+    case 0x1002:        info->vendor = GFX_GPU_ATI;     break;
+    case 0x10DE:        info->vendor = GFX_GPU_NVIDIA;  break;
+    case 0x163C:        info->vendor = GFX_GPU_INTEL;   break;
+    default:            info->vendor = GFX_GPU_UNKNOWN; break;
+    }
+    info->mem_avail = (int)(desc.DedicatedVideoMemory / 1024);
+
+    /* threading */
+    D3D11_FEATURE_DATA_THREADING d3d_thr;
+    if (SUCCEEDED(app_d3d_getdevice()->CheckFeatureSupport(D3D11_FEATURE_THREADING, &d3d_thr, 
+        sizeof(d3d_thr))))
+    {
+        info->threading.concurrent_cmdlist = d3d_thr.DriverCommandLists;
+        info->threading.concurrent_create = d3d_thr.DriverConcurrentCreates;
+    }
+}
+
+enum gfx_hwver gfx_get_hwver()
+{
+    return g_gfxdev.ver;
+}
 
 #endif  /* _D3D_ */

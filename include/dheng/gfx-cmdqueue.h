@@ -25,7 +25,7 @@
 _EXTERN_BEGIN_
 
 gfx_cmdqueue gfx_create_cmdqueue();
-result_t gfx_initcmdqueue(gfx_cmdqueue cmdqueue, void* param);
+result_t gfx_initcmdqueue(gfx_cmdqueue cmdqueue);
 void gfx_releasecmdqueue(gfx_cmdqueue cmdqueue);
 void gfx_destroy_cmdqueue(gfx_cmdqueue cmdqueue);
 

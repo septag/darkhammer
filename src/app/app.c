@@ -127,6 +127,7 @@ struct init_params* app_config_default()
     params->gfx.width = 1280;
     params->gfx.height = 720;
     params->gfx.refresh_rate = 60;
+    params->phx.substeps_max = PHX_DEFAULT_SUBSTEPS;
 
 #if defined(_OSX_)
     params->gfx.hwver = GFX_HWVER_GL3_2;

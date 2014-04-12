@@ -17,8 +17,9 @@
 
 #include "dhcore/core.h"
 #include "dhcore/win.h"
+
 #include "win-keycodes.h"
-#include "dhapp/input.h"
+#include "input.h"
 
 void input_make_keymap_platform(uint keymap[INPUT_KEY_CNT])
 {
@@ -124,9 +125,8 @@ void input_make_keymap_platform(uint keymap[INPUT_KEY_CNT])
     keymap[99] = KEY_NUM_LOCK;
 }
 
-void input_mouse_getpos_platform(void* wnd_hdl, OUT int* x, OUT int* y)
+void input_mouse_getpos_platform(HWND hwnd, OUT int* x, OUT int* y)
 {
-    HWND hwnd = (HWND)wnd_hdl;
     POINT pt;
 
     GetCursorPos(&pt);
@@ -135,16 +135,15 @@ void input_mouse_getpos_platform(void* wnd_hdl, OUT int* x, OUT int* y)
     *y = pt.y;
 }
 
-void input_mouse_setpos_platform(void* wnd_hdl, int x, int y)
+void input_mouse_setpos_platform(HWND hwnd, int x, int y)
 {
-    HWND hwnd = (HWND)wnd_hdl;
     POINT pt = {x, y};
 
     ClientToScreen(hwnd, &pt);
     SetCursorPos(pt.x, pt.y);
 }
 
-int input_mouse_getkey_platform(void* wnd_hdl, enum input_mouse_key mkey)
+int input_mouse_getkey_platform(HWND hwnd, enum input_mouse_key mkey)
 {
     int vkey = 0;
     switch (mkey)   {
@@ -168,8 +167,7 @@ int input_mouse_getkey_platform(void* wnd_hdl, enum input_mouse_key mkey)
     return (GetAsyncKeyState(vkey)&0x8000);
 }
 
-int input_kb_getkey_platform(void* wnd_hdl, const uint keymap[INPUT_KEY_CNT],
-                                enum input_key key)
+int input_kb_getkey_platform(HWND hwnd, const uint keymap[INPUT_KEY_CNT], enum input_key key)
 {
     int keycode = (int)keymap[(uint)key];
     return (GetAsyncKeyState(keycode)&0x8000) >> 15;

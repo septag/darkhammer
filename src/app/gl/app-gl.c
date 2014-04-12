@@ -142,6 +142,10 @@ INLINE void app_convert_gfxver(enum gfx_hwver hwver, struct version_info* v)
 result_t app_init(const char* name, const struct init_params* params)
 {
     ASSERT(g_app == NULL);
+    if (g_app != NULL)  {
+        err_print(__FILE__, __LINE__, "application already initialized");
+        return RET_FAIL;
+    }
 
     /* create application */
     log_print(LOG_TEXT, "init OpenGL app ...");

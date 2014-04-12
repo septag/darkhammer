@@ -42,24 +42,12 @@
     <Filter Include="Source Files\physx">
       <UniqueIdentifier>{4d9a4ca4-0c51-4651-82eb-bfdda21e6190}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\platform">
-      <UniqueIdentifier>{7087e15c-065b-40a2-963b-614cf394af60}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\platform\win">
-      <UniqueIdentifier>{ee64ff93-12a9-4244-aa39-79b1184b9b17}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\pybind">
-      <UniqueIdentifier>{e5fd5ad8-2f95-464e-8f9f-1d7678b2a9c8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\renderpaths">
       <UniqueIdentifier>{21743ee5-7698-49b1-8ad7-a514f6ba2fd7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\dheng\anim.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\dheng\app.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\dheng\camera.h">
@@ -135,9 +123,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\dheng\h3d-types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\dheng\hwinfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\dheng\init-params.h">
@@ -236,21 +221,12 @@
     <ClInclude Include="..\..\include\dheng\pybind\pyalloc.h">
       <Filter>Header Files\pybind</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\engine\gl\glfw-keycodes.h">
-      <Filter>Source Files\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\engine\platform\win\win-keycodes.h">
-      <Filter>Source Files\platform\win</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\engine\anim.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\app.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\engine\camera.c">
@@ -302,12 +278,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\engine\gui.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\hwinfo.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\input.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\engine\lod-scheme.c">
@@ -370,9 +340,6 @@
     <ClCompile Include="..\..\src\engine\components\cmp-xform.c">
       <Filter>Source Files\components</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\d3d\app-d3d.cpp">
-      <Filter>Source Files\d3d</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\engine\d3d\gfx-cmdqueue-d3d.cpp">
       <Filter>Source Files\d3d</Filter>
     </ClCompile>
@@ -382,9 +349,6 @@
     <ClCompile Include="..\..\src\engine\d3d\gfx-shader-d3d.cpp">
       <Filter>Source Files\d3d</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\gl\app-gl.c">
-      <Filter>Source Files\gl</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\engine\gl\gfx-cmdqueue-gl.c">
       <Filter>Source Files\gl</Filter>
     </ClCompile>
@@ -392,9 +356,6 @@
       <Filter>Source Files\gl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\engine\gl\gfx-shader-gl.c">
-      <Filter>Source Files\gl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gl\input-glfw.c">
       <Filter>Source Files\gl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\engine\luabind\script-lua-core.cpp">
@@ -412,18 +373,6 @@
     <ClCompile Include="..\..\src\engine\physx\phx-device-px.cpp">
       <Filter>Source Files\physx</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\platform\win\hwinfo-win.c">
-      <Filter>Source Files\platform\win</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\platform\win\input-win.c">
-      <Filter>Source Files\platform\win</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\pybind\pyalloc.c">
-      <Filter>Source Files\pybind</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\pybind\pyengine_wrap.c">
-      <Filter>Source Files\pybind</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\engine\renderpaths\gfx-csm.c">
       <Filter>Source Files\renderpaths</Filter>
     </ClCompile>
@@ -440,9 +389,6 @@
     </None>
     <None Include="..\..\src\engine\luabind\luaengine.i">
       <Filter>Source Files\luabind</Filter>
-    </None>
-    <None Include="..\..\src\engine\pybind\pyengine.i">
-      <Filter>Source Files\pybind</Filter>
     </None>
   </ItemGroup>
 </Project>

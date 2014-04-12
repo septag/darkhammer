@@ -140,46 +140,48 @@ def install_assimp():
     os.chdir(ROOTDIR)
     return True
 
-def install_glfwext():
-    log('looking for glfwext...')
-    if os.path.isfile(os.path.join(LIBDIR, 'glfwext.lib')) and \
-        os.path.isfile(os.path.join(BINDIR, 'glfwext.dll')):
+def install_glfw():
+    log('looking for glfw...')
+    if os.path.isfile(os.path.join(LIBDIR, 'glfw.lib')) and \
+        os.path.isfile(os.path.join(BINDIR, 'glfw.dll')):
         log('\t\tfound\n')
         return True
     log('\t\tnot found\n')
+    
+    urls = {\
+        'x86': 'http://sourceforge.net/projects/glfw/files/glfw/3.0.4/glfw-3.0.4.bin.WIN32.zip/download',
+        'x64': 'http://sourceforge.net/projects/glfw/files/glfw/3.0.4/glfw-3.0.4.bin.WIN64.zip/download'}
+    log('downloading glfw binaries from "http://www.glfw.org"...\n')
 
-    url = 'https://github.com/septag/glfwext/archive/master.zip'
-    log('downloading glfwext source from "https://github.com/septag/glfwext"...\n')
-
-    glfwdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'glfwext')
+    glfwdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'glfw')
     os.makedirs(glfwdir, exist_ok=True)
     os.chdir(glfwdir)
-    if os.system('wget -N --no-check-certificate {0}'.format(url)) != 0:
-        os.chdir(ROOTDIR)
-        return False
-    if os.system('unzip -o master') != 0:
+    if os.system('wget -N --no-check-certificate {0}'.format(urls[ARCH])) != 0:
         os.chdir(ROOTDIR)
         return False
 
-    os.chdir('glfw-master')
-    if os.system('python {0} configure --msvc_version="{1}" --msvc_targets={2}'.format(\
-        WAFPATH, get_msvccompiler(), ARCH)) != 0:
-        if os.system('python {0} configure --msvc_version="{1}" --msvc_targets={2}'.format(\
-            WAFPATH, get_msvccompiler(), get_msvctarget())) != 0:
-            os.chdir(ROOTDIR)
-            return False
+        # extract file name from url
+    urlsplit = urls[ARCH].split('/')
+    filename = ''
+    for u in urlsplit:
+        if '.zip' in u:
+            filename = u
+            break        
+
+    if os.system('unzip -o %s' % filename) != 0:
+        os.chdir(ROOTDIR)
+        return False
         
-    if os.system('python {0} build install'.format(WAFPATH)) != 0:
-        os.chdir(ROOTDIR)
-        return False
-
+    dirname = os.path.splitext(filename)[0]
+    os.chdir(dirname)    
+    
     # copy important files
     # libs
-    shutil.copyfile('bin/glfwext.dll', os.path.join(BINDIR, 'glfwext.dll'))
-    shutil.copyfile('build/src/glfwext.lib', os.path.join(LIBDIR, 'glfwext.lib'))
+    shutil.copyfile('lib-msvc%s0/glfw3.dll' % MSVC, os.path.join(BINDIR, 'glfw3.dll'))
+    shutil.copyfile('lib-msvc%s0/glfw3dll.lib' % MSVC, os.path.join(LIBDIR, 'glfw.lib'))
 
     # headers
-    includes = os.path.join(INCLUDEDIR, 'GLFWEXT')
+    includes = os.path.join(INCLUDEDIR, 'GLFW')
     headers = glob.glob('include/GLFW/*.h')
     os.makedirs(includes, exist_ok=True)
     for header in headers:
@@ -331,8 +333,8 @@ def main():
         log('error: could not install assimp\n')
         return False
 
-    if not install_glfwext():
-        log('error: could not install glfwext\n')
+    if not install_glfw():
+        log('error: could not install glfw\n')
         return False
 
     if not install_glew():

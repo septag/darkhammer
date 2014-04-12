@@ -155,7 +155,7 @@ uint wld_register_var(uint section_id, const char* name, enum variant_type type,
 {
     ASSERT(section_id != 0);
     ASSERT(strlen(name) < 32);
-    ASSERT(type != VARIANT_NULL);
+    ASSERT(type != VAR_TYPE_NULL);
 
     struct wld_section* s = &((struct wld_section*)g_wld.sections.buffer)[section_id - 1];
 

@@ -14,6 +14,7 @@
  ***********************************************************************************/
 
 #include <stdio.h>
+#include <time.h>
 
 #include "config.h"
 #include "engine.h"
@@ -588,30 +589,30 @@ void eng_world_regvars()
     /* light section */
     uint light_id = wld_register_section("light");
     ASSERT(light_id != 0);
-    wld_set_var(light_id, wld_register_var(light_id, "dir", VARIANT_FLOAT3, NULL, NULL),
+    wld_set_var(light_id, wld_register_var(light_id, "dir", VAR_TYPE_FLOAT3, NULL, NULL),
         var_set3f(&v, 0.0f, -1.0f, 0.5f));
-    wld_set_var(light_id, wld_register_var(light_id, "color", VARIANT_FLOAT4, NULL, NULL),
+    wld_set_var(light_id, wld_register_var(light_id, "color", VAR_TYPE_FLOAT4, NULL, NULL),
         var_set4fv(&v, g_color_white.f));
-    wld_set_var(light_id, wld_register_var(light_id, "intensity", VARIANT_FLOAT, NULL, NULL),
+    wld_set_var(light_id, wld_register_var(light_id, "intensity", VAR_TYPE_FLOAT, NULL, NULL),
         var_setf(&v, 1.0f));
 
     /* ambient section */
     uint ambient_id = wld_register_section("ambient");
     ASSERT(ambient_id != 0);
-    wld_set_var(ambient_id, wld_register_var(ambient_id, "ground-color", VARIANT_FLOAT4, NULL, NULL),
+    wld_set_var(ambient_id, wld_register_var(ambient_id, "ground-color", VAR_TYPE_FLOAT4, NULL, NULL),
         var_set4f(&v, 0.29f, 0.45f, 0.32f, 1.0f));
-    wld_set_var(ambient_id, wld_register_var(ambient_id, "sky-color", VARIANT_FLOAT4, NULL, NULL),
+    wld_set_var(ambient_id, wld_register_var(ambient_id, "sky-color", VAR_TYPE_FLOAT4, NULL, NULL),
         var_set4f(&v, 0.5f, 0.5f, 0.5f, 1.0f));
-    wld_set_var(ambient_id, wld_register_var(ambient_id, "intensity", VARIANT_FLOAT, NULL, NULL),
+    wld_set_var(ambient_id, wld_register_var(ambient_id, "intensity", VAR_TYPE_FLOAT, NULL, NULL),
         var_setf(&v, 0.2f));
-    wld_set_var(ambient_id, wld_register_var(ambient_id, "sky-vector", VARIANT_FLOAT3, NULL, NULL),
+    wld_set_var(ambient_id, wld_register_var(ambient_id, "sky-vector", VAR_TYPE_FLOAT3, NULL, NULL),
         var_set3fv(&v, g_vec3_unity.f));
 
     /* physics section */
     uint phys_id = wld_register_section("physics");
     ASSERT(phys_id != 0);
     wld_set_var(phys_id,
-        wld_register_var(phys_id, "gravity-vector", VARIANT_FLOAT3, phx_setgravity_callback, NULL),
+        wld_register_var(phys_id, "gravity-vector", VAR_TYPE_FLOAT3, phx_setgravity_callback, NULL),
         var_set3f(&v, 0.0f, -9.81f, 0.0f));
 }
 

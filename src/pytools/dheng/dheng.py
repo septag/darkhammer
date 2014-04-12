@@ -744,6 +744,7 @@ class OrbitCam(Behavior):
             if not self._leftbtn_dwn:
                 self._leftbtn_dwn = True
                 self._lockpos = mpos.copy()    
+                Input.lock_cursor()
 
             delta_pos = (mpos - self._lockpos)*self.sensivity
             self._x += delta_pos.x
@@ -758,12 +759,16 @@ class OrbitCam(Behavior):
             if not self._rightbtn_dwn:
                 self._rightbtn_dwn = True
                 self._lockpos = mpos.copy()    
+                Input.lock_cursor()
 
             delta_pos = (mpos - self._lockpos)*self.sensivity
             self._distance += delta_pos.y
             self._lockpos = mpos.copy()
         else:
             self._rightbtn_dwn = False            
+
+        if (not self._rightbtn_dwn) and (not self._leftbtn_dwn):
+            Input.unlock_cursor()
 
         q1 = Quat()
         q1.from_axis(Vec3(0, 1, 0), Math.to_rad(self._x))

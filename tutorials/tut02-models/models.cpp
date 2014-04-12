@@ -280,6 +280,7 @@ void update_callback()
     update_light();
     update_camera(); /* update camera after input is refreshed */
     eng_update();   /* updates engine and renders the frame */
+    app_window_swapbuffers();
 }
 
 /**
@@ -300,7 +301,8 @@ void activate_callback(int active)
  */
 void resize_callback(uint width, uint height)
 {
-    cam_set_viewsize(&g_cam.c, (float)width, (float)height);
+    app_window_resize(width, height);
+    gfx_resize(width, height);
 }
 
 /*************************************************************************************************/
@@ -364,6 +366,7 @@ int main(int argc, char** argv)
     app_window_setupdatefn(update_callback);
     app_window_setkeypressfn(keypress_callback);
     app_window_setactivefn(activate_callback);
+    app_window_setresizefn(resize_callback);
     gfx_set_debug_renderfunc(debug_view_callback);
 
     /* Initialize ok: show the main window */

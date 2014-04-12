@@ -178,7 +178,6 @@ void resize_callback(uint width, uint height)
 {
     app_window_resize(width, height);
     gfx_resize(width, height);
-    cam_set_viewsize(&g_cam.c, (float)width, (float)height);
 }
 
 void mousedown_callback(int x, int y, enum app_mouse_key key)
@@ -259,8 +258,8 @@ int main(int argc, char** argv)
     app_window_setactivefn(activate_callback);
     app_window_setmousedownfn(mousedown_callback);
     app_window_setmouseupfn(mouseup_callback);
+    app_window_setresizefn(resize_callback);
     gfx_set_debug_renderfunc(debug_view_callback);
-    //gfx_set_gridcallback();
 
     /* initialize ok: show the main window */
     app_window_show();

@@ -28,6 +28,7 @@ class _API:
         try:
             dhcorelib = cdll.LoadLibrary(shlib)
         except:
+            dhlog.Log.warn(str(sys.exc_info()[1]))
             dhlog.Log.fatal('could not load dynamic library %s' % shlib)
             sys.exit(-1)
 
@@ -69,10 +70,6 @@ class _API:
         _API.fio_addvdir.argtypes = [c_char_p, c_int]
 
         # vec-math.h
-        _API.vec3_transformsrt = dhcorelib.vec3_transformsrt
-        _API.vec3_transformsrt.restype = POINTER(Vec3)
-        _API.vec3_transformsrt.argtypes = [POINTER(Vec3), POINTER(Vec3), POINTER(Matrix3)]
-
         _API.mat3_muls = dhcorelib.mat3_muls
         _API.mat3_muls.restype = POINTER(Matrix3)
         _API.mat3_muls.argtypes = [POINTER(Matrix3), POINTER(Matrix3), c_float]

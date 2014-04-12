@@ -23,17 +23,16 @@
 #pragma warning(disable: 4005)
 #endif
 
-#include "dhcore/win.h"
 #include <dxgi.h>
 #include <D3Dcommon.h>
-//#include <d3d11_1.h>
 #include <d3d11.h>
 #include <time.h>
 
+#include "dhcore/json.h"
 #include "dhcore/core.h"
-#include "dhcore/linked-list.h"
-#include "engine.h"
-#include "gfx.h"
+
+#include "init-params.h"
+#include "input.h"
 
 #define DEFAULT_WIDTH   1280
 #define DEFAULT_HEIGHT  720
@@ -49,35 +48,28 @@
  */
 struct app_swapchain
 {
-    char name[32];
-    HWND hwnd;
-    uint width;
-    uint height;
-    int vsync;
     int fullscreen;
-    uint refresh_rate;
 
     IDXGISwapChain* sc;
     ID3D11Texture2D* backbuff;
     ID3D11RenderTargetView* rtv;
     ID3D11Texture2D* depthbuff;
     ID3D11DepthStencilView* dsv;
-
-    struct linked_list lnode;
 };
 
 struct app_win
 {
     char name[32];
     HWND hwnd;  /* main window */
-    HINSTANCE pinst; /* program instance */
+    HINSTANCE inst; /* program instance */
     uint width;
     uint height;
     int active;
     int always_active;
     int init;
     int d3d_dbg;
-    int wnd_override;
+    int vsync;
+    int dev_only;
     uint refresh_rate;
 
     /* callbacks */
@@ -96,9 +88,8 @@ struct app_win
     IDXGIAdapter* dxgi_adapter;
     ID3D11Device* dev;
     ID3D11DeviceContext* main_ctx;
-    struct linked_list* swapchains;
     enum gfx_hwver d3dver;
-    struct app_swapchain* render_target;    /* current render target swapchain */
+    struct app_swapchain schain;
 };
 
 /* global */
@@ -113,42 +104,26 @@ result_t app_init_dxgi(const struct init_params* params,
     OUT ID3D11DeviceContext** pcontext,
     OUT enum gfx_hwver* pver);
 void app_release_dxgi();
-result_t app_add_swapchain(const char* name, HWND hwnd, uint width, uint height,
+result_t app_init_swapchain(struct app_swapchain* sc, HWND hwnd, uint width, uint height,
     uint refresh_rate, int fullscreen, int vsync);
-void app_remove_swapchain(const char* name);
-const char* app_get_wndname(HWND hwnd);
-struct app_swapchain* app_find_swapchain(const char* wnd_name);
-
-/* inlines */
-INLINE const char* app_get_hwverstr(enum gfx_hwver hwver)
-{
-    switch (hwver)  {
-    case GFX_HWVER_D3D10_0:
-        return "10.0";
-    case GFX_HWVER_D3D10_1:
-        return "10.1";
-    case GFX_HWVER_D3D11_0:
-        return "11.0";
-    case GFX_HWVER_D3D11_1:
-        return "11.1";
-    }
-    return "";
-}
+void app_release_swapchain(struct app_swapchain* sc);
 
 /*************************************************************************************************/
 static LRESULT CALLBACK msg_callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
     ASSERT(g_app);
 
+    static uint last_key = 0;
+
     switch (msg)    {
     case WM_CREATE:
         if (g_app->create_fn != NULL)
-            g_app->create_fn(app_get_wndname(hwnd));
+            g_app->create_fn();
         break;
 
     case WM_DESTROY:
         if (g_app->destroy_fn != NULL)
-            g_app->destroy_fn(app_get_wndname(hwnd));
+            g_app->destroy_fn();
         PostQuitMessage(0);        /* quit application loop */
         break;
 
@@ -160,68 +135,71 @@ static LRESULT CALLBACK msg_callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
             uint height = HIWORD(lparam);
             ASSERT(width != 0);
             ASSERT(height != 0);
-            app_window_resize(app_get_wndname(hwnd), width, height);
+            app_window_resize(width, height);
             if (g_app->resize_fn != NULL)
-                g_app->resize_fn(app_get_wndname(hwnd), width, height);
+                g_app->resize_fn(width, height);
         }
         break;
 
     case WM_ACTIVATEAPP:
         g_app->active = wparam ? TRUE : FALSE;
         if (g_app->active_fn != NULL)
-            g_app->active_fn(app_get_wndname(hwnd), wparam ? TRUE : FALSE);
+            g_app->active_fn(wparam ? TRUE : FALSE);
         break;
 
     case WM_KEYDOWN:
-        if (g_app->keypress_fn != NULL)
-            g_app->keypress_fn(app_get_wndname(hwnd), 0, (uint)wparam);
+        last_key = (uint)wparam;
+        if (g_app->keypress_fn != NULL) {
+            g_app->keypress_fn(0, last_key);
+            last_key = 0;
+        }
         break;
-
     case WM_CHAR:
-        if (g_app->keypress_fn != NULL)
-            g_app->keypress_fn(app_get_wndname(hwnd), (char)wparam, -1);
+        if (g_app->keypress_fn != NULL) {
+            g_app->keypress_fn((char)wparam, last_key);
+            last_key = 0;
+        }
         break;
-
     case WM_LBUTTONDOWN:
         if (g_app->mousedown_fn != NULL)    {
-            g_app->mousedown_fn(app_get_wndname(hwnd), GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
+            g_app->mousedown_fn(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
                 APP_MOUSEKEY_LEFT);
         }
         break;
     case WM_LBUTTONUP:
         if (g_app->mousedown_fn != NULL)    {
-            g_app->mouseup_fn(app_get_wndname(hwnd), GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
+            g_app->mouseup_fn(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
                 APP_MOUSEKEY_LEFT);
         }
         break;
     case WM_RBUTTONDOWN:
         if (g_app->mousedown_fn != NULL)    {
-            g_app->mousedown_fn(app_get_wndname(hwnd), GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
+            g_app->mousedown_fn(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
                 APP_MOUSEKEY_RIGHT);
         }
         break;
     case WM_RBUTTONUP:
         if (g_app->mousedown_fn != NULL)    {
-            g_app->mouseup_fn(app_get_wndname(hwnd), GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
+            g_app->mouseup_fn(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
                 APP_MOUSEKEY_RIGHT);
         }
         break;
     case WM_MBUTTONDOWN:
         if (g_app->mousedown_fn != NULL)    {
-            g_app->mousedown_fn(app_get_wndname(hwnd), GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
+            g_app->mousedown_fn(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
                 APP_MOUSEKEY_MIDDLE);
         }
         break;
     case WM_MBUTTONUP:
         if (g_app->mousedown_fn != NULL)    {
-            g_app->mouseup_fn(app_get_wndname(hwnd), GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
+            g_app->mouseup_fn(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam),
                 APP_MOUSEKEY_MIDDLE);
         }
         break;
 
     case WM_MOUSEMOVE:
         if (g_app->mousemove_fn != NULL)
-            g_app->mousemove_fn(app_get_wndname(hwnd), GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam));
+            g_app->mousemove_fn(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam));
         break;
     default:
         return DefWindowProc(hwnd, msg, wparam, lparam);
@@ -240,9 +218,7 @@ result_t app_init(const char* name, const struct init_params* params)
 
     result_t r;
 
-    eng_zero();
-
-    log_print(LOG_TEXT, "init app (d3d) ...");
+    log_print(LOG_TEXT, "init Direct3D app ...");
     /* create application */
     struct app_win* app = (struct app_win*)ALLOC(sizeof(struct app_win), 0);
     ASSERT(app);
@@ -260,55 +236,45 @@ result_t app_init(const char* name, const struct init_params* params)
 
     HINSTANCE myinst = GetModuleHandle(NULL);
 
-    if (wnd_override == NULL)   {
-        /* register window class */
-        WNDCLASSEX wndcls;
-        memset(&wndcls, 0x00, sizeof(WNDCLASSEX));
-        wndcls.cbSize =  sizeof(WNDCLASSEX);
-        wndcls.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-        wndcls.lpfnWndProc = msg_callback;
-        wndcls.cbClsExtra = 0;
-        wndcls.cbWndExtra = 0;
-        wndcls.hInstance = myinst;
-        wndcls.hIcon = NULL;
-        wndcls.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wndcls.hbrBackground = (HBRUSH)(GetStockObject(WHITE_BRUSH));
-        wndcls.lpszMenuName = NULL;
-        wndcls.lpszClassName = app->name;
-        wndcls.hIconSm = NULL;
-        if (!RegisterClassEx(&wndcls))  {
-            err_print(__FILE__, __LINE__, "win-app init failed");
-            return RET_FAIL;
-        }
+    /* register window class */
+    WNDCLASSEX wndcls;
+    memset(&wndcls, 0x00, sizeof(WNDCLASSEX));
+    wndcls.cbSize =  sizeof(WNDCLASSEX);
+    wndcls.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    wndcls.lpfnWndProc = msg_callback;
+    wndcls.cbClsExtra = 0;
+    wndcls.cbWndExtra = 0;
+    wndcls.hInstance = myinst;
+    wndcls.hIcon = NULL;
+    wndcls.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wndcls.hbrBackground = (HBRUSH)(GetStockObject(WHITE_BRUSH));
+    wndcls.lpszMenuName = NULL;
+    wndcls.lpszClassName = app->name;
+    wndcls.hIconSm = NULL;
+    if (!RegisterClassEx(&wndcls))  {
+        err_print(__FILE__, __LINE__, "win-app init failed");
+        return RET_FAIL;
+    }
 
-        /* create window */
-        RECT wndrc = {0, 0, width, height};
-        uint x;
-        uint y;
+    /* create window */
+    RECT wndrc = {0, 0, width, height};
+    uint x;
+    uint y;
 
-        AdjustWindowRect(&wndrc, WS_OVERLAPPEDWINDOW, FALSE);
-        calc_screenpos(wndrc.right-wndrc.left, wndrc.bottom-wndrc.top, &x, &y);
-        app->hwnd = CreateWindow(app->name,
-                                 name,
-                                 WS_OVERLAPPEDWINDOW,
-                                 x, y,
-                                 wndrc.right - wndrc.left,
-                                 wndrc.bottom - wndrc.top,
-                                 NULL, NULL,
-                                 myinst,
-                                 NULL);
-        if (app->hwnd == NULL)  {
-            err_print(__FILE__, __LINE__, "win-app init failed: could not create window");
-            return RET_FAIL;
-        }
-    }   else    {
-        HWND hwnd = (HWND)wnd_override;
-        if (!IsWindow(hwnd))    {
-            err_print(__FILE__, __LINE__, "win-app init failed: invalid window override handle");
-            return RET_FAIL;
-        }
-        app->hwnd = hwnd;
-        app->wnd_override = TRUE;
+    AdjustWindowRect(&wndrc, WS_OVERLAPPEDWINDOW, FALSE);
+    calc_screenpos(wndrc.right-wndrc.left, wndrc.bottom-wndrc.top, &x, &y);
+    app->hwnd = CreateWindow(app->name,
+                                name,
+                                WS_OVERLAPPEDWINDOW,
+                                x, y,
+                                wndrc.right - wndrc.left,
+                                wndrc.bottom - wndrc.top,
+                                NULL, NULL,
+                                myinst,
+                                NULL);
+    if (app->hwnd == NULL)  {
+        err_print(__FILE__, __LINE__, "win-app init failed: could not create window");
+        return RET_FAIL;
     }
 
     /* init DXGI */
@@ -316,30 +282,96 @@ result_t app_init(const char* name, const struct init_params* params)
         &app->d3dver);
     if (IS_FAIL(r)) {
         err_print(__FILE__, __LINE__, "win-app init failed: init DXGI failed");
-        app_release();
         return RET_FAIL;
     }
     app->d3d_dbg = BIT_CHECK(params->gfx.flags, GFX_FLAG_DEBUG);
-    app->pinst = myinst;
+    app->inst = myinst;
     app->width = width;
     app->height = height;
     app->always_active = TRUE;
     app->refresh_rate = params->gfx.refresh_rate;
 
     /* create default swapchain */
-    r = app_add_swapchain(app->name, app->hwnd, width, height, params->gfx.refresh_rate,
+    r = app_init_swapchain(&app->schain, app->hwnd, width, height, params->gfx.refresh_rate,
+        BIT_CHECK(params->gfx.flags, GFX_FLAG_FULLSCREEN),
+        BIT_CHECK(params->gfx.flags, GFX_FLAG_VSYNC));
+    if (IS_FAIL(r)) {
+        err_print(__FILE__, __LINE__, "win-app init failed: init swapchain failed");
+        return RET_FAIL;
+    }
+
+    struct app_swapchain* sc = &app->schain;
+    app->main_ctx->OMSetRenderTargets(1, &sc->rtv, sc->dsv);
+    app->vsync = BIT_CHECK(params->gfx.flags, GFX_FLAG_VSYNC);
+
+    /* input */
+    input_init();
+
+    app->init = TRUE;
+    return RET_OK;
+}
+
+result_t app_d3d_initdev(wnd_t hwnd, const char* name, const struct init_params* params)
+{
+    ASSERT(g_app == NULL);
+    if (g_app != NULL)  {
+        err_print(__FILE__, __LINE__, "application already initialized");
+        return RET_FAIL;
+    }
+
+    result_t r;
+
+    log_print(LOG_TEXT, "init Direct3D device only ...");
+
+    /* create application */
+    struct app_win* app = (struct app_win*)ALLOC(sizeof(struct app_win), 0);
+    ASSERT(app);
+    memset(app, 0x00, sizeof(struct app_win));
+
+    g_app = app;
+    app->dev_only = TRUE;
+    str_safecpy(app->name, sizeof(app->name), name);
+
+    uint width = params->gfx.width;
+    uint height = params->gfx.height;
+    if (width == 0)
+        width = DEFAULT_WIDTH;
+    if (height == 0)
+        height = DEFAULT_HEIGHT;
+
+    HINSTANCE myinst = GetModuleHandle(NULL);
+
+    /* create window */
+    RECT wndrc = {0, 0, width, height};
+
+    /* init DXGI */
+    r = app_init_dxgi(params, &app->dxgi_factory, &app->dxgi_adapter, &app->dev, &app->main_ctx,
+        &app->d3dver);
+    if (IS_FAIL(r)) {
+        err_print(__FILE__, __LINE__, "win-app init failed: init DXGI failed");
+        return RET_FAIL;
+    }
+    app->d3d_dbg = BIT_CHECK(params->gfx.flags, GFX_FLAG_DEBUG);
+    app->inst = myinst;
+    app->width = width;
+    app->height = height;
+    app->always_active = TRUE;
+    app->refresh_rate = params->gfx.refresh_rate;
+
+    /* create default swapchain */
+    r = app_init_swapchain(&app->schain, hwnd, width, height, params->gfx.refresh_rate,
         BIT_CHECK(params->gfx.flags, GFX_FLAG_FULLSCREEN),
         BIT_CHECK(params->gfx.flags, GFX_FLAG_VSYNC));
     if (IS_FAIL(r)) {
         err_print(__FILE__, __LINE__, "win-app init failed: add swapchain failed");
-        app_release();
         return RET_FAIL;
     }
 
-    /* set as default render-target */
-    app_set_rendertarget(app->name);
-    app->init = TRUE;
+    struct app_swapchain* sc = &app->schain;
+    app->main_ctx->OMSetRenderTargets(1, &sc->rtv, sc->dsv);
+    app->vsync = BIT_CHECK(params->gfx.flags, GFX_FLAG_VSYNC);
 
+    app->init = TRUE;
     return RET_OK;
 }
 
@@ -363,26 +395,19 @@ void app_release()
     if (g_app == NULL)
         return;
 
-    struct app_win* wapp = g_app;
+    struct app_win* app = g_app;
 
-    /* remove swap chains */
-    struct linked_list* lnode = wapp->swapchains;
-    while (lnode != NULL)   {
-        struct linked_list* next = lnode->next;
-        app_remove_swapchain(((struct app_swapchain*)lnode->data)->name);
-        lnode = next;
-    }
+    input_release();
 
-    /* release main dx-sdk objects */
+    app_release_swapchain(&app->schain);
     app_release_dxgi();
 
-    if (!wapp->wnd_override)    {
-        if (wapp->hwnd != NULL && IsWindow(wapp->hwnd))
-            DestroyWindow(wapp->hwnd);
-        UnregisterClass(wapp->name, wapp->pinst);
+    if (app->hwnd != NULL && IsWindow(app->hwnd)) {
+        DestroyWindow(app->hwnd);
+        UnregisterClass(app->name, app->inst);
     }
 
-    FREE(wapp);
+    FREE(app);
     g_app = NULL;
 }
 
@@ -390,8 +415,6 @@ void app_window_run()
 {
     ASSERT(g_app);
     struct app_win* wapp = g_app;
-    if (wapp->wnd_override)
-        return;
 
     MSG msg;
     int quit = FALSE;
@@ -426,11 +449,7 @@ void app_window_run()
 void app_window_readjust(uint client_width, uint client_height)
 {
     ASSERT(g_app);
-
     struct app_win* app = g_app;
-
-    if (app->wnd_override)
-        return;
 
     RECT wnd_rect = {0, 0,
         (client_width!=0) ? client_width : app->width,
@@ -451,7 +470,6 @@ void app_window_alwaysactive(int active)
 {
     g_app->always_active = active;
 }
-
 
 uint app_window_getwidth()
 {
@@ -589,7 +607,7 @@ result_t app_init_dxgi(const struct init_params* params,
     case D3D_FEATURE_LEVEL_10_0:    gfxver = GFX_HWVER_D3D10_0;    break;
     case D3D_FEATURE_LEVEL_10_1:    gfxver = GFX_HWVER_D3D10_1;    break;
     case D3D_FEATURE_LEVEL_11_0:    gfxver = GFX_HWVER_D3D11_0;    break;
-    //case D3D_FEATURE_LEVEL_11_1:    gfxver = GFX_HWVER_D3D11_1;    break;
+    case D3D_FEATURE_LEVEL_11_1:    gfxver = GFX_HWVER_D3D11_1;    break;
     default:
         gfxver = GFX_HWVER_UNKNOWN;
         break;
@@ -633,12 +651,7 @@ void app_release_dxgi()
     RELEASE(app->dxgi_factory);
 }
 
-result_t app_add_rendertarget(const char* wnd_name, wnd_t wnd, uint width, uint height)
-{
-    return app_add_swapchain(wnd_name, (HWND)wnd, width, height, g_app->refresh_rate, FALSE, FALSE);
-}
-
-result_t app_add_swapchain(const char* name, HWND hwnd, uint width, uint height,
+result_t app_init_swapchain(struct app_swapchain* sc, HWND hwnd, uint width, uint height,
     uint refresh_rate, int fullscreen, int vsync)
 {
     ASSERT(g_app);
@@ -650,18 +663,6 @@ result_t app_add_swapchain(const char* name, HWND hwnd, uint width, uint height,
     ID3D11Texture2D* depthstencil = NULL;
     ID3D11DepthStencilView* dsv = NULL;
     struct app_win* app = g_app;
-
-    /* search in the current swapchain list */
-    struct linked_list* lnode = app->swapchains;
-    while (lnode)   {
-        struct app_swapchain* sc = (struct app_swapchain*)lnode->data;
-        if (str_isequal(name, sc->name))   {
-            err_print(__FILE__, __LINE__, "swapchain creation failed: already exists");
-            return RET_FAIL;
-        }
-
-        lnode = lnode->next;
-    }
 
     DXGI_SWAP_CHAIN_DESC d3d_desc;
     memset(&d3d_desc, 0x00, sizeof(d3d_desc));
@@ -733,58 +734,29 @@ result_t app_add_swapchain(const char* name, HWND hwnd, uint width, uint height,
         return RET_FAIL;
     }
 
-
-    struct app_swapchain* sc = (struct app_swapchain*)ALLOC(sizeof(struct app_swapchain), 0);
-    ASSERT(sc);
-    memset(sc, 0x00, sizeof(struct app_swapchain));
-    str_safecpy(sc->name, sizeof(sc->name), name);
-    sc->hwnd = hwnd;
-
     sc->sc = swapchain;
     sc->backbuff = backbuffer;
     sc->depthbuff = depthstencil;
     sc->dsv = dsv;
     sc->rtv = rtv;
-    sc->width = width;
-    sc->height = height;
-    sc->vsync = vsync;
     sc->fullscreen = fullscreen;
-    sc->refresh_rate = refresh_rate;
 
-    list_add(&app->swapchains, &sc->lnode, sc);
     return RET_OK;
 }
 
-void app_remove_swapchain(const char* name)
+void app_release_swapchain(struct app_swapchain* sc)
 {
-    ASSERT(g_app);
-    struct app_win* app = g_app;
+    if (sc->fullscreen)
+        sc->sc->SetFullscreenState(FALSE, NULL);
 
-    /* find swapchain in the list */
-    struct linked_list* lnode = app->swapchains;
-    while (lnode)   {
-        struct app_swapchain* sc = (struct app_swapchain*)lnode->data;
-        if (str_isequal(name, sc->name))   {
-            if (sc->fullscreen)
-                sc->sc->SetFullscreenState(FALSE, NULL);
-
-            RELEASE(sc->rtv);
-            RELEASE(sc->dsv);
-            RELEASE(sc->backbuff);
-            RELEASE(sc->depthbuff);
-            RELEASE(sc->sc);
-
-            list_remove(&app->swapchains, lnode);
-            FREE(sc);
-            break;
-        }
-
-        lnode = lnode->next;
-    }
-
+    RELEASE(sc->rtv);
+    RELEASE(sc->dsv);
+    RELEASE(sc->backbuff);
+    RELEASE(sc->depthbuff);
+    RELEASE(sc->sc);
 }
 
-result_t app_window_resize(OPTIONAL const char* name, uint width, uint height)
+result_t app_window_resize(uint width, uint height)
 {
     ASSERT(g_app);
     struct app_win* app = g_app;
@@ -792,12 +764,8 @@ result_t app_window_resize(OPTIONAL const char* name, uint width, uint height)
     if (!app->init)
         return RET_FAIL;
 
-    /* search for the specified swapchain and resize it */
-    struct app_swapchain* rsc = (name != NULL) ? app_find_swapchain(name) : app->render_target;
-    if (rsc == NULL)
-        return RET_FAIL;
-
     /* re-create */
+    struct app_swapchain* rsc = &app->schain;
     RELEASE(rsc->dsv);
     RELEASE(rsc->depthbuff);
     RELEASE(rsc->rtv);
@@ -841,191 +809,57 @@ result_t app_window_resize(OPTIONAL const char* name, uint width, uint height)
         return RET_FAIL;
     }
 
-    rsc->width = width;
-    rsc->height = height;
-
-    /* for main window (this is where main render buffers are created), resize internal buffers */
-    if (app->width != width || app->height != height)   {
-        gfx_resize(width, height);
-        app->width = width;
-        app->height = height;
-    }
-
-    /* if the current (render target) swapchain is resized, update variables */
-    if (rsc == app->render_target)
-        gfx_set_rtvsize(width, height);
-
+    app->width = width;
+    app->height = height;
     return RET_OK;
-}
-
-const char* app_get_wndname(HWND hwnd)
-{
-    struct app_win* app = g_app;
-    struct linked_list* lnode = app->swapchains;
-    while (lnode)   {
-        struct app_swapchain* sc = (struct app_swapchain*)lnode->data;
-        if (sc->hwnd == hwnd)
-            return sc->name;
-
-        lnode = lnode->next;
-    }
-    return "";
-}
-
-struct app_swapchain* app_find_swapchain(const char* wnd_name)
-{
-    struct app_win* app = g_app;
-    struct linked_list* lnode = app->swapchains;
-    while (lnode)   {
-        struct app_swapchain* sc = (struct app_swapchain*)lnode->data;
-        if (str_isequal(wnd_name, sc->name))
-            return sc;
-
-        lnode = lnode->next;
-    }
-    return NULL;
-}
-
-void app_set_rendertarget(OPTIONAL const char* wnd_name)
-{
-    ASSERT(g_app);
-    struct app_win* app = g_app;
-
-    struct app_swapchain* sc;
-    if (wnd_name == NULL)
-        sc = app->render_target;
-    else
-        sc = app_find_swapchain(wnd_name);
-
-    if (sc != NULL) {
-        app->render_target = sc;
-        app->main_ctx->OMSetRenderTargets(1, &sc->rtv, sc->dsv);
-
-        /* reset rendering variables that depend on size */
-        gfx_set_rtvsize(sc->width, sc->height);
-    }
 }
 
 void app_window_swapbuffers()
 {
     ASSERT(g_app);
     struct app_win* app = g_app;
-    ASSERT(app->render_target);
-
-    app->render_target->sc->Present(app->render_target->vsync ? 1 : 0, 0);
+    ASSERT(app->schain.sc);
+    app->schain.sc->Present(app->vsync ? 1 : 0, 0);
 }
 
-const char* gfx_get_driverstr()
-{
-    static char info[256];
-
-    struct app_win* app = g_app;
-
-    DXGI_ADAPTER_DESC desc;
-    HRESULT dxhr = app->dxgi_adapter->GetDesc(&desc);
-    if (FAILED(dxhr))
-        return NULL;
-
-    char gpu_desc[128];
-    str_widetomb(gpu_desc, desc.Description, sizeof(gpu_desc));
-
-    sprintf(info, "%s r%d v%s-%s %s",
-        gpu_desc,
-        desc.Revision,
-        app_get_hwverstr(app->d3dver),
-        app->d3d_dbg ? "dbg" : "rls",
-#if defined(_X64_)
-        "x64"
-#elif defined(_X86_)
-        "x86"
-#else
-        "[]"
-#endif
-        );
-    return info;
-}
-
-void gfx_get_devinfo(struct gfx_device_info* info)
-{
-    struct app_win* app = g_app;
-
-    memset(info, 0x00, sizeof(struct gfx_device_info));
-
-    if (app->dxgi_adapter == NULL || app->dev == NULL)
-        return;
-
-    DXGI_ADAPTER_DESC desc;
-    HRESULT dxhr = app->dxgi_adapter->GetDesc(&desc);
-    if (FAILED(dxhr))
-        return;
-
-    /* basic info */
-    str_widetomb(info->desc, desc.Description, sizeof(info->desc));
-    switch (desc.VendorId)        {
-    case 0x1002:        info->vendor = GFX_GPU_ATI;     break;
-    case 0x10DE:        info->vendor = GFX_GPU_NVIDIA;  break;
-    case 0x163C:        info->vendor = GFX_GPU_INTEL;   break;
-    default:            info->vendor = GFX_GPU_UNKNOWN; break;
-    }
-    info->mem_avail = (int)(desc.DedicatedVideoMemory / 1024);
-
-    /* threading */
-    D3D11_FEATURE_DATA_THREADING d3d_thr;
-    if (FAILED(app->dev->CheckFeatureSupport(D3D11_FEATURE_THREADING, &d3d_thr, sizeof(d3d_thr))))
-        return;
-    info->threading.concurrent_cmdlist = d3d_thr.DriverCommandLists;
-    info->threading.concurrent_create = d3d_thr.DriverConcurrentCreates;
-}
-
-enum gfx_hwver gfx_get_hwver()
+void app_d3d_getswapchain_buffers(OUT ID3D11Texture2D** pbackbuff, OUT ID3D11Texture2D** pdepthbuff)
 {
     ASSERT(g_app);
-
-    return g_app->d3dver;
+    *pbackbuff = g_app->schain.backbuff;
+    *pdepthbuff = g_app->schain.depthbuff;
 }
 
-void* app_gfx_getcontext()
+void app_d3d_getswapchain_views(OUT ID3D11RenderTargetView** prtv, OUT ID3D11DepthStencilView** pdsv)
 {
     ASSERT(g_app);
-    return (void*)g_app->main_ctx;
+    *prtv = g_app->schain.rtv;
+    *pdsv = g_app->schain.dsv;
 }
 
-ID3D11Texture2D* app_d3d_getbackbuff()
-{
-    ASSERT(g_app);
-    ASSERT(g_app->render_target);
-
-    return g_app->render_target->backbuff;
-}
-
-ID3D11Texture2D* app_d3d_getdepthbuff()
-{
-    ASSERT(g_app);
-    ASSERT(g_app->render_target);
-
-    return g_app->render_target->depthbuff;
-}
-
-ID3D11Device* app_d3d_getdev()
+ID3D11Device* app_d3d_getdevice()
 {
     ASSERT(g_app);
     return g_app->dev;
 }
 
-void app_window_show(OPTIONAL const char* wnd_name)
+ID3D11DeviceContext* app_d3d_getcontext()
 {
-    struct app_swapchain* sc = wnd_name != NULL ? app_find_swapchain(wnd_name) :
-        g_app->render_target;
-    if (sc != NULL && !g_app->wnd_override)
-        ShowWindow(sc->hwnd, SW_SHOW);
+    ASSERT(g_app);
+    return g_app->main_ctx;
 }
 
-void app_window_hide(OPTIONAL const char* wnd_name)
+void app_window_show()
 {
-    struct app_swapchain* sc = wnd_name != NULL ? app_find_swapchain(wnd_name) :
-        g_app->render_target;
-    if (sc != NULL && !g_app->wnd_override)
-        ShowWindow(sc->hwnd, SW_HIDE);
+    ASSERT(g_app);
+    if (g_app->hwnd != NULL && IsWindow(g_app->hwnd))
+        ShowWindow(g_app->hwnd, SW_SHOW);
+}
+
+void app_window_hide()
+{
+    ASSERT(g_app);
+    if (g_app->hwnd != NULL && IsWindow(g_app->hwnd))
+        ShowWindow(g_app->hwnd, SW_HIDE);
 }
 
 const char* app_getname()
@@ -1036,25 +870,6 @@ const char* app_getname()
 int app_window_isactive()
 {
     return g_app->active;
-}
-
-_EXTERN_ void* app_window_gethandle()
-{
-    return g_app->hwnd;
-}
-
-void app_window_clear(const float color[4], float depth, uint8 stencil, uint flags)
-{
-    ASSERT(g_app);
-    struct app_win* app = g_app;
-    struct app_swapchain* sc = app->render_target;
-    ASSERT(sc);
-
-    if (BIT_CHECK(flags, GFX_CLEAR_DEPTH) || BIT_CHECK(flags, GFX_CLEAR_STENCIL))
-        app->main_ctx->ClearDepthStencilView(sc->dsv, flags, depth, stencil);
-
-    if (BIT_CHECK(flags, GFX_CLEAR_COLOR))
-        app->main_ctx->ClearRenderTargetView(sc->rtv, color);
 }
 
 char* app_display_querymodes()
@@ -1141,9 +956,32 @@ void app_display_freemodes(char* dispmodes)
     json_deletebuffer(dispmodes);
 }
 
-void app_remove_rendertarget(const char* wnd_name)
+wnd_t app_window_gethandle()
 {
-    app_remove_swapchain(wnd_name);
+    ASSERT(g_app);
+#if defined(_WIN_)
+    return g_app->hwnd;
+#else
+    #error "not implemented for other d3d platforms"
+#endif
+}
+
+HWND app_window_getplatform_w()
+{
+    ASSERT(g_app);
+    return g_app->hwnd;
+}
+
+IDXGIAdapter* app_d3d_getadapter()
+{
+    ASSERT(g_app);
+    return g_app->dxgi_adapter;
+}
+
+enum gfx_hwver app_d3d_getver()
+{
+    ASSERT(g_app);
+    return g_app->d3dver;
 }
 
 #endif /* _WIN_ && _D3D_ */

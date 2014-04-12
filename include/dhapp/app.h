@@ -36,7 +36,7 @@ struct gfx_device_info;
 
 /* platform dependent types */
 #if defined(_WIN_)
-#include "win.h"
+#include "dhcore/win.h"
 typedef HWND wnd_t;
 #elif defined(_LINUX_)
 #include "X11/Xlib.h"
@@ -286,7 +286,6 @@ APP_API void app_window_setupdatefn(pfn_app_update fn);
 
 
 APP_API wnd_t app_window_gethandle();
-APP_API void* app_gfx_getcontext();
 
 /**
  * Shows application window. \n
@@ -320,5 +319,20 @@ APP_API const char* app_getname();
  * @ingroup app
  */
 APP_API result_t app_window_resize(uint width, uint height);
+
+/* Direct3D specific stuff */
+#ifdef _D3D_
+#include <dxgi.h>
+#include <d3d11.h>
+APP_API result_t app_d3d_initdev(wnd_t hwnd, const char* name, const struct init_params* params);
+APP_API void app_d3d_getswapchain_buffers(OUT ID3D11Texture2D** pbackbuff, 
+                                          OUT ID3D11Texture2D** pdepthbuff);
+APP_API void app_d3d_getswapchain_views(OUT ID3D11RenderTargetView** prtv, 
+                                        OUT ID3D11DepthStencilView** pdsv);
+APP_API ID3D11Device* app_d3d_getdevice();
+APP_API ID3D11DeviceContext* app_d3d_getcontext();
+APP_API IDXGIAdapter* app_d3d_getadapter();
+APP_API enum gfx_hwver app_d3d_getver();
+#endif
 
 #endif /* __APP_H__ */

@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Source Files\cJSON">
       <UniqueIdentifier>{2739ea7d-556a-4161-aeab-5514354ab803}</UniqueIdentifier>
     </Filter>
@@ -141,6 +137,9 @@
     <ClInclude Include="..\..\src\core\deps\miniz\miniz.h">
       <Filter>Source Files\miniz</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\dhcore\hwinfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\core\array.c">
@@ -232,6 +231,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\core\platform\win\util-win.c">
       <Filter>Source Files\platform\win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\platform\win\hwinfo-win.c">
+      <Filter>Source Files\platform\win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\hwinfo.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

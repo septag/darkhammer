@@ -477,7 +477,32 @@ class App:
             raise Exception(Errors.last_error())
         App.show_window()
         App.is_init = True
-    
+
+    @staticmethod
+    def init_d3d_device(native_wnd_handle, name, conf):
+        postfix = ''
+        if ('--debug' in sys.argv):
+            postfix = '-dbg'
+        if sys.platform == 'win32':
+            shlib = 'dhapp' + postfix + '.dll'
+        else:
+            raise Exception('d3d device not implemented for this platform')
+
+        # load library
+        try:
+            hwnd = int(native_wnd_handle)
+            dhapplib = cdll.LoadLibrary(shlib)
+            dhlog.Log.msgline('module "%s" loaded' % shlib, dhlog.TERM_GREEN)
+            # fetch only d3d_initdev function
+            app_d3d_initdev = dhapplib.app_d3d_initdev
+            app_d3d_initdev.restype = c_int
+            app_d3d_initdev.argtypes = [c_void_p, c_char_p, POINTER(InitParams)]
+            if IS_FAIL(app_d3d_initdev(c_void_p(hwnd), to_cstr(name), conf.params)):
+                raise Exception(Errors.last_error())
+        except:
+            dhlog.Log.fatal(str(sys.exc_info()[1]))
+            sys.exit(-1)
+
     @staticmethod
     def show_window():
         if App.is_init:
@@ -500,13 +525,18 @@ class App:
 
     @staticmethod
     def set_events(events):
-        _API.app_window_setupdatefn(events.get_update())
-        _API.app_window_setkeypressfn(events.get_keypress())
-        _API.app_window_setresizefn(events.get_resize())
+        if App.is_init:
+            _API.app_window_setupdatefn(events.get_update())
+            _API.app_window_setkeypressfn(events.get_keypress())
+            _API.app_window_setresizefn(events.get_resize())
 
     @staticmethod
     def swapbuffers():
         _API.app_window_swapbuffers()
+
+    @staticmethod
+    def resize_view(width, height):
+         _API.app_window_resize(c_uint(width), c_uint(height))
 
 class AppEvents:
     def get_update(self):

@@ -19,6 +19,7 @@ darkhammer.sublime-workspace
 ipch
 __pycache__
 *.pyc
+waf3*
 
 # Generated files
 docs/Doxyfile

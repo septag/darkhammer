@@ -180,6 +180,7 @@ if NOT EXIST ..\sharedir.h (
     <ClInclude Include="..\..\include\dhcore\freelist-alloc.h" />
     <ClInclude Include="..\..\include\dhcore\hash-table.h" />
     <ClInclude Include="..\..\include\dhcore\hash.h" />
+    <ClInclude Include="..\..\include\dhcore\hwinfo.h" />
     <ClInclude Include="..\..\include\dhcore\json.h" />
     <ClInclude Include="..\..\include\dhcore\linked-list.h" />
     <ClInclude Include="..\..\include\dhcore\log.h" />
@@ -221,6 +222,7 @@ if NOT EXIST ..\sharedir.h (
     <ClCompile Include="..\..\src\core\freelist-alloc.c" />
     <ClCompile Include="..\..\src\core\hash-table.c" />
     <ClCompile Include="..\..\src\core\hash.c" />
+    <ClCompile Include="..\..\src\core\hwinfo.c" />
     <ClCompile Include="..\..\src\core\json.c" />
     <ClCompile Include="..\..\src\core\log.c" />
     <ClCompile Include="..\..\src\core\mem-mgr.c" />
@@ -228,6 +230,7 @@ if NOT EXIST ..\sharedir.h (
     <ClCompile Include="..\..\src\core\numeric.c" />
     <ClCompile Include="..\..\src\core\pak-file.c" />
     <ClCompile Include="..\..\src\core\platform\win\crash-win.cpp" />
+    <ClCompile Include="..\..\src\core\platform\win\hwinfo-win.c" />
     <ClCompile Include="..\..\src\core\platform\win\mt-win.c" />
     <ClCompile Include="..\..\src\core\platform\win\timer-win.c" />
     <ClCompile Include="..\..\src\core\platform\win\util-win.c" />

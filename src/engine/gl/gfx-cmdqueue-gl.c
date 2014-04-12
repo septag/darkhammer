@@ -76,7 +76,7 @@ void gfx_destroy_cmdqueue(gfx_cmdqueue cmdqueue)
     FREE(cmdqueue);
 }
 
-result_t gfx_initcmdqueue(gfx_cmdqueue cmdqueue, void* param)
+result_t gfx_initcmdqueue(gfx_cmdqueue cmdqueue)
 {
 	output_setrasterstate(cmdqueue, gfx_get_defaultraster());
 	output_setdepthstencilstate(cmdqueue, gfx_get_defaultdepthstencil(), 0);

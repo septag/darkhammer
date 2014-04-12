@@ -23,7 +23,8 @@
 
 #include <dxgi.h>
 #include <d3d11.h>
-//#include <d3d11_1.h>
+
+#include "dhapp/app.h"
 
 #include "gfx-cmdqueue.h"
 #include "mem-ids.h"
@@ -31,7 +32,6 @@
 #include "gfx.h"
 #include "gfx-shader.h"
 #include "engine.h"
-#include "app.h"
 
 #if !defined(RELEASE)
 #define RELEASE(x)  if ((x) != NULL)  {   (x)->Release();    (x) = NULL;   }
@@ -46,8 +46,6 @@ struct gfx_cmdqueue_s
     gfx_depthstencilstate default_depthstencil;
     gfx_rasterstate default_raster;
     gfx_blendstate default_blend;
-    int rtv_width;
-    int rtv_height;
     gfx_rendertarget cur_rt;
     uint input_bindings[GFX_INPUTELEMENT_ID_CNT];
     uint input_binding_cnt;
@@ -55,11 +53,6 @@ struct gfx_cmdqueue_s
     uint blit_shaderid;   /* blit shader is used for d3d10.0 spec */
     gfx_depthstencilstate blit_ds;
 };
-
-/* fwd */
-/* implemented in app-d3d.cpp */
-ID3D11Texture2D* app_d3d_getbackbuff();
-ID3D11Texture2D* app_d3d_getdepthbuff();
 
 /* inlines/callbacks */
 void _setshader_vs(ID3D11DeviceContext* context, ID3D11DeviceChild* shader)
@@ -174,13 +167,10 @@ void gfx_destroy_cmdqueue(gfx_cmdqueue cmdqueue)
     FREE(cmdqueue);
 }
 
-result_t gfx_initcmdqueue(gfx_cmdqueue cmdqueue, void* param)
+result_t gfx_initcmdqueue(gfx_cmdqueue cmdqueue)
 {
     /* param is d3d main device context, if =NULL we should create a new one */
-    if (param != NULL)
-        cmdqueue->context = (ID3D11DeviceContext*)param;
-    else
-        ASSERT(0);
+    cmdqueue->context = app_d3d_getcontext();
 
     /* create default states */
     cmdqueue->default_raster = gfx_create_rasterstate(gfx_get_defaultraster());
@@ -239,7 +229,7 @@ void gfx_releasecmdqueue(gfx_cmdqueue cmdqueue)
         gfx_shader_unload(cmdqueue->blit_shaderid);
 
     /* if it's not a main-context we can release it */
-    if (cmdqueue->context != app_gfx_getcontext())
+    if (cmdqueue->context != app_d3d_getcontext())
         RELEASE(cmdqueue->context);
 
     memset(cmdqueue, 0x00, sizeof(struct gfx_cmdqueue_s));
@@ -503,18 +493,6 @@ void gfx_buffer_unmap(gfx_cmdqueue cmdqueue, gfx_buffer buffer)
     cmdqueue->context->Unmap((ID3D11Resource*)buffer->api_obj, 0);
 }
 
-void gfx_cmdqueue_setrtvsize(gfx_cmdqueue cmdqueue, uint width, uint height)
-{
-	cmdqueue->rtv_width = (int)width;
-    cmdqueue->rtv_height = (int)height;
-}
-
-void gfx_cmdqueue_getrtvsize(gfx_cmdqueue cmdqueue, OUT uint* width, OUT uint* height)
-{
-	*width = (uint)cmdqueue->rtv_width;
-	*height = (uint)cmdqueue->rtv_height;
-}
-
 void gfx_reset_devstates(gfx_cmdqueue cmdqueue)
 {
     gfx_output_setblendstate(cmdqueue, NULL, NULL);
@@ -540,7 +518,14 @@ void gfx_output_setrendertarget(gfx_cmdqueue cmdqueue, OPTIONAL gfx_rendertarget
         cmdqueue->context->OMSetRenderTargets(rt_cnt, rt_cnt > 0 ? rtvs : NULL, dsv);
         cmdqueue->cur_rt = rt;
     }   else    {
-        app_set_rendertarget(NULL);
+        ID3D11RenderTargetView* rtv;
+        ID3D11DepthStencilView* dsv;
+        app_d3d_getswapchain_views(&rtv, &dsv);
+        
+        cmdqueue->context->OMSetRenderTargets(1, &rtv, dsv);
+        int width, height;
+        gfx_get_wndsize(&width, &height);
+        gfx_set_rtvsize(width, height);
         cmdqueue->cur_rt = NULL;
     }
 
@@ -551,10 +536,22 @@ void gfx_output_clearrendertarget(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
     const float color[4], float depth, uint8 stencil, uint flags)
 {
     if (rt == NULL) {
-        app_window_clear(color, depth, stencil, flags);
+        ID3D11RenderTargetView* rtv;
+        ID3D11DepthStencilView* dsv;
+        app_d3d_getswapchain_views(&rtv, &dsv);
+        if (BIT_CHECK(flags, GFX_CLEAR_DEPTH) || BIT_CHECK(flags, GFX_CLEAR_STENCIL))   {
+            cmdqueue->context->ClearDepthStencilView(dsv, flags, depth, stencil);
+            cmdqueue->stats.cleards_cnt ++;
+        }
+
+        if (BIT_CHECK(flags, GFX_CLEAR_COLOR))  {
+             cmdqueue->context->ClearRenderTargetView(rtv, color);
+             cmdqueue->stats.clearrt_cnt ++;
+        }
+
         return;
     }
-
+    
     if (rt->desc.rt.ds_texture != NULL &&
         BIT_CHECK(flags, GFX_CLEAR_DEPTH) || BIT_CHECK(flags, GFX_CLEAR_STENCIL))
     {
@@ -581,9 +578,13 @@ void gfx_rendertarget_blit(gfx_cmdqueue cmdqueue,
     int dest_x, int dest_y, int dest_width, int dest_height,
     gfx_rendertarget src_rt, int src_x, int src_y, int src_width, int src_height)
 {
+    ID3D11Texture2D* backbuff;
+    ID3D11Texture2D* depthbuff;
+    app_d3d_getswapchain_buffers(&backbuff, &depthbuff);
+
     ID3D11Resource* dest_res = cmdqueue->cur_rt != NULL ?
         (ID3D11Resource*)((gfx_texture)cmdqueue->cur_rt->desc.rt.rt_textures[0])->api_obj :
-        app_d3d_getbackbuff();
+        backbuff;
 
     D3D11_BOX src_box = {
         src_x, src_y, 0,
@@ -598,10 +599,14 @@ void gfx_rendertarget_blit(gfx_cmdqueue cmdqueue,
 void gfx_rendertarget_blitraw(gfx_cmdqueue cmdqueue, gfx_rendertarget src_rt)
 {
     if (gfx_get_hwver() != GFX_HWVER_D3D10_0 || src_rt->desc.rt.ds_texture == NULL)   {
+        ID3D11Texture2D* backbuff;
+        ID3D11Texture2D* depthbuff;
+        app_d3d_getswapchain_buffers(&backbuff, &depthbuff);
+
         /* copy color buffer to current render-target */
         ID3D11Resource* dest_res = cmdqueue->cur_rt != NULL ?
             (ID3D11Resource*)((gfx_texture)cmdqueue->cur_rt->desc.rt.rt_textures[0])->api_obj :
-            app_d3d_getbackbuff();
+            backbuff;
         ID3D11Resource* src_res =
             (ID3D11Resource*)((gfx_texture)src_rt->desc.rt.rt_textures[0])->api_obj;
         cmdqueue->context->CopyResource(dest_res, src_res);
@@ -612,7 +617,7 @@ void gfx_rendertarget_blitraw(gfx_cmdqueue cmdqueue, gfx_rendertarget src_rt)
                 (ID3D11Resource*)((gfx_texture)src_rt->desc.rt.ds_texture)->api_obj;
             ID3D11Resource* dest_depth = cmdqueue->cur_rt != NULL ?
                 (ID3D11Resource*)((gfx_texture)cmdqueue->cur_rt->desc.rt.ds_texture)->api_obj :
-                app_d3d_getdepthbuff();
+                depthbuff;
             cmdqueue->context->CopyResource(dest_depth, src_depth);
         }
     }   else    {
