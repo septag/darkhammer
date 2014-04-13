@@ -238,7 +238,7 @@ class _API:
         _API.cmp_animchar_getparamtype.argtypes = [c_ulonglong, c_char_p]
 
         _API.cmp_animchar_getparamb = dhenglib.cmp_animchar_getparamb
-        _API.cmp_animchar_getparamb.restype = c_uint
+        _API.cmp_animchar_getparamb.restype = c_int
         _API.cmp_animchar_getparamb.argtypes = [c_ulonglong, c_char_p]
 
         _API.cmp_animchar_getparami = dhenglib.cmp_animchar_getparami
@@ -250,7 +250,7 @@ class _API:
         _API.cmp_animchar_getparamf.argtypes = [c_ulonglong, c_char_p]
 
         _API.cmp_animchar_setparamb = dhenglib.cmp_animchar_setparamb
-        _API.cmp_animchar_setparamb.argtypes = [c_ulonglong, c_char_p, c_uint]
+        _API.cmp_animchar_setparamb.argtypes = [c_ulonglong, c_char_p, c_int]
 
         _API.cmp_animchar_setparami = dhenglib.cmp_animchar_setparami
         _API.cmp_animchar_setparami.argtypes = [c_ulonglong, c_char_p, c_int]
@@ -590,7 +590,7 @@ class Animator(Component):
         elif t == Animator.ParamType.FLOAT:
             return _API.cmp_animchar_getparamf(self._cmp, cname)
         elif t == Animator.ParamType.BOOLEAN:
-            return _API.cmp_animchar_getparamb(self._cmp, cname)
+            return bool(_API.cmp_animchar_getparamb(self._cmp, cname))
 
     def set_param(self, name, value):
         cname = to_cstr(name)
@@ -602,7 +602,7 @@ class Animator(Component):
         elif t == Animator.ParamType.FLOAT:
             return _API.cmp_animchar_setparamf(self._cmp, cname, c_float(value))
         elif t == Animator.ParamType.BOOLEAN:
-            return _API.cmp_animchar_setparamb(self._cmp, cname, c_uint(value))
+            return _API.cmp_animchar_setparamb(self._cmp, cname, c_int(value))
 
 class RigidBody(Component):
     def __init__(self, name, cmp_type, owner_obj):

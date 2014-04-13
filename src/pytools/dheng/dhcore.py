@@ -37,7 +37,7 @@ class _API:
         # core.h
         _API.core_init = dhcorelib.core_init
         _API.core_init.restype = c_int
-        _API.core_init.argtypes = [c_int]
+        _API.core_init.argtypes = [c_uint]
 
         _API.core_release = dhcorelib.core_release
         _API.core_release.argtypes = [c_int]
@@ -173,7 +173,7 @@ class Core:
 
     @staticmethod
     def init(flags = InitFlags.ALL):
-        if IS_FAIL(_API.core_init(c_int(flags))):
+        if IS_FAIL(_API.core_init(c_uint(flags))):
             raise Exception(_API.err_getstring()) 
 
     @staticmethod

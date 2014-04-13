@@ -17,7 +17,7 @@ These are the main external 3rdparty libraries that needs to be fetched from the
 - *Assimp*: Asset loading library (package name: *assimp*)
 - *lua*: Scripting library (package name: *lua*)
 - *GLEW*: OpenGL extensions library (package name: *glew*)
-- *GLFWEXT*: GLFW with EXTensions, my fork of GLFW with some added functionality
+- *GLFW*: OpenGL context management library
 - *EFSW*: Cross-platform file-system watcher
 
 #### Linux
@@ -110,7 +110,7 @@ This software is made possible by the following open-source projects:
 - *Assimp*: Open asset import library ([link](http://assimp.sourceforge.net/))
 - *efsw*: File system monitoring library ([link](https://bitbucket.org/SpartanJ/efsw) - [my fork](https://bitbucket.org/sepul/efsw))
 - *nvtt*: NVIDIA texture tools ([link](http://code.google.com/p/nvidia-texture-tools))
-- *glfw*: An OpenGL library ([link](http://www.glfw.org) - [my fork](https://github.com/septag/glfw))
+- *glfw*: An OpenGL library ([link](http://www.glfw.org)
 - *ezxml*: XML parsing library ([link](http://ezxml.sourceforge.net))
 - *mongoose*: Lightweight web server ([link](https://code.google.com/p/mongoose))
 - *stb_image*: Sean Barret's C image loading library ([link](http://nothings.org/stb_image.c))
