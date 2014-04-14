@@ -20,10 +20,10 @@
 struct variant* var_setv(struct variant* rv, const struct variant* v)
 {
     rv->type = v->type;
-    rv->fs[0] = v->fs[0];
-    rv->fs[1] = v->fs[1];
-    rv->fs[2] = v->fs[2];
-    rv->fs[3] = v->fs[3];
+    rv->fv[0] = v->fv[0];
+    rv->fv[1] = v->fv[1];
+    rv->fv[2] = v->fv[2];
+    rv->fv[3] = v->fv[3];
     return rv;
 }
 
@@ -48,111 +48,111 @@ struct variant* var_setf(struct variant* v, float f)
     return v;
 }
 
-struct variant* var_set2fv(struct variant* v, const float* fs)
+struct variant* var_set2fv(struct variant* v, const float* fv)
 {
     v->type = VAR_TYPE_FLOAT2;
-    v->fs[0] = fs[0];
-    v->fs[1] = fs[1];
+    v->fv[0] = fv[0];
+    v->fv[1] = fv[1];
     return v;
 }
 
-struct variant* var_set3fv(struct variant* v, const float* fs)
+struct variant* var_set3fv(struct variant* v, const float* fv)
 {
     v->type = VAR_TYPE_FLOAT3;
-    v->fs[0] = fs[0];
-    v->fs[1] = fs[1];
-    v->fs[2] = fs[2];
+    v->fv[0] = fv[0];
+    v->fv[1] = fv[1];
+    v->fv[2] = fv[2];
     return v;
 }
 
-struct variant* var_set4fv(struct variant* v, const float* fs)
+struct variant* var_set4fv(struct variant* v, const float* fv)
 {
     v->type = VAR_TYPE_FLOAT4;
-    v->fs[0] = fs[0];
-    v->fs[1] = fs[1];
-    v->fs[2] = fs[2];
-    v->fs[3] = fs[3];
+    v->fv[0] = fv[0];
+    v->fv[1] = fv[1];
+    v->fv[2] = fv[2];
+    v->fv[3] = fv[3];
     return v;
 }
 
-struct variant* var_set2iv(struct variant* v, const int* is)
+struct variant* var_set2iv(struct variant* v, const int* iv)
 {
     v->type = VAR_TYPE_INT2;
-    v->is[0] = is[0];
-    v->is[1] = is[1];
+    v->iv[0] = iv[0];
+    v->iv[1] = iv[1];
     return v;
 }
 
-struct variant* var_set3iv(struct variant* v, const int* is)
+struct variant* var_set3iv(struct variant* v, const int* iv)
 {
     v->type = VAR_TYPE_INT3;
-    v->is[0] = is[0];
-    v->is[1] = is[1];
-    v->is[2] = is[2];
+    v->iv[0] = iv[0];
+    v->iv[1] = iv[1];
+    v->iv[2] = iv[2];
     return v;
 }
 
-struct variant* var_set4iv(struct variant* v, const int* is)
+struct variant* var_set4iv(struct variant* v, const int* iv)
 {
     v->type = VAR_TYPE_INT4;
-    v->is[0] = is[0];
-    v->is[1] = is[1];
-    v->is[2] = is[2];
-    v->is[3] = is[3];
+    v->iv[0] = iv[0];
+    v->iv[1] = iv[1];
+    v->iv[2] = iv[2];
+    v->iv[3] = iv[3];
     return v;
 }
 
 struct variant* var_set2f(struct variant* v, float x, float y)
 {
     v->type = VAR_TYPE_FLOAT2;
-    v->fs[0] = x;
-    v->fs[1] = y;
+    v->fv[0] = x;
+    v->fv[1] = y;
     return v;
 }
 
 struct variant* var_set3f(struct variant* v, float x, float y, float z)
 {
     v->type = VAR_TYPE_FLOAT3;
-    v->fs[0] = x;
-    v->fs[1] = y;
-    v->fs[2] = z;
+    v->fv[0] = x;
+    v->fv[1] = y;
+    v->fv[2] = z;
     return v;
 }
 
 struct variant* var_set4f(struct variant* v, float x, float y, float z, float w)
 {
     v->type = VAR_TYPE_FLOAT4;
-    v->fs[0] = x;
-    v->fs[1] = y;
-    v->fs[2] = z;
-    v->fs[3] = w;
+    v->fv[0] = x;
+    v->fv[1] = y;
+    v->fv[2] = z;
+    v->fv[3] = w;
     return v;
 }
 
 struct variant* var_set2i(struct variant* v, int x, int y)
 {
     v->type = VAR_TYPE_INT2;
-    v->is[0] = x;
-    v->is[1] = y;
+    v->iv[0] = x;
+    v->iv[1] = y;
     return v;
 }
 
 struct variant* var_set3i(struct variant* v, int x, int y, int z)
 {
     v->type = VAR_TYPE_INT3;
-    v->is[0] = x;
-    v->is[1] = y;
-    v->is[2] = z;
+    v->iv[0] = x;
+    v->iv[1] = y;
+    v->iv[2] = z;
     return v;
 }
 
 struct variant* var_set4i(struct variant* v, int x, int y, int z, int w)
 {
     v->type = VAR_TYPE_INT4;
-    v->is[0] = x;
-    v->is[1] = y;
-    v->is[2] = z;
-    v->is[3] = w;
+    v->iv[0] = x;
+    v->iv[1] = y;
+    v->iv[2] = z;
+    v->iv[3] = w;
     return v;
 }
 
@@ -197,13 +197,13 @@ int var_getb(const struct variant* v)
 const float* var_getfv(const struct variant* v)
 {
     ASSERT(v->type == VAR_TYPE_FLOAT2 || v->type == VAR_TYPE_FLOAT3 || v->type == VAR_TYPE_FLOAT4);
-    return v->fs;
+    return v->fv;
 }
 
 const int* var_getiv(const struct variant* v)
 {
     ASSERT(v->type == VAR_TYPE_INT2 || v->type == VAR_TYPE_INT3 || v->type == VAR_TYPE_INT4);
-    return v->is;
+    return v->iv;
 }
 
 const char* var_gets(const struct variant* v)

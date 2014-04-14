@@ -242,7 +242,7 @@ void update_light()
     vec3f dir;
     uint sec_light = wld_find_section("light");
     uint w_ldir = wld_find_var(sec_light, "dir");
-    vec3_setvp(&dir, wld_get_var(sec_light, w_ldir)->fs);
+    vec3_setvp(&dir, wld_get_var(sec_light, w_ldir)->fv);
 
     mat3f m;
     mat3_setidentity(&m);

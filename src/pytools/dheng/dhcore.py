@@ -125,6 +125,7 @@ def IS_FAIL(r):
     else:       return False
 
 INVALID_HANDLE = 0xffffffffffffffff
+INVALID_INDEX = 0xffffffff
 
 def to_cstr(s):
     return create_string_buffer(s.encode('ascii'))
@@ -136,27 +137,25 @@ class Errors:
         return r.decode()
 
 class Log:
-    class LogType():
+    class LogType:
         TEXT = 0
         ERROR = 1
         WARNING = 3,
         INFO = 3,
         LOAD = 4
 
-    def get_console_output(self):
-        return bool(_API.log_isconsole())
-    def set_console_output(self, enable):
+    @staticmethod
+    def set_console_output(enable):
         _API.log_outputconsole(c_int(enable))
-    console_output = property(get_console_output, set_console_output)
 
-    def get_file_output(self):
-        return bool(_API.log_isfile())
-    def set_file_output(self, logfile):
-        _API.log_outputfile(c_int(True), create_string_buffer(logfile.encode('ascii')))
-    def del_file_output(self):
-        _API.log_outputfile(c_int(False), c_char_p(None))
-    file_output = property(get_file_output, set_file_output, del_file_output)  
+    @staticmethod
+    def set_file_output(logfile):
+        if logfile != None:
+            _API.log_outputfile(c_int(True), create_string_buffer(logfile.encode('ascii')))
+        else:
+            _API.log_outputfile(c_int(False), None)
 
+    @staticmethod
     def msg(log_type, msg):
         _API.log_print(c_uint(log_type), create_string_buffer(msg.encode('ascii')))
 
@@ -545,5 +544,87 @@ class FileIO:
         path = os.path.abspath(os.path.expanduser(path))
         if not _API.fio_addvdir(to_cstr(path), c_int(monitor)):
             raise Exception(Errors.last_error())
+
+class Variant(Structure):
+    class VarType:
+        BOOL = 1
+        INT = 2
+        UINT = 3
+        FLOAT = 4
+        FLOAT2 = 5
+        FLOAT3 = 6
+        FLOAT4 = 7
+        INT2 = 8
+        INT3 = 9
+        INT4 = 10
+        STRING = 11
+
+    class _Value(Union):
+        _fields_ = [\
+            ('b', c_int),
+            ('i', c_int),
+            ('ui', c_uint),
+            ('f', c_float),
+            ('fv', c_float*4),
+            ('iv', c_int*4),
+            ('s', c_char*16)]
+
+    _fields_ = [('type', c_uint), ('value', _Value)]
+
+
+    def set_value(self, v):
+        if type(v) is bool:
+            self.type = Variant.VarType.BOOL
+            self.value.b = int(v)
+        elif type(v) is int:
+            self.type = Variant.VarType.INT
+            self.value.i = v
+        elif type(v) is float:
+            self.type = Variant.VarType.FLOAT
+            self.value.f = v
+        elif type(v) is Vec2:
+            self.type = Variant.VarType.FLOAT2
+            self.value.fv[0] = v.x
+            self.value.fv[1] = v.y
+        elif type(v) is Vec3:
+            self.type = Variant.VarType.FLOAT3
+            self.value.fv[0] = v.x
+            self.value.fv[1] = v.y
+            self.value.fv[2] = v.z
+        elif type(v) is Vec2i:
+            self.type = Variant.VarType.INT2
+            self.value.iv[0] = v.x
+            self.value.iv[1] = v.y
+        elif (type(v) is Color) or (type(v) is Vec4):
+            self.type = Variant.VarType.FLOAT4
+            self.value.fv[0] = v.x
+            self.value.fv[1] = v.y
+            self.value.fv[2] = v.z
+            self.value.fv[3] = v.w
+        elif type(v) is str:
+            self.type = Variant.VarType.STRING
+            self.value.s = to_cstr(v)
+        else:
+            raise Exception('unknown type')        
+
+    def get_value(self):
+        if self.type == Variant.VarType.BOOL:
+            return self.value.b
+        elif self.type == Variant.VarType.INT:
+            return self.value.i
+        elif self.type == Variant.VarType.FLOAT:
+            return self.value.f
+        elif self.type == Variant.VarType.FLOAT2:
+            return Vec2(self.value.fv[0], self.value.fv[1])
+        elif self.type == Variant.VarType.FLOAT3:
+            return Vec3(self.value.fv[0], self.value.fv[1], self.value.fv[2])
+        elif self.type == Variant.VarType.INT2:
+            return Vec2i(self.value.iv[0], self.value.iv[1])
+        elif self.type == Variant.VarType.FLOAT4:
+            return Vec4(self.value.fv[0], self.value.fv[1], self.value.fv[2], self.value.fv[3])
+        elif self.type == Variant.VarType.STRING:
+            return self.value.s
+        else:
+            raise Exception('unknown type')
 
 _API.init(debug = ('--debug' in sys.argv))

@@ -1496,16 +1496,16 @@ void deferred_rendersunlight(gfx_cmdqueue cmdqueue, const struct gfx_view_params
     uint sec_light = wld_find_section("light");
     uint sec_ambient = wld_find_section("ambient");
 
-    const float* world_sundir = wld_get_var(sec_light, wld_find_var(sec_light, "dir"))->fs;
-    const float* world_suncolor = wld_get_var(sec_light, wld_find_var(sec_light, "color"))->fs;
+    const float* world_sundir = wld_get_var(sec_light, wld_find_var(sec_light, "dir"))->fv;
+    const float* world_suncolor = wld_get_var(sec_light, wld_find_var(sec_light, "color"))->fv;
     float world_sunintensity = wld_get_var(sec_light, wld_find_var(sec_light, "intensity"))->f;
 
     const float* world_ambientsky =
-        wld_get_var(sec_ambient, wld_find_var(sec_ambient, "sky-color"))->fs;
+        wld_get_var(sec_ambient, wld_find_var(sec_ambient, "sky-color"))->fv;
     const float* world_ambientground =
-        wld_get_var(sec_ambient, wld_find_var(sec_ambient, "ground-color"))->fs;
+        wld_get_var(sec_ambient, wld_find_var(sec_ambient, "ground-color"))->fv;
     const float* world_skyvect =
-        wld_get_var(sec_ambient, wld_find_var(sec_ambient, "sky-vector"))->fs;
+        wld_get_var(sec_ambient, wld_find_var(sec_ambient, "sky-vector"))->fv;
     float world_ambientintensity =
         wld_get_var(sec_ambient, wld_find_var(sec_ambient, "intensity"))->f;
 

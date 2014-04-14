@@ -99,12 +99,12 @@ def check_lua():
     (r, ver, libs) = search_package('lua')
     if not r:
         log('\t\tnot found\n', TERM_YELLOW)
-        return install_lua()
+        return False
 
     sver = ver.split('.')
     if int(sver[0]) < 5 or int(sver[1]) < 2:
         log('\t\told version: {0}\n'.format(ver), TERM_YELLOW)
-        return install_lua()
+        return False
 
     log('\t\tfound: {0}\n'.format(ver), TERM_GREEN)
     return True
@@ -172,17 +172,14 @@ def check_assimp():
     log('\t\tfound: {0}\n'.format(ver), TERM_GREEN)
     return True
 
-def install_glfwext():
-    log('looking for glfwext...', TERM_GREEN)
-    if os.path.isfile(os.path.join(LIBDIR, 'libglfwext.so')):
-        log('\t\tfound\n', TERM_GREEN)
+def install_glfw():
+    if os.path.isfile(os.path.join(LIBDIR, 'libglfw.so')):
         return True
-    log('\t\tnot found\n', TERM_YELLOW)
 
-    url = 'https://github.com/septag/glfwext/archive/master.zip'
-    log('downloading glfwext source from "https://github.com/septag/glfwext"...\n', TERM_GREY)
+    url = 'https://github.com/glfw/glfw/archive/master.zip'
+    log('downloading glfw source from "https://github.com/glfw/glfw"...\n', TERM_GREY)
 
-    glfwdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'glfwext')
+    glfwdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'glfw')
     os.makedirs(glfwdir, exist_ok=True)
     os.chdir(glfwdir)
     if os.system('wget -N {0}'.format(url)) != 0:
@@ -193,24 +190,31 @@ def install_glfwext():
         return False
 
     os.chdir('glfw-master')
-    if os.system('waf configure build install') != 0:
+    if os.system('cmake . -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%s' % PREFIX) != 0:
         os.chdir(ROOTDIR)
         return False
 
-    # copy important files
-    # libs
-    libs = glob.glob('lib/libglfwext.so*')
-    for lib in libs:
-        shutil.copyfile(lib, os.path.join(LIBDIR, os.path.basename(lib)))
-
-    # headers
-    includes = os.path.join(INCLUDEDIR, 'GLFWEXT')
-    headers = glob.glob('include/GLFW/*.h')
-    os.makedirs(includes, exist_ok=True)
-    for header in headers:
-        shutil.copyfile(header, os.path.join(includes, os.path.basename(header)))
+    if os.system('make install') != 0:
+        os.chdir(ROOTDIR)
+        return False
 
     os.chdir(ROOTDIR)
+    return True
+
+def check_glfw():
+    log('looking for glfw...', TERM_GREEN)
+
+    (r, ver, libs) = search_package('glfw')
+    if not r:
+        log('\t\tnot found\n', TERM_YELLOW)
+        return False
+
+    sver = ver.split('.')
+    if int(sver[0]) < 3:
+        log('\t\told version: {0}\n'.format(ver), TERM_YELLOW)
+        return False
+
+    log('\t\tfound: {0}\n'.format(ver), TERM_GREEN)
     return True
 
 def check_glew():
@@ -343,9 +347,10 @@ def main():
             log('error: could not install assimp\n', TERM_RED)
             return False
 
-    if not install_glfwext():
-        log('error: could not install glfwext\n', TERM_RED)
-        return False
+    if not check_glfw():
+        if not install_glfw():
+            log('error: could not install glfw\n', TERM_RED)
+            return False
 
     if not check_glew():
         if not install_glew():

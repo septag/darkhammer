@@ -258,6 +258,22 @@ class _API:
         _API.cmp_animchar_setparamf = dhenglib.cmp_animchar_setparamf
         _API.cmp_animchar_setparamf.argtypes = [c_ulonglong, c_char_p, c_float]
 
+        # world-mgr.h
+        _API.wld_set_var = dhenglib.wld_set_var
+        _API.wld_set_var.argtypes = [c_uint, c_uint, POINTER(Variant)]
+
+        _API.wld_get_var = dhenglib.wld_get_var
+        _API.wld_get_var.restype = POINTER(Variant)
+        _API.wld_get_var.argtypes = [c_uint, c_uint]
+
+        _API.wld_find_var = dhenglib.wld_find_var
+        _API.wld_find_var.restype = c_uint
+        _API.wld_find_var.argtypes = [c_uint, c_char_p]
+
+        _API.wld_find_section = dhenglib.wld_find_section
+        _API.wld_find_section.restype = c_uint
+        _API.wld_find_section.argtypes = [c_char_p]
+
         _API.is_init = True
 
 class Engine:
@@ -274,6 +290,7 @@ class Engine:
             ft = _API.eng_get_frametime()
             Input.update(ft)
 
+            World.update_objects(ft)
             if Engine.__active_scene != None:
                 Engine.__active_scene.update_objects(ft)
 
@@ -319,14 +336,6 @@ class Engine:
     def resize_view(width, height):
         if Engine.is_init:
             _API.gfx_resize(c_uint(width), c_uint(height))
-
-
-class EngineCallbacks:
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def draw_debug(self):
-        pass
 
 class Component:
     __cmps = dict()
@@ -796,7 +805,12 @@ class GameObject:
         self.__cmps = dict()
         self.__behaviors = dict()
         self.__scene = scene
-        self.__obj = _API.scn_create_obj(c_uint(scene.ID), to_cstr(obj_name), c_uint(obj_type))
+
+        if scene != None:
+            self.__obj = _API.scn_create_obj(c_uint(scene.ID), to_cstr(obj_name), c_uint(obj_type))
+        else:
+            self.__obj = _API.scn_create_obj(c_uint(INVALID_INDEX), to_cstr(obj_name), 
+                c_uint(obj_type))
 
         if self.__obj == None:
             raise Exception('creating object failed')
@@ -821,6 +835,8 @@ class GameObject:
                 self.__obj = None
             elif self.__scene != None:
                 self.__scene.destroy_object(self)
+            elif self.__scene == None:
+                World.destroy_object(self)
 
     def update_behaviors(self, dt):
         for b in self.__behaviors.values():
@@ -863,10 +879,115 @@ class GameObject:
         return self.__scene
     scene = property(__get_scene)
 
+class _WorldMeta(type):
+    _vars = dict()
+
+    def _find_var(self, section, name):
+        fullname = str.join('.', (section, name))
+        if fullname in self._vars:
+            item = self._vars[fullname]
+            v = _API.wld_get_var(c_uint(item[0]), c_uint(item[1]))
+        else:
+            sec_id = _API.wld_find_section(to_cstr(section))
+            if sec_id == 0:
+                raise Exception('section "%s" does not exist' % section)
+            var_id = _API.wld_find_var(c_uint(sec_id), to_cstr(name))
+            if var_id == 0:
+                raise Exception('variable "%s" does not exist' % fullname)
+
+            self._vars[fullname] = (sec_id, var_id)
+            v = _API.wld_get_var(c_uint(sec_id), c_uint(var_id))
+
+        return v.contents
+
+    def _get_lightdir(self):
+        return self._find_var('light', 'dir').get_value()
+    def _set_lightdir(self, v):
+        self._find_var('light', 'dir').set_value(v)
+    light_dir = property(_get_lightdir, _set_lightdir)
+
+    def _get_lightcolor(self):
+        return self._find_var('light', 'color').get_value()
+    def _set_lightcolor(self, c):
+        self._find_var('light', 'color').set_value(c)
+    light_color = property(_get_lightcolor, _set_lightcolor)
+
+    def _get_lightintensity(self):
+        return self._find_var('light', 'intensity').get_value()
+    def _set_lightintensity(self, i):
+        self._find_var('light', 'intensity').set_value(i)
+    light_intensity = property(_get_lightintensity, _set_lightintensity)
+
+    def _get_ambient_groundcolor(self):
+        return self._find_var('ambient', 'ground-color').get_value()
+    def _set_ambient_groundcolor(self, v):
+        self._find_var('ambient', 'ground-color').set_value(v)
+    ambient_groundcolor = property(_get_ambient_groundcolor, _set_ambient_groundcolor)
+
+    def _get_ambient_skycolor(self):
+        return self._find_var('ambient', 'sky-color').get_value()
+    def _set_ambient_skycolor(self, v):
+        self._find_var('ambient', 'sky-color').set_value(v)
+    ambient_skycolor = property(_get_ambient_skycolor, _set_ambient_skycolor)
+
+    def _get_ambient_skyvector(self):
+        return self._find_var('ambient', 'sky-vector').get_value()
+    def _set_ambient_skyvector(self, v):
+        self._find_var('ambient', 'sky-vector').set_value(v)
+    ambient_skyvector = property(_get_ambient_skyvector, _set_ambient_skyvector)
+
+    def _get_ambient_intensity(self):
+        return self._find_var('ambient', 'intensity').get_value()
+    def _set_ambient_intensity(self, v):
+        self._find_var('ambient', 'intensity').set_value(v)
+    ambient_intensity = property(_get_ambient_intensity, _set_ambient_intensity)
+
+    def _get_physics_gravity(self):
+        return self._find_var('physics', 'gravity-vector').get_value()
+    def _set_physics_gravity(self, v):
+        self._find_var('physics', 'gravity-vector').set_value(v)
+    physics_gravity = property(_get_physics_gravity, _set_physics_gravity)
+
+
+class World(metaclass=_WorldMeta):
+    __objs = dict()
+
+    @staticmethod
+    def create_object(name, obj_type):
+        try:
+            if name in World.__objs:
+                raise Exception('object already exists')
+            obj = GameObject(None, name, obj_type)
+        except:
+            raise
+        else:
+            World.__objs[name] = obj
+            return obj
+
+    @staticmethod
+    def update_objects(dt):
+        for obj in World.__objs.values():
+            obj.update_behaviors(dt)
+
+    @staticmethod
+    def destroy_object(obj):
+        if Engine.is_init:
+            if type(obj) is GameObject:
+                if obj.name in World.__objs:
+                    self.__objs[obj.name].destroy(scene_caller=True)
+                    del self.__objs
+            else:
+                raise Exception('not a valid object type')            
+
+    @staticmethod
+    def clear():
+        _API.scn_clear(INVALID_INDEX)
+
 class Scene:
     __scenes = dict()
 
-    def __init__(self, name):
+    def __init__(self, name=None):
+        # create or fetche named scene
         if name in Scene.__scenes:
             raise Exception('scene already exists')
 
@@ -951,8 +1072,5 @@ class Scene:
     @staticmethod
     def find(name):
         return __scenes[name]
-
-def init_api(debug=False):  
-    _API.init(debug)
 
 _API.init(debug = ('--debug' in sys.argv))

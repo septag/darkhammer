@@ -37,7 +37,7 @@ class Events(AppEvents):
         Engine.resize_view(width, height)
 
 Core.init()
-Log().console_output = True
+Log.set_console_output(True)
 conf = Config()
 conf.engine_flags |= EngFlags.DEV | EngFlags.CONSOLE
 
@@ -52,14 +52,14 @@ else:
     testdata_path = os.path.join(Engine.get_share_dir(), 'test-data')
     FileIO.add_virtual_path(testdata_path)
 
+    cam = World.create_object('main_cam', GameObject.Type.CAMERA)
+    cam.add_behavior(OrbitCam(), 'cam')
+    cam.camera.active = True
+    cam.transform.position = Vec3(0, 5, 0)
+    cam.get_behavior('cam').target = Vec3(0, 1, 0)
+
     s = Scene('main')
     s.activate()
-    obj = s.create_object('main_cam', GameObject.Type.CAMERA)
-
-    obj.add_behavior(OrbitCam(), 'cam')
-    obj.camera.active = True
-    obj.transform.position = Vec3(0, 5, 0)
-    obj.get_behavior('cam').target = Vec3(0, 1, 0)
 
     obj = s.create_object('ground', GameObject.Type.MODEL)
     obj.model.filepath = 'plane.h3dm'
@@ -78,6 +78,8 @@ else:
     light = s.create_object('light2', GameObject.Type.LIGHT)
     light.transform.position = Vec3(-1, 1, 1)
     light.light.color = Color(1, 0, 0)
+
+    World.light_color = Vec3(1, 0.5, 0.5)
 
     App.run()
     s.destroy()

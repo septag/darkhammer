@@ -384,7 +384,7 @@ struct scn_data* scene_create(const char* name)
         /* default gravity */
         struct vec3f gravity;
         uint sec_phys = wld_find_section("physics");
-        vec3_setvp(&gravity, wld_get_var(sec_phys, wld_find_var(sec_phys, "gravity-vector"))->fs);
+        vec3_setvp(&gravity, wld_get_var(sec_phys, wld_find_var(sec_phys, "gravity-vector"))->fv);
         s->phx_sceneid = phx_create_scene(&gravity, NULL);
         if (s->phx_sceneid == 0)    {
             scene_destroy(s);
@@ -778,11 +778,6 @@ void scn_destroy_query(struct scn_render_query* query)
 struct cmp_obj* scn_create_obj(uint scene_id, const char* name, enum cmp_obj_type type)
 {
 	ASSERT(scene_id != 0);
-
-    if (scene_id > g_scn_mgr.scenes.item_cnt || scene_get(scene_id) == NULL)   {
-        err_printf(__FILE__, __LINE__, "creating object '%s' failed, scene does not exist", name);
-        return NULL;
-    }
 
 	struct cmp_obj* obj = (struct cmp_obj*)mem_pool_alloc(&g_scn_mgr.obj_pool);
 	if (obj == NULL)

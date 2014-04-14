@@ -25,18 +25,18 @@
 
 enum variant_type
 {
-    VAR_TYPE_BOOL,
-    VAR_TYPE_INT,
-    VAR_TYPE_UINT,
-    VAR_TYPE_FLOAT,
-    VAR_TYPE_FLOAT2,
-    VAR_TYPE_FLOAT3,
-    VAR_TYPE_FLOAT4,
-    VAR_TYPE_INT2,
-    VAR_TYPE_INT3,
-    VAR_TYPE_INT4,
-    VAR_TYPE_STRING,
-    VAR_TYPE_NULL
+    VAR_TYPE_BOOL = 1,
+    VAR_TYPE_INT = 2,
+    VAR_TYPE_UINT = 3,
+    VAR_TYPE_FLOAT = 4,
+    VAR_TYPE_FLOAT2 = 5,
+    VAR_TYPE_FLOAT3 = 6,
+    VAR_TYPE_FLOAT4 = 7,
+    VAR_TYPE_INT2 = 8,
+    VAR_TYPE_INT3 = 9,
+    VAR_TYPE_INT4 = 10,
+    VAR_TYPE_STRING = 11,
+    VAR_TYPE_NULL = 0
 };
 
 struct variant
@@ -48,8 +48,8 @@ struct variant
         int i;
         uint ui;
         float f;
-        float fs[4];
-        int is[4];
+        float fv[4];
+        int iv[4];
         char str[16];
     };
 };
@@ -59,12 +59,12 @@ CORE_API struct variant* var_setb(struct variant* v, int b);
 CORE_API struct variant* var_seti(struct variant* v, int i);
 CORE_API struct variant* var_setui(struct variant* v, uint ui);
 CORE_API struct variant* var_setf(struct variant* v, float f);
-CORE_API struct variant* var_set2fv(struct variant* v, const float* fs);
-CORE_API struct variant* var_set3fv(struct variant* v, const float* fs);
-CORE_API struct variant* var_set4fv(struct variant* v, const float* fs);
-CORE_API struct variant* var_set2iv(struct variant* v, const int* is);
-CORE_API struct variant* var_set3iv(struct variant* v, const int* is);
-CORE_API struct variant* var_set4iv(struct variant* v, const int* is);
+CORE_API struct variant* var_set2fv(struct variant* v, const float* fv);
+CORE_API struct variant* var_set3fv(struct variant* v, const float* fv);
+CORE_API struct variant* var_set4fv(struct variant* v, const float* fv);
+CORE_API struct variant* var_set2iv(struct variant* v, const int* iv);
+CORE_API struct variant* var_set3iv(struct variant* v, const int* iv);
+CORE_API struct variant* var_set4iv(struct variant* v, const int* iv);
 CORE_API struct variant* var_set2f(struct variant* v, float x, float y);
 CORE_API struct variant* var_set3f(struct variant* v, float x, float y, float z);
 CORE_API struct variant* var_set4f(struct variant* v, float x, float y, float z, float w);

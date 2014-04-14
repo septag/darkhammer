@@ -229,5 +229,5 @@ void phx_setgravity_callback(const struct variant* v, void* param)
     struct vec3f g;
     uint scene_id = scn_getactive();
     if (scene_id != 0)
-        phx_scene_setgravity(scn_getphxscene(scene_id), vec3_setf(&g, v->fs[0], v->fs[1], v->fs[2]));
+        phx_scene_setgravity(scn_getphxscene(scene_id), vec3_setf(&g, v->fv[0], v->fv[1], v->fv[2]));
 }

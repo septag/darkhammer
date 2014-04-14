@@ -33,12 +33,11 @@ void wld_releasemgr();
 
 ENGINE_API uint wld_register_section(const char* name);
 ENGINE_API uint wld_register_var(uint section_id, const char* name, enum variant_type type,
-                                   OPTIONAL pfn_wld_varchanged change_fn, OPTIONAL void* param);
+    OPTIONAL pfn_wld_varchanged change_fn, OPTIONAL void* param);
 ENGINE_API uint wld_find_section(const char* name);
 ENGINE_API uint wld_find_var(uint section_id, const char* name);
 ENGINE_API const struct variant* wld_get_var(uint section_id, uint var_id);
 ENGINE_API void wld_set_var(uint section_id, uint var_id, const struct variant* var);
-
 ENGINE_API void wld_set_cam(struct camera* cam);
 ENGINE_API struct camera* wld_get_cam();
 

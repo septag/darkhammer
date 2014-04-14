@@ -895,7 +895,7 @@ void gfx_renderpass_process_sunshadow(struct allocator* alloc, const struct gfx_
     struct vec3f sun_dir;
     struct aabb world_bounds;
     uint sec_light = wld_find_section("light");
-    const float* world_sundir = wld_get_var(sec_light, wld_find_var(sec_light, "dir"))->fs;
+    const float* world_sundir = wld_get_var(sec_light, wld_find_var(sec_light, "dir"))->fv;
     struct vec3f world_min, world_max;
 
     uint scene_id = scn_getactive();
