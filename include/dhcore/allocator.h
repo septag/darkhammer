@@ -17,8 +17,6 @@
 #ifndef __ALLOCATOR_H__
 #define __ALLOCATOR_H__
 
-#include "types.h"
-
  /**
  * Callback function for custom allocation
  * @param size size (in bytes) to allocate
@@ -30,7 +28,7 @@
  * @ingroup mem
  */
 typedef void* (*pfn_alloc)(size_t size, const char* source,
-                           uint line, uint id, void* param);
+                           unsigned int line, unsigned int id, void* param);
 /**
  * Callback function for custom free
  * @ingroup mem
@@ -41,8 +39,8 @@ typedef void  (*pfn_free)(void* ptr, void* param);
  * @see pfn_alloc
  * @ingroup mem
  */
-typedef void* (*pfn_alignedalloc)(size_t size, uint8 alignment,
-                                  const char* source, uint line, uint id,
+typedef void* (*pfn_alignedalloc)(size_t size, unsigned char alignment,
+                                  const char* source, unsigned int line, unsigned int id,
                                   void* param);
 /**
  * Callback function for aligned free
