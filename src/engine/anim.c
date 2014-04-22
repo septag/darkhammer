@@ -1977,7 +1977,7 @@ int anim_ctrl_get_curstate(anim_ctrl ctrl, anim_ctrl_inst inst, const char* laye
                 uint idx = ilayer->state_idx;
                 float p = 0.0f;
                 if (ctrl->states[idx].seq.type == ANIM_CTRL_SEQUENCE_CLIP)
-                    p = inst->blendtrees[ctrl->states[idx].seq.idx].progress;
+                    p = inst->clips[ctrl->states[idx].seq.idx].progress;
                 else if (ctrl->states[idx].seq.type == ANIM_CTRL_SEQUENCE_BLENDTREE)
                     p = inst->blendtrees[ctrl->states[idx].seq.idx].progress;
 
