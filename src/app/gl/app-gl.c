@@ -28,6 +28,7 @@
 #elif defined(_LINUX_)
 #define GLFW_EXPOSE_NATIVE_GLX
 #define GLFW_EXPOSE_NATIVE_X11
+#include <X11/extensions/Xrandr.h>
 #elif defined(_OSX_)
 #define GLFW_EXPOSE_NATIVE_COCOA
 #define GLFW_EXPOSE_NATIVE_NSGL
