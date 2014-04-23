@@ -11,16 +11,17 @@ class SoldierCtrl(Behavior):
 
     def update(self, dt):
         try:
-            if Input.is_keydown(Key.UP):
+            if Input.is_keydown(Key.UP) or Input.is_keydown(Key.W):
                 self._obj.animator.set_param('Walk', True)
-                if Input.is_keydown(Key.LEFT):
-                    self._obj.animator.set_param('MoveDir', 
-                        self._obj.animator.get_param('MoveDir') - 0.01)
-                elif Input.is_keydown(Key.RIGHT):
-                    self._obj.animator.set_param('MoveDir',
-                        self._obj.animator.get_param('MoveDir') + 0.01)
+                if Input.is_keydown(Key.LEFT) or Input.is_keydown(Key.A):
+                    self._obj.animator.set_param('Direction', 
+                        self._obj.animator.get_param('Direction') - 0.01)
+                elif Input.is_keydown(Key.RIGHT) or Input.is_keydown(Key.D):
+                    self._obj.animator.set_param('Direction',
+                        self._obj.animator.get_param('Direction') + 0.01)
             else:
                 self._obj.animator.set_param('Walk', False)
+                #obj.animator.set_param('Direction', 0.5)
         except:
             pass
 
@@ -69,8 +70,7 @@ else:
     obj.add_component('animator')
     obj.animator.filepath = 'controller1.json'
     obj.add_behavior(SoldierCtrl(), 'soldier_ctrl')
-    obj.bounds.debug(True)
-
+    
     light = s.create_object('light', GameObject.Type.LIGHT)
     light.transform.position = Vec3(1, 1, 1)
     light.light.color = Color(1, 1, 0)
@@ -78,8 +78,6 @@ else:
     light = s.create_object('light2', GameObject.Type.LIGHT)
     light.transform.position = Vec3(-1, 1, 1)
     light.light.color = Color(1, 0, 0)
-
-    World.light_color = Vec3(1, 0.5, 0.5)
 
     App.run()
     s.destroy()

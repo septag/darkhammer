@@ -2,7 +2,7 @@
   "reel": "soldier-animate.h3da",
   "params": [
     {
-      "name": "MoveDir",
+      "name": "Direction",
       "type": "Float",
       "value": 0.0
     },
