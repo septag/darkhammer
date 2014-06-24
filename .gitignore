@@ -10,6 +10,7 @@ Win32
 Debug
 Release
 build
+bin
 .tags
 .tags_sorted_by_file
 .lock-waf_linux_build
