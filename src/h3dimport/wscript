@@ -3,11 +3,11 @@
 import os, glob, sys
 
 def build(bld):
-    libs = []
+    libs = ['dhcore' + bld.env.SUFFIX]
 
     files = bld.path.ant_glob('*.c*')
 
-    if sys.platform in ['linux', 'darwin']:
+    if sys.platform in ['linux', 'darwin', 'linux2', 'linux3', 'linux4']:
         libs.extend([
             'm',
             'pthread',
@@ -50,6 +50,6 @@ def build(bld):
         defines = ['ASSIMP_DLL'],
         cxxflags = cxxflags,
         install_path = '${PREFIX}/bin',
-        use = ['dhcore', '3rdparty_stbimage', '3rdparty_ezxml', '3rdparty_nvtt'])
+        use = ['3rdparty_stbimage', '3rdparty_ezxml', '3rdparty_nvtt'])
 
 

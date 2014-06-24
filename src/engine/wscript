@@ -9,13 +9,13 @@ def build(bld):
     files.extend(bld.path.ant_glob('physx/*.c*'))
     files.extend(bld.path.ant_glob('renderpaths/*.c'))
 
-    libs = []
+    libs = ['dhcore' + bld.env.SUFFIX]
     libpath = []
     includes = []
     frameworks = []
     linkflags = []
 
-    if sys.platform == 'linux' or sys.platform == 'darwin':
+    if sys.platform.startswith('linux') or sys.platform == 'darwin':
         libs.extend([\
             'X11', 'Xi', 'Xrandr', 'Xxf86vm',
             'PhysX3Extensions',
@@ -56,7 +56,7 @@ def build(bld):
         files.append('platform/win/input-win.c')
     elif bld.env.GFX_API == 'GL':
         files.extend(bld.path.ant_glob('gl/*.c'))
-        if sys.platform == 'linux':            libs.append('GL')
+        if sys.platform.startswith('linux'):   libs.append('GL')
         elif sys.platform == 'win32':          libs.append('OpenGL32')
         libs.append('GLEW')
 
@@ -77,7 +77,7 @@ def build(bld):
         cflags.append('/TP')
 
     vnum = ''
-    if sys.platform == 'linux':
+    if sys.platform.startswith('linux'):
         vnum = bld.env.VERSION
 
     if sys.platform != 'win32':
@@ -101,5 +101,5 @@ def build(bld):
         framework = frameworks,
         linkflags = linkflags,
         vnum = vnum,
-        use = ['dhcore', 'dhapp', '3rdparty_mongoose'])
+        use = ['dhapp', '3rdparty_mongoose'])
 

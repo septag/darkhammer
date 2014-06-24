@@ -833,7 +833,7 @@ anim_ctrl anim_ctrl_load(struct allocator* alloc, const char* janim_filepath, ui
         return NULL;
     }
 
-    json_t jroot = json_parsefile(f, tmp_alloc);
+    json_t jroot = json_parsefilef(f, tmp_alloc);
     fio_close(f);
     if (jroot == NULL)  {
         err_printf(__FILE__, __LINE__, "Loading ctrl-anim failed: Invalid json '%s'",

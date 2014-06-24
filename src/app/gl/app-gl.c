@@ -102,40 +102,40 @@ void app_remove_window(const char* name);
 /*************************************************************************************************
  * inlines
  */
-INLINE void app_convert_gfxver(enum gfx_hwver hwver, struct version_info* v)
+INLINE void app_convert_gfxver(enum gfx_hwver hwver, OUT int* major, OUT int* minor)
 {
     switch (hwver)	{
     case GFX_HWVER_GL3_2:
-        v->major = 3;
-        v->minor = 2;
+        *major = 3;
+        *minor = 2;
         break;
     case GFX_HWVER_GL3_3:
-        v->major = 3;
-        v->minor = 3;
+        *major = 3;
+        *minor = 3;
         break;
     case GFX_HWVER_GL4_0:
-        v->major = 4;
-        v->minor = 0;
+        *major = 4;
+        *minor = 0;
         break;
     case GFX_HWVER_GL4_1:
-        v->major = 4;
-        v->minor = 1;
+        *major = 4;
+        *minor = 1;
         break;
     case GFX_HWVER_GL4_2:
-        v->major = 4;
-        v->minor = 2;
+        *major = 4;
+        *minor = 2;
         break;
     case GFX_HWVER_GL4_3:
-        v->major = 4;
-        v->minor = 3;
+        *major = 4;
+        *minor = 3;
         break;
     case GFX_HWVER_GL4_4:
-        v->major = 4;
-        v->minor = 4;
+        *major = 4;
+        *minor = 4;
         break;
     default:
-        v->major = INT32_MAX;
-        v->minor = INT32_MAX;
+        *major = INT32_MAX;
+        *minor = INT32_MAX;
     }
 }
 
@@ -174,18 +174,18 @@ result_t app_init(const char* name, const struct init_params* params)
     }
 
     /* create main window */
-    struct version_info ver;
+    int major, minor;
     glfwSetErrorCallback(glfw_error_callback);
     glfwDefaultWindowHints();
     glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
 
     /* construct GL version for context creation */
-    app_convert_gfxver(params->gfx.hwver, &ver);
-    if (ver.major != INT32_MAX && ver.minor != INT32_MAX)   {
+    app_convert_gfxver(params->gfx.hwver, &major, &minor);
+    if (major != INT32_MAX && minor != INT32_MAX)   {
         // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, ver.major);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, ver.minor);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
     }
     if (BIT_CHECK(params->gfx.flags, GFX_FLAG_DEBUG))
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);

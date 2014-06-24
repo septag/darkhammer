@@ -4,9 +4,8 @@ import os, sys, platform, inspect, glob
 import waflib.Logs
 
 # main global variables
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 PROJNAME = "darkhammer"
-PYMOD_VERSION = '2.7'
 
 top = "."
 out = "build"
@@ -138,7 +137,7 @@ def compiler_setup(conf):
 
     if sys.platform == 'win32':
         conf.env.append_unique('DEFINES', ['WIN32', '_WIN_'])
-    elif sys.platform == 'linux':
+    elif sys.platform.startswith('linux'):
         conf.env.append_unique('DEFINES', '_LINUX_')
     elif sys.platform == 'darwin':
         conf.env.append_unique('DEFINES', '_OSX_')
@@ -224,7 +223,7 @@ def compiler_setup_deps(conf):
 
     platform_prefix = ''
     if sys.platform == 'win32': platform_prefix = 'win'
-    elif sys.platform == 'linux': platform_prefix = 'linux'
+    elif sys.platform.startswith('linux'): platform_prefix = 'linux'
     elif sys.platform == 'darwin': platform_prefix = 'osx'
 
     physx_prefix = os.path.abspath(os.path.expanduser(conf.options.PHYSX_PREFIX))
@@ -316,15 +315,6 @@ def configure(conf):
     compiler_setup(conf)
 
 def build(bld):
-    if sys.platform == 'linux':
-        libdir = os.path.join(bld.env.PREFIX, 'lib')
-        os.environ['LD_LIBRARY_PATH'] = libdir
-        delfiles = glob.glob(os.path.join(libdir, 'libdhcore' + bld.env.SUFFIX + '*'))
-        delfiles.extend(glob.glob(os.path.join(libdir, 'libdheng' + bld.env.SUFFIX + '.*')))
-        delfiles.extend(glob.glob(os.path.join(libdir, 'libdhapp' + bld.env.SUFFIX + '.*')))
-        for f in delfiles:
-            os.remove(f)
-
     bld.recurse('3rdparty')
     bld.recurse('src')
     if not bld.env.IGNORE_TUTS:

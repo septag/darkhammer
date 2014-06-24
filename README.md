@@ -1,8 +1,9 @@
 ## darkHAMMER Game Engine
 
-Version 0.5.0-devel  
+Version 0.5.1-devel  
 [http://www.hmrengine.com](http://www.hmrengine.com)  
 [https://github.com/septag/darkhammer](https://github.com/septag/darkhammer)  
+[https://github.com/septag/libdhcore](https://github.com/septag/libdhcore) - dakHAMMER Core library
 
 ### Description
 *darkHAMMER* is a lightweight, open-source, multiplatform game engine. written in C (C99) language.
@@ -40,16 +41,48 @@ cd darkhammer
 sudo ./install_3rdparty --prefix=/path/to/prefix
 ```
 
-*install_3rdparty* tool will first search for existing 3rdparty packages, if not found, it will try to fetch them from their official repos and build them on your system. There is also an optional *--prefix* argument, which you can define where to install the libraries and their headers.
+*install_3rdparty* tool will first search for existing 3rdparty packages, if not found, it will try to fetch them from their official repos and build them on your system. There is also an optional *--prefix* argument, which you can define where to install the libraries and their headers.  
 After successful 3rdparty build, proceed with following commands:
 
 ```
+# assume that we are in darkhammer's root directory
+# update libdhcore from repo
+git submodule init
+git submodule update
+
+# build and install libdhcore
+cd libdhcore
+waf configure --prefix=/path/to/prefix
+waf build
+sudo waf install
+cd ..
+
+# build darkhammer engine
 waf configure --physx-sdk=/path/to/physx-sdk --prefix=/path/to/prefix
 waf build
 sudo waf install
 ```
 
-This is the simplest command for configuring the build, however there are many more options available, like *debug* build, enabling *asserts*, *profile* build and others, which you can see with `waf --help` command.
+*Note* that *darkHAMMER* uses *libdhcore* as a submodule, so you have to clone that one into darkHAMMER and build it separately. If you check the above commands, you will notice that I installed *libdhcore* library/header files into the same prefix for the main project, but if you want to build locally (no prefix path), then you should configure `waf configure --prefix=..` for *libdhcore* and no prefix path for the main project.  
+Here's an example of building the project in local path (darkhammer's own directory) from scratch: 
+
+```
+git clone git@github.com:septag/darkhammer.git
+cd darkhammer
+./install_3rdparty
+git submodule init
+git submodule update
+cd libdhcore
+waf configure --prefix=..
+waf build install
+cd ..
+waf configure --physx-sdk=/path/to/physx-3.2-SDK 
+waf build install
+```
+
+After running these commands, library files will be in `lib` and binaries will be created in `bin` path.
+
+There are also more options available, like *debug* build, enabling *asserts*, *profile* build and others, which you can see with `waf --help` command.
 
 #### Windows
 Just like linux build, you need to acquire (or build) some external 3rdparty libraries. There is a python tool *install_3rdparty-win.py* which helps you with that process. Before using the 3rdparty installer tool, you need to install the softwares listed below:  
@@ -107,6 +140,7 @@ If you have any questions, suggestions, please post to developer's
 
 This software is made possible by the following open-source projects:
 
+- *libdhcore*: darkHAMMER core library ([link](https://github.com/septag/libdhcore))
 - *Assimp*: Open asset import library ([link](http://assimp.sourceforge.net/))
 - *efsw*: File system monitoring library ([link](https://bitbucket.org/SpartanJ/efsw) - [my fork](https://bitbucket.org/sepul/efsw))
 - *nvtt*: NVIDIA texture tools ([link](http://code.google.com/p/nvidia-texture-tools))

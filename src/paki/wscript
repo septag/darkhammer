@@ -10,5 +10,6 @@ def build(bld):
         target = 'dhpak' + bld.env.SUFFIX,
         install_path = '${PREFIX}/bin',
         cflags = cflags,
-        use = ['dhcore'])
+        lib = ['dhcore' + bld.env.SUFFIX],
+        use = [])
 

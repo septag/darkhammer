@@ -393,7 +393,7 @@ void unload_font(struct allocator* alloc, struct gfx_font* font)
 
 result_t load_lang(struct allocator* alloc, struct gfx_font* font, file_t f)
 {
-    json_t j = json_parsefile(f, tsk_get_tmpalloc(0));
+    json_t j = json_parsefilef(f, tsk_get_tmpalloc(0));
     if (j == NULL)
         return RET_FAIL;
 

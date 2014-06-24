@@ -3,7 +3,7 @@
 import os, sys, glob
 
 def build(bld):
-    libs = []
+    libs = ['dhcore' + bld.env.SUFFIX]
     frameworks = []
     libpath = []
     includes = []
@@ -19,7 +19,7 @@ def build(bld):
         if bld.env.DX_INCLUDES != '':       includes.append(bld.env.DX_INCLUDES)        
     elif bld.env.GFX_API == 'GL':
         files.extend(bld.path.ant_glob('gl/*.c'))
-        if sys.platform == 'linux':            
+        if sys.platform.startswith('linux'):            
             libs.append('GL')
         elif sys.platform == 'win32':          
             libs.append('OpenGL32')
@@ -36,7 +36,7 @@ def build(bld):
         cflags = ['/TP']       
 
     vnum = ''
-    if sys.platform == 'linux':
+    if sys.platform.startswith('linux'):
         vnum = bld.env.VERSION
 
     bld.shlib(
@@ -50,7 +50,6 @@ def build(bld):
         includes = includes,
         libpath = libpath,
         vnum = vnum,
-        cflags = cflags,
-        use = ['dhcore'])
+        cflags = cflags)
 
 

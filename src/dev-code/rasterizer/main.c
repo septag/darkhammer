@@ -236,8 +236,7 @@ result_t init_gl_win(HINSTANCE hinst, HWND hwnd)
     }
 
     /* get opengl version */
-	struct version_info v;
-	struct version_info max_v;
+	int major_max, minor_max;
 
 	/* get supported version from hardware */
     HMODULE libgl = LoadLibrary("opengl32.dll");
@@ -245,8 +244,8 @@ result_t init_gl_win(HINSTANCE hinst, HWND hwnd)
     if (getIntegerv == NULL)
     	getIntegerv = (PFNGLGETINTEGERVPROC)wglGetProcAddress("glGetIntegerv");
 
-	getIntegerv(GL_MAJOR_VERSION, &max_v.major);
-	getIntegerv(GL_MINOR_VERSION, &max_v.minor);
+	getIntegerv(GL_MAJOR_VERSION, &major_max);
+	getIntegerv(GL_MINOR_VERSION, &minor_max);
 
     /* get CreateContextAttribsARB from opengl */
     typedef HGLRC (APIENTRY* pfn_wglCreateContextAttribsARB)(HDC, HGLRC, const int*);
@@ -266,8 +265,8 @@ result_t init_gl_win(HINSTANCE hinst, HWND hwnd)
 
     const int glc_atts[] = {
         WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
-        WGL_CONTEXT_MAJOR_VERSION_ARB, max_v.major,
-        WGL_CONTEXT_MINOR_VERSION_ARB, max_v.minor,
+        WGL_CONTEXT_MAJOR_VERSION_ARB, major_max,
+        WGL_CONTEXT_MINOR_VERSION_ARB, minor_max,
         WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
         0
     };

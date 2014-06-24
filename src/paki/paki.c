@@ -50,19 +50,19 @@ struct paki_args
 };
 
 /* fwd declarations */
-result_t archive_put(struct pak_file* pak, struct paki_args* args,
-                     const char* srcfilepath, const char* destfilealias);
+result_t archive_put(struct pak_file* pak, struct paki_args* args, const char* srcfilepath, 
+    const char* destfilealias);
 result_t compress_directory(struct pak_file* pak, struct paki_args* args, const char* subdir);
 void save_pak(struct paki_args* args);
 void load_pak(struct paki_args* args);
 void list_pak(struct paki_args* args);
 
 /* callbacks for command line parsing */
-static void cmdline_extract(command_t* self)
+static void cmdline_extract(command_t* self, void* param)
 {   BIT_ADD(((struct paki_args*)self->data)->usage, PAKI_USAGE_EXTRACT);    }
-static void cmdline_compress(command_t* self)
+static void cmdline_compress(command_t* self, void* param)
 {   BIT_ADD(((struct paki_args*)self->data)->usage, PAKI_USAGE_COMPRESS);    }
-static void cmdline_compressmode(command_t* self)    
+static void cmdline_compressmode(command_t* self, void* param)    
 {   
     struct paki_args* args = (struct paki_args*)self->data;
     if (str_isequal_nocase(self->arg, "none"))
@@ -76,16 +76,16 @@ static void cmdline_compressmode(command_t* self)
     else
         args->compress_mode = COMPRESS_NORMAL;
 }
-static void cmdline_verbose(command_t* self)
+static void cmdline_verbose(command_t* self, void* param)
 {   BIT_ADD(((struct paki_args*)self->data)->usage, PAKI_USAGE_VERBOSE);    }
-static void cmdline_list(command_t* self)
+static void cmdline_list(command_t* self, void* param)
 {   BIT_ADD(((struct paki_args*)self->data)->usage, PAKI_USAGE_LIST);    }
-static void cmdline_pakfile(command_t* self)
+static void cmdline_pakfile(command_t* self, void* param)
 {   
     struct paki_args* args = (struct paki_args*)self->data;
     str_safecpy(args->pakfile, sizeof(args->pakfile), self->arg);
 }
-static void cmdline_path(command_t* self)
+static void cmdline_path(command_t* self, void* param)
 {   
     struct paki_args* args = (struct paki_args*)self->data;
     str_safecpy(args->path, sizeof(args->path), self->arg);
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
     command_option(&cmd, "-z", "--zmode <mode>", "define compression mode, "
         "compression modes are (none, normal, best, fast)", cmdline_compressmode);
     cmd.data = &args;
-    command_parse(&cmd, argc, argv);
+    command_parse(&cmd, argc, argv, NULL);
     command_free(&cmd);
 
     core_init(CORE_INIT_ALL);
@@ -405,6 +405,4 @@ void list_pak(struct paki_args* args)
 	}
 	printf(TERM_BOLDWHITE "Total %d files in '%s'.\n" TERM_RESET, cnt, args->pakfile);
 	FREE(filelist);
-
-
 }

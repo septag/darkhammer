@@ -237,19 +237,19 @@ INLINE const struct gfx_input_element* get_elem(enum gfx_input_element_id id)
 	return NULL;
 }
 
-INLINE enum gfx_hwver gfx_get_glver(const struct version_info* v)
+INLINE enum gfx_hwver gfx_get_glver(int major, int minor)
 {
-    if (v->major == 3)  {
-        if (v->minor == 2)
+    if (major == 3)  {
+        if (minor == 2)
             return GFX_HWVER_GL3_2;
-        else if (v->minor >= 3)
+        else if (minor >= 3)
             return GFX_HWVER_GL3_3;
-    }   else if (v->major == 4) {
-        if (v->minor==0)
+    }   else if (major == 4) {
+        if (minor==0)
             return GFX_HWVER_GL4_0;
-        else if (v->minor==1)
+        else if (minor==1)
             return GFX_HWVER_GL4_1;
-        else if (v->minor >= 2)
+        else if (minor >= 2)
             return GFX_HWVER_GL4_2;
     }
 
@@ -279,17 +279,17 @@ result_t gfx_initdev(const struct gfx_params* params)
     }    
 
     /* recheck the version */
-    struct version_info final_ver;
-    glGetIntegerv(GL_MAJOR_VERSION, &final_ver.major);
-    glGetIntegerv(GL_MINOR_VERSION, &final_ver.minor);
+    int major, minor;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
 
-    if (final_ver.major < 3 || (final_ver.major == 3 && final_ver.minor < 2))    {
+    if (major < 3 || (major == 3 && minor < 2))    {
         err_printf(__FILE__, __LINE__, "OpenGL context version does not meet the"
-            " requested requirements (GL ver: %d.%d)", final_ver.major, final_ver.minor);
+            " requested requirements (GL ver: %d.%d)", major, minor);
         return RET_FAIL;
     }
 
-    g_gfxdev.ver = gfx_get_glver(&final_ver);
+    g_gfxdev.ver = gfx_get_glver(major, minor);
 
     /* set debug callback */
     if (GLEW_ARB_debug_output)  {
@@ -335,7 +335,8 @@ void gfx_releasedev()
     }
 
     mt_mutex_release(&g_gfxdev.objcreate_mtx);
-    mt_event_destroy(g_gfxdev.objcreate_event);
+    if (g_gfxdev.objcreate_event != NULL)
+        mt_event_destroy(g_gfxdev.objcreate_event);
     arr_destroy(&g_gfxdev.objcreate_signals);
 
     /* detect leaks and delete remaining objects */

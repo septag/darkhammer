@@ -57,7 +57,7 @@ result_t lod_initmgr()
         return RET_FAIL;
     }
 
-    json_t jroot = json_parsefile(f, mem_heap());
+    json_t jroot = json_parsefilef(f, mem_heap());
     fio_close(f);
 
     if (jroot == NULL)  {

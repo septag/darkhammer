@@ -11,14 +11,16 @@ def build(bld):
         target = 'helloworld' + bld.env.SUFFIX,
         install_path = install_path,
         includes = 'shared',
-        use = ['dhcore', 'dhapp', 'dheng'])
+        lib = ['dhcore' + bld.env.SUFFIX],
+        use = ['dhapp', 'dheng'])
 
     bld.program(
         source = ['shared/helper-app.cpp', 'tut02-models/models.cpp'],
         target = 'models' + bld.env.SUFFIX,
         install_path = install_path,
         includes = 'shared',
-        use = ['dhcore', 'dhapp', 'dheng'])
+        lib = ['dhcore' + bld.env.SUFFIX],
+        use = ['dhapp', 'dheng'])
 
 
 

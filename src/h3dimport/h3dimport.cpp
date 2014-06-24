@@ -68,33 +68,33 @@ int validate_params(const struct import_params* params);
 void verbose_param_report(const struct import_params* params);
 
 /* callbacks for arguments */
-static void cmdline_model(command_t* cmd)
+static void cmdline_model(command_t* cmd, void* param)
 {   
     struct import_params* p = (struct import_params*)cmd->data;
     p->type = IMPORT_MODEL;
     if (cmd->arg)
         str_safecpy(p->name, sizeof(p->name), cmd->arg);
 }
-static void cmdline_anim(command_t* cmd)
+static void cmdline_anim(command_t* cmd, void* param)
 {   ((struct import_params*)cmd->data)->type = IMPORT_ANIM;  }
-static void cmdline_phx(command_t* cmd)
+static void cmdline_phx(command_t* cmd, void* param)
 {   
     struct import_params* p = (struct import_params*)cmd->data;
     p->type = IMPORT_PHX;
     if (cmd->arg)
         str_safecpy(p->name, sizeof(p->name), cmd->arg);
 }
-static void cmdline_tex(command_t* cmd)
+static void cmdline_tex(command_t* cmd, void* param)
 {   ((struct import_params*)cmd->data)->type = IMPORT_TEXTURE;  }
-static void cmdline_tfast(command_t* cmd)
+static void cmdline_tfast(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->tex_params.fast_mode = TRUE; }
-static void cmdline_tdxt3(command_t* cmd)
+static void cmdline_tdxt3(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->tex_params.force_dxt3 = TRUE; }
-static void cmdline_toff(command_t* cmd)
+static void cmdline_toff(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->toff = TRUE;  }
-static void cmdline_ttype(command_t* cmd)
+static void cmdline_ttype(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->ttype = import_texture_gettype(cmd->arg);  }
-static void cmdline_tdiralias(command_t* cmd)
+static void cmdline_tdiralias(command_t* cmd, void* param)
 {   
     struct import_params* p = (struct import_params*)cmd->data;
     str_safecpy(p->texture_dir_alias, sizeof(p->texture_dir_alias), cmd->arg);
@@ -103,46 +103,46 @@ static void cmdline_tdiralias(command_t* cmd)
     if (tdir_sz > 0 && p->texture_dir_alias[tdir_sz-1] == '/')
         p->texture_dir_alias[tdir_sz-1] = 0;
 }
-static void cmdline_tdir(command_t* cmd)
+static void cmdline_tdir(command_t* cmd, void* param)
 {   
     struct import_params* p = (struct import_params*)cmd->data;
     str_safecpy(p->texture_dir, sizeof(p->texture_dir), cmd->arg);
     path_norm(p->texture_dir, p->texture_dir);
 }
-static void cmdline_verbose(command_t* cmd)
+static void cmdline_verbose(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->verbose = TRUE; }
-static void cmdline_listmtls(command_t* cmd)
+static void cmdline_listmtls(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->list_mtls = TRUE; }
-static void cmdline_list(command_t* cmd)
+static void cmdline_list(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->list = TRUE; }
-static void cmdline_calctangents(command_t* cmd)
+static void cmdline_calctangents(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->calc_tangents = TRUE; }
-static void cmdline_animfps(command_t* cmd)
+static void cmdline_animfps(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->anim_fps = str_toint32(cmd->arg); }
-static void cmdline_zup(command_t* cmd)
+static void cmdline_zup(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->coord = COORD_RH_ZUP; }
-static void cmdline_zinv(command_t* cmd)
+static void cmdline_zinv(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->coord = COORD_RH_GL; }
-static void cmdline_clips(command_t* cmd)
+static void cmdline_clips(command_t* cmd, void* param)
 {   
     struct import_params* p = (struct import_params*)cmd->data;
     str_safecpy(p->clips_json_filepath, sizeof(p->clips_json_filepath), cmd->arg);
 }
-static void cmdline_scale(command_t* cmd)
+static void cmdline_scale(command_t* cmd, void* param)
 {  ((struct import_params*)cmd->data)->scale = str_tofl32(cmd->arg); }
-static void cmdline_occ(command_t* cmd)
+static void cmdline_occ(command_t* cmd, void* param)
 {   
     struct import_params* p = (struct import_params*)cmd->data;
     str_safecpy(p->occ_name, sizeof(p->occ_name), cmd->arg);
 }
 
-static void cmdline_infile(command_t* cmd)
+static void cmdline_infile(command_t* cmd, void* param)
 {   
     struct import_params* p = (struct import_params*)cmd->data;
     str_safecpy(p->in_filepath, sizeof(p->in_filepath), cmd->arg);
 }
 
-static void cmdline_outfile(command_t* cmd)
+static void cmdline_outfile(command_t* cmd, void* param)
 {   
     struct import_params* p = (struct import_params*)cmd->data;
     str_safecpy(p->out_filepath, sizeof(p->out_filepath), cmd->arg);
@@ -195,7 +195,7 @@ int main(int argc, char** argv)
     command_option(&cmd, "-X", "--texture-dxt3 <name>", "force dxt3 texture compression "
         "instead of dxt5", cmdline_tdxt3);
     cmd.data = &params;
-    command_parse(&cmd, argc, argv);
+    command_parse(&cmd, argc, argv, NULL);
     command_free(&cmd);
 
 	r = core_init(CORE_INIT_ALL);

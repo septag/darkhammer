@@ -6,4 +6,5 @@ def build(bld):
         target = 'game-test' + bld.env.SUFFIX,
         install_path = '${PREFIX}/bin' if (bld.env.PREFIX == bld.env.ROOTDIR) else \
             '${PREFIX}/bin/dark-hammer',
-        use = ['dhcore', 'dhapp', 'dheng'])
+        lib = ['dhcore' + bld.env.SUFFIX],
+        use = ['dhapp', 'dheng'])
