@@ -13,7 +13,4 @@
 #define HAVE_PXPHYSICSAPI_H 1
 #define HAVE_D3D11_H 1
 
-/* only for DEVENV build */
-#include "sharedir.h"
-
 #endif

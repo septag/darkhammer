@@ -67,10 +67,10 @@ result_t cmp_xform_register(struct allocator* alloc)
 result_t cmp_xform_create(struct cmp_obj* host_obj, void* data, cmphandle_t hdl)
 {
 	struct cmp_xform* xf = (struct cmp_xform*)data;
-	mat3_setidentity(&xf->mat);
+	mat3_set_ident(&xf->mat);
 	vec3_setzero(&xf->vel_lin);
 	vec3_setzero(&xf->vel_ang);
-	mat3_setidentity(&xf->ws_mat);
+	mat3_set_ident(&xf->ws_mat);
 	xf->parent_hdl = INVALID_HANDLE;
 	if (!BIT_CHECK(cmp_getinstanceflags(hdl), CMP_INSTANCEFLAG_INDIRECTHOST))
 		host_obj->xform_cmp = hdl;

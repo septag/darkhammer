@@ -26,7 +26,9 @@
 #define chdir _chdir
 #define getcwd _getcwd
 
+#ifndef va_copy
 #define va_copy(a, b)	a = b
+#endif
 
 #if !defined restrict
 #define restrict

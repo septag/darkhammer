@@ -167,7 +167,7 @@ struct gfx_model* gfx_model_load(struct allocator* alloc, const char* h3dm_filep
             /* NOTE: we set root matrix to identity and keep the old one as "root_mat" */
             if (i == 0) {
                 mat3_setm(&model->root_mat, &node->local_mat);
-                mat3_setidentity(&node->local_mat);
+                mat3_set_ident(&node->local_mat);
             }
 			model->node_cnt ++;
 		}

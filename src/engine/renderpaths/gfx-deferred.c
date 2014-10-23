@@ -13,6 +13,8 @@
  *
  ***********************************************************************************/
 
+#include <smmintrin.h>
+
 #include "dhcore/core.h"
 #include "dhcore/hash-table.h"
 #include "dhcore/linked-list.h"
@@ -586,7 +588,7 @@ void gfx_deferred_rendergbuffer(gfx_cmdqueue cmdqueue, const struct gfx_view_par
         gfx_shader_bindcblocks(cmdqueue, shader, (const struct gfx_cblock**)cbs, xforms_shared_idx);
 
         /* batch draw */
-        for (uint k = 0; k < bitem->nodes.item_cnt; k++)	{
+        for (int k = 0; k < bitem->nodes.item_cnt; k++)	{
             struct gfx_batch_node* bnode_first = &((struct gfx_batch_node*)bitem->nodes.buffer)[k];
             struct gfx_model_geo* geo;
             uint subset_idx;
@@ -619,7 +621,7 @@ void deferred_submit_batchdata(gfx_cmdqueue cmdqueue, struct gfx_batch_item* bat
     for (uint i = 0; i < batch_cnt; i++)	{
         struct gfx_batch_item* bitem = &batch_items[i];
 
-        for (uint k = 0; k < bitem->nodes.item_cnt; k++)	{
+        for (int k = 0; k < bitem->nodes.item_cnt; k++)	{
             struct gfx_batch_node* bnode_first =
                 &((struct gfx_batch_node*)bitem->nodes.buffer)[k];
             struct linked_list* node = bnode_first->bll;

@@ -303,7 +303,7 @@ void gfx_csm_render(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
         gfx_shader_bindcblocks(cmdqueue, shader, (const struct gfx_cblock**)cbs, xforms_shared_idx);
 
         /* batch draw */
-        for (uint k = 0; k < bitem->nodes.item_cnt; k++)  {
+        for (int k = 0; k < bitem->nodes.item_cnt; k++)  {
             struct gfx_batch_node* bnode_first = &((struct gfx_batch_node*)bitem->nodes.buffer)[k];
 
             csm_preparebatchnode(cmdqueue, bnode_first, shader);
@@ -340,7 +340,7 @@ void csm_submit_batchdata(gfx_cmdqueue cmdqueue, struct gfx_batch_item* batch_it
     for (uint i = 0; i < batch_cnt; i++)	{
         struct gfx_batch_item* bitem = &batch_items[i];
 
-        for (uint k = 0; k < bitem->nodes.item_cnt; k++)	{
+        for (int k = 0; k < bitem->nodes.item_cnt; k++)	{
             struct gfx_batch_node* bnode_first =
                 &((struct gfx_batch_node*)bitem->nodes.buffer)[k];
             struct linked_list* node = bnode_first->bll;
@@ -855,7 +855,7 @@ struct mat4f* csm_round_mat(struct mat4f* r, const struct mat4f* m, float shadow
     dy /= shadow_size*0.5f;
 
     struct mat4f round_mat;
-    mat4_setidentity(&round_mat);
+    mat4_set_ident(&round_mat);
     round_mat.m41 = dx;
     round_mat.m42 = dy;
     round_mat.m43 = 0.0f;

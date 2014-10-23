@@ -29,14 +29,14 @@ def get_msvccompiler():
 
 def install_lua():
     lua_srcfiles = {\
-        'x86-vc12': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win32_dll12_lib.zip/download',
-        'x64-vc12': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win64_dll12_lib.zip/download',
-        'x64-vc11': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win64_dll11_lib.zip/download',
-        'x86-vc11': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win32_dll11_lib.zip/download',
-        'x86-vc9': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win32_dll9_lib.zip/download',
-        'x64-vc9': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win64_dll9_lib.zip/download',
-        'x64-vc10': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win64_dll10_lib.zip/download',
-        'x86-vc10': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win32_dll10_lib.zip/download'
+        'x86-vc12': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win32_dll12_lib.zip/download',
+        'x64-vc12': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win64_dll12_lib.zip/download',
+        'x64-vc11': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win64_dll11_lib.zip/download',
+        'x86-vc11': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win32_dll11_lib.zip/download',
+        'x86-vc9': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win32_dll9_lib.zip/download',
+        'x64-vc9': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win64_dll9_lib.zip/download',
+        'x64-vc10': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win64_dll10_lib.zip/download',
+        'x86-vc10': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win32_dll10_lib.zip/download'
         }
     
     luadir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'lua')
@@ -90,7 +90,7 @@ def install_assimp():
         return True
     log('\t\tnot found\n')
 
-    url = 'http://sourceforge.net/projects/assimp/files/assimp-3.0/assimp--3.0.1270-full.zip/download'
+    url = 'http://sourceforge.net/projects/assimp/files/assimp-3.1/assimp-3.1.1-win-binaries.zip/download'
     log('downloading assimp binaries from "http://sourceforge.net/projects/assimp"...\n')
 
     assimpdir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'assimp')
@@ -112,14 +112,15 @@ def install_assimp():
         os.chdir(ROOTDIR)
         return False
     
-    os.chdir('assimp--3.0.1270-sdk')
+    os.chdir('assimp-3.1.1-win-binaries')
 
     # copy important files
     # libs
-    dirs = {'x64': 'assimp_release-dll_x64', 'x86': 'assimp_release-dll_win32'}
-    d = dirs[ARCH]
-    dlls = glob.glob(os.path.join('bin', d, '*.dll'))
-    libs = glob.glob(os.path.join('lib', d, '*.lib'))
+    bindirs = {'x64': 'bin64', 'x86': 'bin32'}
+    libdirs = {'x64': 'lib64', 'x64': 'lib32'}
+    dlls = glob.glob(os.path.join(bindirs[ARCH], '*.dll'))
+    libs = glob.glob(os.path.join(libdirs[ARCH], '*.lib'))
+    print()
     for lib in libs:
         shutil.copyfile(lib, os.path.join(LIBDIR, os.path.basename(lib)))
     for dll in dlls:
@@ -143,7 +144,7 @@ def install_assimp():
 def install_glfw():
     log('looking for glfw...')
     if os.path.isfile(os.path.join(LIBDIR, 'glfw.lib')) and \
-        os.path.isfile(os.path.join(BINDIR, 'glfw.dll')):
+        os.path.isfile(os.path.join(BINDIR, 'glfw3.dll')):
         log('\t\tfound\n')
         return True
     log('\t\tnot found\n')

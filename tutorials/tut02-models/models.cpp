@@ -202,7 +202,7 @@ void debug_view_callback(gfx_cmdqueue cmdqueue, const struct gfx_view_params* pa
 
     /* Draw main axises on the origin */
     struct mat3f ident;
-    mat3_setidentity(&ident);
+    mat3_set_ident(&ident);
 }
 
 /**
@@ -245,7 +245,7 @@ void update_light()
     vec3_setvp(&dir, wld_get_var(sec_light, w_ldir)->fv);
 
     mat3f m;
-    mat3_setidentity(&m);
+    mat3_set_ident(&m);
 
     /* Pressing "1" key rotates global light (sun light) around x-axis */
     if (input_kb_getkey(INPUT_KEY_1, FALSE)) {

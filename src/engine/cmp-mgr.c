@@ -156,7 +156,7 @@ result_t cmp_initmgr()
 void cmp_releasemgr()
 {
 	/* release registered components */
-	for (uint i = 0; i < g_cmp.cmps.item_cnt; i++)	{
+	for (int i = 0; i < g_cmp.cmps.item_cnt; i++)	{
 		cmp_t c = ((cmp_t*)g_cmp.cmps.buffer)[i];
 		cmp_destroy_component(c);
 	}
@@ -397,7 +397,7 @@ cmphandle_t cmp_create_instance(cmp_t c, struct cmp_obj* obj, uint flags,
 void cmp_destroy_instance(cmphandle_t hdl)
 {
     uint c_idx = CMP_GET_INDEX(hdl);
-    ASSERT(c_idx < g_cmp.cmps.item_cnt);
+    ASSERT(c_idx < (uint)g_cmp.cmps.item_cnt);
 
     cmp_updateinstance_reset(hdl);
 

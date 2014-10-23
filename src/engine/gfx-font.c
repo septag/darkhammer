@@ -144,7 +144,7 @@ void gfx_font_releasemgr()
 {
     /* destroy all registered fonts */
     struct font_entity* fe = (struct font_entity*)g_fontmgr.fonts.buffer;
-    for (uint i = 0; i < g_fontmgr.fonts.item_cnt; i++)   {
+    for (int i = 0; i < g_fontmgr.fonts.item_cnt; i++)   {
         unload_font(fe[i].alloc, fe[i].f);
         A_FREE(fe[i].alloc, fe[i].f);
     }
@@ -231,7 +231,7 @@ fonthandle_t gfx_font_register(struct allocator* alloc,
 fonthandle_t gfx_font_geth(const char* name, uint size, uint flags)
 {
     struct font_entity* fonts = (struct font_entity*)g_fontmgr.fonts.buffer;
-    for (uint i = 0; i < g_fontmgr.fonts.item_cnt; i++)   {
+    for (int i = 0; i < g_fontmgr.fonts.item_cnt; i++)   {
         if (str_isequal(fonts[i].name, name) &&
             fonts[i].flags == flags &&
             fonts[i].size == size)

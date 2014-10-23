@@ -193,10 +193,10 @@ int import_phx(const struct import_params* params)
     ezxml_t xroot = ezxml_parse_file(params->in_filepath);
     const char* err = ezxml_error(xroot);
     g_phx_coord = params->coord;
-    mat3_setidentity(&g_root_mat);
+    mat3_set_ident(&g_root_mat);
 
     /* construct scale mat */
-    mat3_setidentity(&g_phx_resize_mat);
+    mat3_set_ident(&g_phx_resize_mat);
     mat3_set_scalef(&g_phx_resize_mat, params->scale, params->scale, params->scale);
 
     if (xroot == NULL || !str_isempty(err))    {
@@ -340,7 +340,7 @@ struct rigid_ext* import_phx_createrigid(ezxml_t xrigid, ezxml_t xroot, struct a
         xform3d_getmat(&g_root_mat, &xf);
         mat3_mul(&g_root_mat, &g_root_mat, &g_phx_resize_mat);
     }   else    {
-        mat3_setidentity(&g_root_mat);
+        mat3_set_ident(&g_root_mat);
     }
 
     /* count shapes */

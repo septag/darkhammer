@@ -17,6 +17,7 @@
 #endif
 
 #include <stdio.h>
+#include <smmintrin.h>
 
 #include "dhcore/core.h"
 #include "dhcore/hwinfo.h"
@@ -195,7 +196,7 @@ result_t gfx_occ_init(uint width, uint height, uint cpu_caps)
 
     /* */
     gfx_occ_setviewport(0, 0, (int)width, (int)height);
-    mat4_setidentity(&g_occ.viewprojvp);
+    mat4_set_ident(&g_occ.viewprojvp);
     g_occ.zbuff_width = width;
     g_occ.zbuff_height = height;
 

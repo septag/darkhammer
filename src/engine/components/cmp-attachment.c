@@ -181,7 +181,7 @@ result_t cmp_attachment_modifydockslot(struct cmp_obj* obj, struct allocator* al
     struct cmp_attachdock* attdock = (struct cmp_attachdock*)cmp_getinstancedata(dock_hdl);
     attdock->docks[att->dock_slot].attachment_hdl = cur_hdl;
     cxf->parent_hdl = attdock->docks[att->dock_slot].xform_hdl;
-    mat3_setidentity(&cxf->mat);
+    mat3_set_ident(&cxf->mat);
 
     cmp_updateinstance(obj->xform_cmp);
     return RET_OK;

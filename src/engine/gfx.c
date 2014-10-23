@@ -732,7 +732,7 @@ result_t gfx_rpath_init_registered()
     uint width = g_gfx.params.width;
     uint height = g_gfx.params.height;
 
-    for (uint i = 0; i < g_gfx.rpaths.item_cnt; i++)  {
+    for (int i = 0; i < g_gfx.rpaths.item_cnt; i++)  {
         struct gfx_rpath* rpath = &((struct gfx_rpath*)g_gfx.rpaths.buffer)[i];
         r = rpath->init_fn(width, height);
         if (IS_FAIL(r)) {
@@ -747,7 +747,7 @@ result_t gfx_rpath_init_registered()
 
 void gfx_rpath_release_registered()
 {
-    for (uint i = 0; i < g_gfx.rpaths.item_cnt; i++) {
+    for (int i = 0; i < g_gfx.rpaths.item_cnt; i++) {
         struct gfx_rpath* rpath = &((struct gfx_rpath*)g_gfx.rpaths.buffer)[i];
         rpath->release_fn();
     }
@@ -1122,7 +1122,7 @@ void gfx_process_renderpasses(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
 		struct gfx_renderpass* rpass = g_gfx.passes[i];
 		if (rpass != NULL)	{
 			/* go through subpasses and pass them to their render-paths */
-			for (uint k = 0; k < rpass->subpasses.item_cnt; k++)	{
+			for (int k = 0; k < rpass->subpasses.item_cnt; k++)	{
 				struct gfx_renderpass_sub* subpass =
 						&((struct gfx_renderpass_sub*)rpass->subpasses.buffer)[k];
 				subpass->rpath->render_fn(cmdqueue, rt,
@@ -1312,7 +1312,7 @@ void gfx_resize(uint width, uint height)
 
     /* apply resizing to all render-paths */
     result_t r;
-    for (uint i = 0; i < g_gfx.rpaths.item_cnt; i++)  {
+    for (int i = 0; i < g_gfx.rpaths.item_cnt; i++)  {
         struct gfx_rpath* rpath = &((struct gfx_rpath*)g_gfx.rpaths.buffer)[i];
         r = rpath->resize_fn(width, height);
         if (IS_FAIL(r)) {
@@ -1495,7 +1495,7 @@ void gfx_render_grid(gfx_cmdqueue cmdqueue, const struct gfx_view_params* params
 
     gfx_canvas_setztest(TRUE);
     struct mat3f center_mat;
-    mat3_setidentity(&center_mat);
+    mat3_set_ident(&center_mat);
     gfx_canvas_grid(5.0f, 70.0f, params->cam);
     gfx_canvas_setztest(FALSE);
     gfx_canvas_coords(&center_mat, &params->cam_pos, 0.5f);

@@ -116,7 +116,7 @@ INLINE uint shader_find_constant(struct gfx_shader* shader, uint name_hash)
 INLINE uint shader_find_sampler(uint name_hash, const struct array* samplers)
 {
     const struct shader_sampler_meta* ss = (const struct shader_sampler_meta*)samplers->buffer;
-    for (uint i = 0; i < samplers->item_cnt; i++) {
+    for (uint i = 0; i < (uint)samplers->item_cnt; i++) {
         if (ss[i].name_hash == name_hash)
             return i;
     }
@@ -477,7 +477,7 @@ int shader_gather_cbuffer(ID3D11ShaderReflection* refl, uint cb_idx,
     /* search in existing cbuffers */
     uint name_hash = hash_str(cb_desc.Name);
     struct shader_cblock_meta* cbs = (struct shader_cblock_meta*)cbuffers->buffer;
-    for (uint i = 0; i < cbuffers->item_cnt; i++) {
+    for (int i = 0; i < cbuffers->item_cnt; i++) {
         if (cbs[i].name_hash == name_hash)  {
             if (cbs[i].size != cb_desc.Size)
                 return FALSE;

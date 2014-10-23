@@ -198,7 +198,7 @@ struct scn_mgr g_scn_mgr;
  */
 INLINE struct scn_data* scene_get(uint scene_id)
 {
-	ASSERT(scene_id != 0 && scene_id <= g_scn_mgr.scenes.item_cnt);
+	ASSERT(scene_id != 0 && scene_id <= (uint)g_scn_mgr.scenes.item_cnt);
 	struct scn_data* s = ((struct scn_data**)g_scn_mgr.scenes.buffer)[scene_id-1];
 	return s;
 }
@@ -826,10 +826,10 @@ void scn_destroy_obj(struct cmp_obj* obj)
 
 	/* remove from scene object bank (swap with last one) */
     struct array* objarr = scene_getobjarr(obj->scene_id);
-    ASSERT(obj->id > 0 && obj->id <= objarr->item_cnt);
+    ASSERT(obj->id > 0 && obj->id <= (uint)objarr->item_cnt);
     uint idx = obj->id - 1;
     struct cmp_obj** objs = (struct cmp_obj**)objarr->buffer;
-    if (idx < (objarr->item_cnt-1))    {
+    if (idx < (uint)(objarr->item_cnt-1))    {
         struct cmp_obj* last_obj = objs[objarr->item_cnt - 1];
         swapui(&obj->id, &last_obj->id);
         swapptr((void**)&objs[obj->id-1], (void**)&objs[last_obj->id-1]);

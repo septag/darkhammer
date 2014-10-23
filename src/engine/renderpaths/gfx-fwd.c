@@ -149,7 +149,7 @@ void gfx_fwd_render(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
     	ASSERT(shader);
     	gfx_shader_bind(cmdqueue, shader);
 
-    	for (uint k = 0; k < bitem->nodes.item_cnt; k++)	{
+    	for (int k = 0; k < bitem->nodes.item_cnt; k++)	{
     		struct gfx_batch_node* bnode_first = &((struct gfx_batch_node*)bitem->nodes.buffer)[k];
     		struct gfx_model_geo* geo;
     		uint subset_idx;

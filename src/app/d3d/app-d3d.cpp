@@ -19,7 +19,7 @@
 
 #if defined(_WIN_) && defined(_D3D_)
 #if defined(_MSVC_)
-/* win8.1 sdk inculdes some d3d types that triggeres "redifinition" warnings with external DX-SDK */
+/* win8.1 sdk inculdes some d3d types4 that triggeres "redifinition" warnings with external DX-SDK */
 #pragma warning(disable: 4005)
 #endif
 
@@ -30,6 +30,8 @@
 
 #include "dhcore/json.h"
 #include "dhcore/core.h"
+#include "dhcore/win.h"
+#include <windowsx.h>
 
 #include "init-params.h"
 #include "input.h"

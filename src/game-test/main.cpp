@@ -114,7 +114,7 @@ void unload_props()
 void debug_view_callback(gfx_cmdqueue cmdqueue, const struct gfx_view_params* params)
 {
     struct mat3f center_mat;
-    mat3_setidentity(&center_mat);
+    mat3_set_ident(&center_mat);
     gfx_canvas_setlinecolor(&g_color_white);
     gfx_canvas_grid(5.0f, 70.0f, params->cam);
     gfx_canvas_coords(&center_mat, &params->cam_pos, 1.0f);

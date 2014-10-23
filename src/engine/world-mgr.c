@@ -91,7 +91,7 @@ result_t wld_initmgr()
 
 void wld_releasemgr()
 {
-    for (uint i = 0; i < g_wld.sections.item_cnt; i++)    {
+    for (int i = 0; i < g_wld.sections.item_cnt; i++)    {
         struct wld_section* s = &((struct wld_section*)g_wld.sections.buffer)[i];
         wld_destroy_section(s);
     }

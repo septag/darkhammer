@@ -205,7 +205,7 @@ result_t con_help(uint argc, const char** argv, void* param)
 	if (argc == 0)	{
 		/* list commands */
 		con_addline(LOG_TEXT, "console commands: ");
-		for (uint i = 0; i < g_con.cmds.item_cnt; i++)    {
+		for (int i = 0; i < g_con.cmds.item_cnt; i++)    {
             struct console_cmd* c = &((struct console_cmd*)g_con.cmds.buffer)[i];
 			con_addline(LOG_INFO, c->help_text);
         }
@@ -268,7 +268,7 @@ void con_addline(enum log_type type, char* text)
 
 const char* con_get_line(uint idx, OUT enum log_type* type)
 {
-	ASSERT(idx < g_con.logs.item_cnt);
+	ASSERT(idx < (uint)g_con.logs.item_cnt);
     idx = (idx + g_con.last_limitidx) % g_con.logs.item_cnt;
 	struct console_line* l = (struct console_line*)g_con.logs.buffer + idx;
 	*type = l->type;

@@ -358,7 +358,7 @@ int import_model(const struct import_params* params)
     g_model_coord = params->coord;
 
     /* construct scale matrix */
-    mat3_setidentity(&g_resize_mat);
+    mat3_set_ident(&g_resize_mat);
     mat3_set_scalef(&g_resize_mat, params->scale, params->scale, params->scale);
 
     mynode = import_create_node(scene, node, &nodes, &meshes, &geos, &mtls, INVALID_INDEX);
@@ -989,7 +989,7 @@ struct geo_ext* import_create_geo(const struct aiScene* scene, const uint* mesh_
         if (!has_skin && main_node)  {
             mat3_setm(&root_mat, &g_model_root);
         }   else    {
-            mat3_setidentity(&root_mat);
+            mat3_set_ident(&root_mat);
         }
 
 		for (uint k = 0; k < submesh->mNumVertices; k++)	{
@@ -1199,7 +1199,7 @@ void import_setup_joints(const struct aiScene* scene, struct h3d_joint* joints,
         if (skin_bone != NULL)   {
             import_convert_mat(&offset_mat, &skin_bone->mOffsetMatrix, g_model_coord);
         }   else    {
-            mat3_setidentity(&offset_mat);
+            mat3_set_ident(&offset_mat);
         }
 
         import_save_mat(joints[i].offset_mat, &offset_mat);

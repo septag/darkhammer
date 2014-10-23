@@ -70,7 +70,7 @@ struct engine
     size_t tmp_sz;  /* temp memory size (for each thread we have one) */
 
     struct allocator data_alloc;
-    struct freelist_alloc_ts data_freelist;
+    struct freelist_alloc data_freelist;
 
     struct allocator lsr_alloc;
     struct stack_alloc lsr_stack;
@@ -219,8 +219,8 @@ result_t eng_init(const struct init_params* params)
         r |= mem_stack_create(mem_heap(), &g_eng->lsr_stack, LSR_SIZE, MID_DATA);
         mem_stack_bindalloc(&g_eng->lsr_stack, &g_eng->lsr_alloc);
 
-        r |= mem_freelist_create_ts(mem_heap(), &g_eng->data_freelist, data_sz, MID_DATA);
-        mem_freelist_bindalloc_ts(&g_eng->data_freelist, &g_eng->data_alloc);
+        r |= mem_freelist_create(mem_heap(), &g_eng->data_freelist, data_sz, MID_DATA);
+        mem_freelist_bindalloc(&g_eng->data_freelist, &g_eng->data_alloc);
     }   else    {
         mem_heap_bindalloc(&g_eng->data_alloc);
         mem_heap_bindalloc(&g_eng->lsr_alloc);
@@ -262,6 +262,9 @@ result_t eng_init(const struct init_params* params)
     }   else    {
         char data_path[DH_PATH_MAX];
         char share_dir[DH_PATH_MAX];
+#ifndef SHARE_DIR
+#define SHARE_DIR "d:\\darkhammer"
+#endif
         path_norm(share_dir, SHARE_DIR);
         path_join(data_path, share_dir, "data", NULL);
         if (!util_pathisdir(data_path)) {
@@ -429,12 +432,12 @@ void eng_release()
 
     /* check for main memory leaks */
     if (BIT_CHECK(g_eng->params.flags, ENG_FLAG_DEV))    {
-        uint leak_cnt = mem_freelist_getleaks_ts(&g_eng->data_freelist, NULL);
+        int leak_cnt = mem_freelist_getleaks(&g_eng->data_freelist, NULL);
         if (leak_cnt > 0)
             log_printf(LOG_WARNING, "%d leaks found on dynamic 'data' memory", leak_cnt);
     }
 
-    mem_freelist_destroy_ts(&g_eng->data_freelist);
+    mem_freelist_destroy(&g_eng->data_freelist);
     mem_stack_destroy(&g_eng->lsr_stack);
 
     log_print(LOG_TEXT, "engine released.");
@@ -565,8 +568,8 @@ void eng_get_memstats(struct eng_mem_stats* stats)
 {
     memset(stats, 0x00, sizeof(struct eng_mem_stats));
     if (BIT_CHECK(g_eng->params.flags, ENG_FLAG_OPTIMIZEMEMORY)) {
-        stats->data_max = g_eng->data_freelist.fl.size;
-        stats->data_size = g_eng->data_freelist.fl.alloc_size;
+        stats->data_max = g_eng->data_freelist.size;
+        stats->data_size = g_eng->data_freelist.alloc_size;
         stats->lsr_max = g_eng->lsr_stack.size;
         stats->lsr_size = g_eng->lsr_stack.offset;
     }   else    {

@@ -1877,7 +1877,7 @@ void gfx_canvas_box(const struct aabb* b, const struct mat3f* world)
 
     /* draw AABB scaled by new aabb and applied world matrix */
     struct vec4f center;
-    struct mat3f xform;     mat3_setidentity(&xform);
+    struct mat3f xform;     mat3_set_ident(&xform);
 
     vec3_add(&center, &b->minpt, &b->maxpt);
     vec3_muls(&center, &center, 0.5);
@@ -1907,7 +1907,7 @@ void gfx_canvas_boundaabb(const struct aabb* b, const struct mat4f* viewproj, in
 
     /* draw AABB scaled by new aabb and applied world matrix */
     struct vec4f center;
-    struct mat3f xform;     mat3_setidentity(&xform);
+    struct mat3f xform;     mat3_set_ident(&xform);
 
     vec3_muls(&center, vec3_add(&center, &b->minpt, &b->maxpt), 0.5f);
 
@@ -1946,7 +1946,7 @@ void gfx_canvas_prism(float width, float height, const struct mat3f* world)
     uint vertex_cnt = g_cvs.shapes.prism_buff->desc.buff.size / sizeof(struct canvas_vertex3d);
 
     struct mat3f xform;
-    mat3_setidentity(&xform);
+    mat3_set_ident(&xform);
     mat3_set_scalef(&xform, width, height, width);
     mat3_mul(&xform, &xform, world);
 
@@ -1965,7 +1965,7 @@ void gfx_canvas_sphere(const struct sphere* s, const struct mat3f* world,
 
     /* translate by sphere center, and resize by sphere radius */
     struct mat3f xform;
-    mat3_setidentity(&xform);
+    mat3_set_ident(&xform);
     mat3_set_scalef(&xform, s->r, s->r, s->r);
     mat3_set_transf(&xform, s->x, s->y, s->z);
     mat3_mul(&xform, &xform, world);
@@ -1981,7 +1981,7 @@ void gfx_canvas_capsule(float radius, float half_height, const struct mat3f* wor
 
     /* translate by sphere center, and resize by sphere radius */
     struct mat3f xform;
-    mat3_setidentity(&xform);
+    mat3_set_ident(&xform);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.capsule);
 
     /* lower half-sphere */
@@ -1993,7 +1993,7 @@ void gfx_canvas_capsule(float radius, float half_height, const struct mat3f* wor
     		GFX_DRAWCALL_DEBUG);
 
     /* upper half-sphere */
-    mat3_setidentity(&xform);
+    mat3_set_ident(&xform);
     mat3_set_scalef(&xform, radius, radius, radius);
     mat3_set_transf(&xform, (half_height + radius)*0.5f, 0.0f, 0.0f);
     mat3_mul(&xform, &xform, world);
@@ -2002,7 +2002,7 @@ void gfx_canvas_capsule(float radius, float half_height, const struct mat3f* wor
         g_cvs.shapes.capsule_halfidx, GFX_DRAWCALL_DEBUG);
 
     /* cylinder */
-    mat3_setidentity(&xform);
+    mat3_set_ident(&xform);
     mat3_set_scalef(&xform, half_height, radius, radius);
     mat3_mul(&xform, &xform, world);
     canvas_set_perobject(cmdqueue, &xform, &g_cvs.brush.clr0, NULL);
@@ -2027,7 +2027,7 @@ void gfx_canvas_boundsphere(const struct sphere* s, const struct mat4f* viewproj
     /* translate by sphere center, and resize by sphere radius
      * combine with inverse view transform to render billboard effect */
     struct mat3f xform;
-    mat3_setidentity(&xform);
+    mat3_set_ident(&xform);
     mat3_set_scalef(&xform, s->r, s->r, s->r);
     mat3_set_transf(&xform, s->x, s->y, s->z);
     mat3_mul(&xform, &inv_view, &xform);
@@ -2146,7 +2146,7 @@ void gfx_canvas_frustum(const struct vec4f frustum_pts[8])
     gfx_contbuffer_unmap(cmdqueue, &g_cvs.contbuffer);
 
     struct mat3f ident;
-    mat3_setidentity(&ident);
+    mat3_set_ident(&ident);
     canvas_set_perobject(cmdqueue, &ident, &g_cvs.line_color, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.generic);
     gfx_draw(cmdqueue, GFX_PRIMITIVE_LINELIST, offset/sizeof(struct canvas_vertex3d),
@@ -2263,7 +2263,7 @@ void gfx_canvas_arrow3d(const struct vec4f* p0, const struct vec4f* p1,
     gfx_contbuffer_unmap(cmdqueue, &g_cvs.contbuffer);
 
     struct mat3f ident;
-    mat3_setidentity(&ident);
+    mat3_set_ident(&ident);
     canvas_set_perobject(cmdqueue, &ident, &g_cvs.line_color, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.generic);
     gfx_draw(cmdqueue, GFX_PRIMITIVE_LINELIST, offset/sizeof(struct canvas_vertex3d),
@@ -2355,7 +2355,7 @@ void gfx_canvas_grid(float spacing, float depth_max, const struct camera* cam)
     struct mat3f proj_xz;
     struct aabb box;    aabb_setzero(&box);
 
-    mat3_setidentity(&proj_xz);
+    mat3_set_ident(&proj_xz);
     float ffar = minf(depth_max, cam->ffar);
     float fnear = -1.0f;
     cam_calc_frustumcorners(cam, corners, &fnear, &ffar);
@@ -2407,7 +2407,7 @@ void gfx_canvas_grid(float spacing, float depth_max, const struct camera* cam)
     }
 
     struct mat3f ident;
-    mat3_setidentity(&ident);
+    mat3_set_ident(&ident);
     gfx_contbuffer_unmap(cmdqueue, &g_cvs.contbuffer);
     canvas_set_perobject(cmdqueue, &ident, &g_cvs.line_color, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.generic);
@@ -2433,7 +2433,7 @@ void gfx_canvas_line3d(const struct vec4f* p0, const struct vec4f* p1)
 
     /* main line */
     struct mat3f ident;
-    mat3_setidentity(&ident);
+    mat3_set_ident(&ident);
 
     vec3_setv(&verts[0].pos, p0);
     vec3_setv(&verts[1].pos, p1);
@@ -2451,7 +2451,7 @@ void gfx_canvas_light_pt(const struct vec4f* pos, float atten[2])
     sphere_setf(&s, pos->x, pos->y, pos->z, atten[0]);
 
     struct color c;
-    struct mat3f ident; mat3_setidentity(&ident);
+    struct mat3f ident; mat3_set_ident(&ident);
 
     c = g_cvs.brush.clr0;
     color_muls(&g_cvs.brush.clr0, &c, 0.7f);
@@ -2613,7 +2613,7 @@ void gfx_canvas_worldbounds(const struct vec3f* minpt, const struct vec3f* maxpt
 
     struct mat3f m;
     gfx_canvas_setwireframe(FALSE, FALSE);
-    canvas_set_perobject(cmdqueue, mat3_setidentity(&m), &g_color_yellow,
+    canvas_set_perobject(cmdqueue, mat3_set_ident(&m), &g_color_yellow,
         rs_get_texture(g_cvs.bounds_tex));
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.generic);
     gfx_draw(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, offset/sizeof(struct canvas_vertex3d), 24,

@@ -102,7 +102,7 @@ void debug_view_callback(gfx_cmdqueue cmdqueue, const struct gfx_view_params* pa
 
     /* Draw main axises on the origin */
     struct mat3f ident;
-    mat3_setidentity(&ident);
+    mat3_set_ident(&ident);
     gfx_canvas_coords(&ident, &params->cam_pos, 1.0f);
 
     /* Draw a Hello world text */

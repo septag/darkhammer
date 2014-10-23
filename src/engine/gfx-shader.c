@@ -258,7 +258,7 @@ void gfx_shader_releasemgr()
     }
 
     /* unload, remaining shaders */
-    for (uint i = 0; i < g_shader_mgr.shaders.item_cnt; i++)  {
+    for (int i = 0; i < g_shader_mgr.shaders.item_cnt; i++)  {
         struct gfx_shader* shader = ((struct gfx_shader**)g_shader_mgr.shaders.buffer)[i];
         if (shader != NULL)
             shader_unload(shader);
@@ -830,7 +830,7 @@ struct gfx_shader* shader_load_fromscratch(struct allocator* alloc,
 
 void gfx_shader_unload(uint shader_id)
 {
-    ASSERT(shader_id <= g_shader_mgr.shaders.item_cnt);
+    ASSERT(shader_id <= (uint)g_shader_mgr.shaders.item_cnt);
     struct gfx_shader* shader = ((struct gfx_shader**)g_shader_mgr.shaders.buffer)[shader_id-1];
     ASSERT(shader != NULL);
 
@@ -1181,7 +1181,7 @@ void gfx_cb_set_endoffset(struct gfx_cblock* cb, uint offset)
 
 struct gfx_shader* gfx_shader_get(uint shader_id)
 {
-    ASSERT(shader_id <= g_shader_mgr.shaders.item_cnt && shader_id != 0);
+    ASSERT(shader_id <= (uint)g_shader_mgr.shaders.item_cnt && shader_id != 0);
     return ((struct gfx_shader**)g_shader_mgr.shaders.buffer)[shader_id-1];
 }
 

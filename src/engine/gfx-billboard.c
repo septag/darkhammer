@@ -240,7 +240,7 @@ void gfx_blb_render(gfx_cmdqueue cmdqueue, const struct gfx_view_params* params)
     struct gfx_cblock* cb_frame = g_blb.cb_frame;
     uint cnt = minui(BILLBOARDS_BUFF_SIZE, g_blb.blb_cnt);
 
-    mat3_setidentity(&mi);
+    mat3_set_ident(&mi);
     gfx_shader_set3m(shader, SHADER_NAME(c_world), &mi);
     gfx_cb_set3m(cb_frame, SHADER_NAME(c_viewinv), &view_inv);
     gfx_cb_set4m(cb_frame, SHADER_NAME(c_viewproj), &params->viewproj);

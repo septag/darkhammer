@@ -298,65 +298,65 @@ struct anim_ctrl_instance_data
  */
 
 /* animation reel */
-void anim_loadchannel(file_t f, anim_reel reel, struct vec4f* tmp_pos_scale,
+static void anim_loadchannel(file_t f, anim_reel reel, struct vec4f* tmp_pos_scale,
     struct quat4f* tmp_rot, uint pose_idx, uint frame_cnt);
-uint anim_findclip_hashed(const anim_reel reel, uint name_hash);
+static uint anim_findclip_hashed(const anim_reel reel, uint name_hash);
 
 /* animation controller - loading */
-void anim_ctrl_load_params(anim_ctrl ctrl, json_t jparams, struct allocator* alloc);
-void anim_ctrl_load_clips(anim_ctrl ctrl, json_t jclips, struct allocator* alloc);
-void anim_ctrl_load_states(anim_ctrl ctrl, json_t jstates, struct allocator* alloc);
-void anim_ctrl_load_layers(anim_ctrl ctrl, json_t jlayers, struct allocator* alloc);
-void anim_ctrl_load_blendtrees(anim_ctrl ctrl, json_t jblendtrees, struct allocator* alloc);
-void anim_ctrl_load_transitions(anim_ctrl ctrl, json_t jtransitions, struct allocator* alloc);
-void anim_ctrl_parse_group(struct allocator* alloc, struct anim_ctrl_transition_group* grp,
+static void anim_ctrl_load_params(anim_ctrl ctrl, json_t jparams, struct allocator* alloc);
+static void anim_ctrl_load_clips(anim_ctrl ctrl, json_t jclips, struct allocator* alloc);
+static void anim_ctrl_load_states(anim_ctrl ctrl, json_t jstates, struct allocator* alloc);
+static void anim_ctrl_load_layers(anim_ctrl ctrl, json_t jlayers, struct allocator* alloc);
+static void anim_ctrl_load_blendtrees(anim_ctrl ctrl, json_t jblendtrees, struct allocator* alloc);
+static void anim_ctrl_load_transitions(anim_ctrl ctrl, json_t jtransitions, struct allocator* alloc);
+static void anim_ctrl_parse_group(struct allocator* alloc, struct anim_ctrl_transition_group* grp,
                            json_t jgrp);
-uint anim_ctrl_getcount(json_t jparent, const char* name);
-uint anim_ctrl_getcount_2nd(json_t jparent, const char* name0, const char* name1);
-uint anim_ctrl_getcount_3rd(json_t jparent, const char* name0, const char* name1,
+static uint anim_ctrl_getcount(json_t jparent, const char* name);
+static uint anim_ctrl_getcount_2nd(json_t jparent, const char* name0, const char* name1);
+static uint anim_ctrl_getcount_3rd(json_t jparent, const char* name0, const char* name1,
                               const char* name2);
 
 /* animation controller */
-void anim_ctrl_startstate(const anim_ctrl ctrl, anim_ctrl_inst inst, uint state_idx,
+static void anim_ctrl_startstate(const anim_ctrl ctrl, anim_ctrl_inst inst, uint state_idx,
                           float start_tm);
-int anim_ctrl_checkstate(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
+static int anim_ctrl_checkstate(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
                             uint layer_idx, uint state_idx, float tm);
-void anim_ctrl_updatetransition(struct anim_pose* poses,
+static void anim_ctrl_updatetransition(struct anim_pose* poses,
                                 const anim_ctrl ctrl, anim_ctrl_inst inst,
                                 const anim_reel reel, uint layer_idx, uint transition_idx,
                                 float tm, struct allocator* tmp_alloc);
-void anim_ctrl_startstate(const anim_ctrl ctrl, anim_ctrl_inst inst, uint state_idx,
+static void anim_ctrl_startstate(const anim_ctrl ctrl, anim_ctrl_inst inst, uint state_idx,
                           float start_tm);
-int anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
+static int anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
                              const anim_reel reel, uint state_idx, uint layer_idx,
                              const struct anim_ctrl_transition_group* tgroup, float tm);
-void anim_ctrl_updatestate(struct anim_pose* poses, const anim_ctrl ctrl, anim_ctrl_inst inst,
+static void anim_ctrl_updatestate(struct anim_pose* poses, const anim_ctrl ctrl, anim_ctrl_inst inst,
                            const anim_reel reel, uint layer_idx, uint state_idx, float tm,
                            struct allocator* tmp_alloc);
-void anim_ctrl_starttransition(const anim_ctrl ctrl, anim_ctrl_inst inst,
+static void anim_ctrl_starttransition(const anim_ctrl ctrl, anim_ctrl_inst inst,
                                const anim_reel reel, uint layer_idx, uint transition_idx,
                                float tm);
-float anim_ctrl_progress_state(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
+static float anim_ctrl_progress_state(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
                               uint state_idx);
-float anim_ctrl_updateseq(struct anim_pose* poses,
+static float anim_ctrl_updateseq(struct anim_pose* poses,
                          const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
                          const struct anim_ctrl_sequence* seq, float tm, float playrate,
                          struct allocator* tmp_alloc);
-void anim_ctrl_calcpose(struct anim_pose* poses, const anim_reel reel, uint clip_idx, float tm);
-void anim_ctrl_blendpose(struct anim_pose* poses, const struct anim_pose* poses_a,
+static void anim_ctrl_calcpose(struct anim_pose* poses, const anim_reel reel, uint clip_idx, float tm);
+static void anim_ctrl_blendpose(struct anim_pose* poses, const struct anim_pose* poses_a,
                          const struct anim_pose* poses_b, uint pose_cnt, float blend);
-void anim_ctrl_startseq(const anim_ctrl ctrl, anim_ctrl_inst inst,
+static void anim_ctrl_startseq(const anim_ctrl ctrl, anim_ctrl_inst inst,
                         const struct anim_ctrl_sequence* seq, float start_tm);
-void anim_ctrl_startclip(const anim_ctrl ctrl, anim_ctrl_inst inst, uint clip_idx, float start_tm);
-void anim_ctrl_startblendtree(const anim_ctrl ctrl, anim_ctrl_inst inst, uint blendtree_idx,
+static void anim_ctrl_startclip(const anim_ctrl ctrl, anim_ctrl_inst inst, uint clip_idx, float start_tm);
+static void anim_ctrl_startblendtree(const anim_ctrl ctrl, anim_ctrl_inst inst, uint blendtree_idx,
                               float start_tm);
-int anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
+static int anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
                              const anim_reel reel, uint state_idx, uint layer_idx,
                              const struct anim_ctrl_transition_group* tgroup, float tm);
-float anim_ctrl_updateclip(struct anim_pose* poses, const anim_ctrl ctrl,
+static float anim_ctrl_updateclip(struct anim_pose* poses, const anim_ctrl ctrl,
                           anim_ctrl_inst inst, const anim_reel reel, uint clip_idx, float tm,
                           float playrate);
-float anim_ctrl_updateblendtree(struct anim_pose* poses,
+static float anim_ctrl_updateblendtree(struct anim_pose* poses,
                                const anim_ctrl ctrl, anim_ctrl_inst inst,
                                const anim_reel reel, uint blendtree_idx, float tm,
                                float playrate, struct allocator* tmp_alloc);
@@ -651,7 +651,7 @@ void anim_update_clip_hierarchal(const anim_reel reel, uint clip_idx, float t,
     const struct anim_channel* next_sampl = &reel->channels[nextframe_idx + subclip->frame_start];
 
     struct mat3f xfm;
-    mat3_setidentity(&xfm);
+    mat3_set_ident(&xfm);
 
     for (uint i = 0, pose_cnt = reel->pose_cnt; i < pose_cnt; i++)    {
         struct vec3f pos_lerp;
@@ -699,7 +699,7 @@ void anim_update_clip_skeletal(const anim_reel reel, uint clip_idx, float t,
     const struct anim_channel* next_sampl = &reel->channels[nextframe_idx + subclip->frame_start];
 
     struct mat3f xfm;
-    mat3_setidentity(&xfm);
+    mat3_set_ident(&xfm);
 
     for (uint i = 0, pose_cnt = reel->pose_cnt; i < pose_cnt; i++)    {
         struct vec3f pos_lerp;

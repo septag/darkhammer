@@ -176,7 +176,7 @@ int rs_search_in_unloads(reshandle_t hdl);
  */
 INLINE struct rs_resource* rs_resource_get(reshandle_t hdl) {
     uint idx = GET_INDEX(hdl);
-    ASSERT(idx < g_rs.ress.item_cnt);
+    ASSERT(idx < (uint)g_rs.ress.item_cnt);
 
     struct rs_resource* r = &((struct rs_resource*)g_rs.ress.buffer)[idx];
     ASSERT(r->hdl != INVALID_HANDLE);
@@ -356,13 +356,12 @@ void rs_release_resources()
 }
 
 /* Runs in task threads */
-void rs_threaded_load_fn(void* params, void* result, uint thread_id, uint job_id,
-                         uint worker_idx)
+void rs_threaded_load_fn(void* params, void* result, uint thread_id, uint job_id, int worker_idx)
 {
     struct rs_load_job_params* lparams = (struct rs_load_job_params*)params;
     struct rs_load_job_result* lresult = (struct rs_load_job_result*)result;
 
-    if (worker_idx >= lparams->cnt)
+    if (worker_idx >= (int)lparams->cnt)
         return;
 
     util_sleep(100);
@@ -484,11 +483,11 @@ void rs_update()
 
     /* dispatch to first thread only (exclusive mode) */
     if (qcnt > 0)   {
-        uint thread_cnt = g_rs.load_threads_max;
+        int thread_cnt = (int)g_rs.load_threads_max;
         struct allocator* tmp_alloc = tsk_get_tmpalloc(0);
-        uint* thread_idxs = (uint*)A_ALLOC(tmp_alloc, sizeof(uint)*thread_cnt, MID_RES);
+        int* thread_idxs = (int*)A_ALLOC(tmp_alloc, sizeof(uint)*thread_cnt, MID_RES);
         ASSERT(thread_idxs);
-        for (uint i = 0; i < thread_cnt; i++)
+        for (int i = 0; i < thread_cnt; i++)
             thread_idxs[i] = i;
         g_rs.load_jobid = tsk_dispatch_exclusive(rs_threaded_load_fn, thread_idxs, thread_cnt,
             params, result);
@@ -1273,7 +1272,7 @@ void rs_phxprefab_unload(void* prefab)
 void rs_reportleaks()
 {
     struct rs_resource* rss = (struct rs_resource*)g_rs.ress.buffer;
-    for (uint i = 0; i < g_rs.ress.item_cnt; i++)   {
+    for (int i = 0; i < g_rs.ress.item_cnt; i++)   {
         const struct rs_resource* r = &rss[i];
         if (r->hdl != INVALID_HANDLE && r->ref_cnt > 0) {
             log_printf(LOG_WARNING, "res-mgr: unreleased \"%s\" (ref_cnt = %d, id = %d)",

@@ -117,22 +117,19 @@ struct sct_mgr
                                        but now are garbage */
     int monitor;
     struct linked_list* gcs;    /* scripts that needs to be garbage-collected periodically */
-    struct pool_alloc_ts buffs[SCT_ALLOC_CNT];
+    struct pool_alloc buffs[SCT_ALLOC_CNT];
 };
 
-/*************************************************************************************************
- * fwd declerations
- */
 /* callback for triggers */
-void sct_trigger_callback(struct cmp_obj* trigger_obj, struct cmp_obj* other_obj,
+static void trigger_callback(struct cmp_obj* trigger_obj, struct cmp_obj* other_obj,
     enum phx_trigger_state state, void* param);
 
 /* callback for lua_State allocation
  * see (lua_Alloc): http://www.lua.org/manual/5.1/manual.html */
-void* sct_lua_alloc_callback(void* ud, void* ptr, size_t osize, size_t nsize);
+static void* alloc_callback(void* ud, void* ptr, size_t osize, size_t nsize);
 
 /* callback for lua_State panic */
-int sct_lua_panic_callback(lua_State* l);
+static int panic_callback(lua_State* l);
 
 #ifdef __cplusplus
 extern "C" {
@@ -145,27 +142,27 @@ int luaopen_eng(lua_State* l);
 #endif
 
 /* console commands */
-result_t sct_console_runfile(uint argc, const char** argv, void* param);
+static result_t console_runfile(uint argc, const char** argv, void* param);
 
 /* if fname=NULL, runs the whole script, after fname is argument pairs (type, value) */
-int sct_call(reshandle_t s_hdl, const char* fname, uint arg_cnt, ...);
+static int sct_call(reshandle_t s_hdl, const char* fname, uint arg_cnt, ...);
 
-void sct_runscript(reshandle_t s_hdl);
+static void sct_runscript(reshandle_t s_hdl);
 
-int sct_checkresident(reshandle_t hdl);
-void sct_collectgarbage(float dt);
-void sct_addgarbage(reshandle_t hdl);
-void sct_removealltimers();
-void sct_removealltriggers();
-void sct_removeevents(reshandle_t hdl);
+static int sct_checkresident(reshandle_t hdl);
+static void sct_collectgarbage(float dt);
+static void sct_addgarbage(reshandle_t hdl);
+static void sct_removealltimers();
+static void sct_removealltriggers();
+static void sct_removeevents(reshandle_t hdl);
 
-void sct_addgc(lua_State* ls);
-void sct_removegc(lua_State* ls);
+static void sct_addgc(lua_State* ls);
+static void sct_removegc(lua_State* ls);
 
-result_t sct_create_buffs();
-void sct_destroy_buffs();
+static result_t sct_create_buffs();
+static void sct_destroy_buffs();
 
-uint sct_choose_alloc(size_t sz);
+static int sct_choose_alloc(size_t sz);
 
 /*************************************************************************************************
  * globals
@@ -225,7 +222,7 @@ result_t sct_init(const struct sct_params* params, int monitor)
     g_sct.monitor = monitor;
 
     /* console commands */
-    con_register_cmd("lua_runfile", sct_console_runfile, NULL, "lua_runfile [lua_file]");
+    con_register_cmd("lua_runfile", console_runfile, NULL, "lua_runfile [lua_file]");
 
     return RET_OK;
 }
@@ -245,7 +242,7 @@ void sct_release()
     /* */
     uint leak_cnt = 0;
     for (uint i = 0; i < SCT_ALLOC_CNT; i++)
-        leak_cnt += mem_pool_getleaks_ts(&g_sct.buffs[i]);
+        leak_cnt += mem_pool_getleaks(&g_sct.buffs[i]);
     if (leak_cnt > 0)
         log_printf(LOG_WARNING, "script: %d leaks detected", leak_cnt);
 
@@ -255,30 +252,30 @@ void sct_release()
     sct_destroy_buffs();
 }
 
-result_t sct_create_buffs()
+static result_t sct_create_buffs()
 {
-    if (IS_FAIL(mem_pool_create_ts(mem_heap(), &g_sct.buffs[SCT_ALLOC_32], 32, 1024, MID_SCT)))
+    if (IS_FAIL(mem_pool_create(mem_heap(), &g_sct.buffs[SCT_ALLOC_32], 32, 1024, MID_SCT)))
         return RET_OUTOFMEMORY;
-    if (IS_FAIL(mem_pool_create_ts(mem_heap(), &g_sct.buffs[SCT_ALLOC_64], 64, 1024, MID_SCT)))
+    if (IS_FAIL(mem_pool_create(mem_heap(), &g_sct.buffs[SCT_ALLOC_64], 64, 1024, MID_SCT)))
         return RET_OUTOFMEMORY;
-    if (IS_FAIL(mem_pool_create_ts(mem_heap(), &g_sct.buffs[SCT_ALLOC_128], 128, 512, MID_SCT)))
+    if (IS_FAIL(mem_pool_create(mem_heap(), &g_sct.buffs[SCT_ALLOC_128], 128, 512, MID_SCT)))
         return RET_OUTOFMEMORY;
-    if (IS_FAIL(mem_pool_create_ts(mem_heap(), &g_sct.buffs[SCT_ALLOC_256], 256, 512, MID_SCT)))
+    if (IS_FAIL(mem_pool_create(mem_heap(), &g_sct.buffs[SCT_ALLOC_256], 256, 512, MID_SCT)))
         return RET_OUTOFMEMORY;
-    if (IS_FAIL(mem_pool_create_ts(mem_heap(), &g_sct.buffs[SCT_ALLOC_512], 512, 256, MID_SCT)))
+    if (IS_FAIL(mem_pool_create(mem_heap(), &g_sct.buffs[SCT_ALLOC_512], 512, 256, MID_SCT)))
         return RET_OUTOFMEMORY;
-    if (IS_FAIL(mem_pool_create_ts(mem_heap(), &g_sct.buffs[SCT_ALLOC_1K], 1024, 128, MID_SCT)))
+    if (IS_FAIL(mem_pool_create(mem_heap(), &g_sct.buffs[SCT_ALLOC_1K], 1024, 128, MID_SCT)))
         return RET_OUTOFMEMORY;
-    if (IS_FAIL(mem_pool_create_ts(mem_heap(), &g_sct.buffs[SCT_ALLOC_2K], 2048, 128, MID_SCT)))
+    if (IS_FAIL(mem_pool_create(mem_heap(), &g_sct.buffs[SCT_ALLOC_2K], 2048, 128, MID_SCT)))
         return RET_OUTOFMEMORY;
 
     return RET_OK;
 }
 
-void sct_destroy_buffs()
+static void sct_destroy_buffs()
 {
     for (uint i = 0; i < SCT_ALLOC_CNT; i++)
-        mem_pool_destroy_ts(&g_sct.buffs[i]);
+        mem_pool_destroy(&g_sct.buffs[i]);
 }
 
 void sct_reload(const char* filepath, reshandle_t hdl, int manual)
@@ -313,7 +310,7 @@ sct_t sct_load(const char* lua_filepath, uint thread_id)
     fio_close(f);
 
     /* create lua_state and open libraries */
-    lua_State* ls = lua_newstate(sct_lua_alloc_callback, NULL);
+    lua_State* ls = lua_newstate(alloc_callback, NULL);
     if (ls == NULL) {
         A_FREE(tmp_alloc, buff);
         A_LOAD(tmp_alloc);
@@ -321,7 +318,7 @@ sct_t sct_load(const char* lua_filepath, uint thread_id)
             lua_filepath);
         return NULL;
     }
-    lua_atpanic(ls, sct_lua_panic_callback);
+    lua_atpanic(ls, panic_callback);
 
     luaL_requiref(ls, "table", luaopen_table, 1); lua_pop(ls, 1);
     luaL_requiref(ls, "string", luaopen_string, 1); lua_pop(ls, 1);
@@ -353,7 +350,7 @@ void sct_unload(sct_t s)
     lua_close((lua_State*)s);
 }
 
-void* sct_lua_alloc_callback(void* ud, void* ptr, size_t osize, size_t nsize)
+static void* alloc_callback(void* ud, void* ptr, size_t osize, size_t nsize)
 {
     ASSERT(nsize < UINT32_MAX);
 
@@ -361,9 +358,9 @@ void* sct_lua_alloc_callback(void* ud, void* ptr, size_t osize, size_t nsize)
     if (ptr == NULL && nsize != 0)    {
         /* normal malloc */
         nsize += sizeof(uint);    /* to keep the size */
-        uint a_idx = sct_choose_alloc(nsize);
-        if (a_idx != INVALID_INDEX)
-            rptr = mem_pool_alloc_ts(&g_sct.buffs[a_idx]);
+        int a_idx = sct_choose_alloc(nsize);
+        if (a_idx != -1)
+            rptr = mem_pool_alloc(&g_sct.buffs[a_idx]);
         else
             rptr = mem_alignedalloc(nsize, 16, __FILE__, __LINE__, MID_SCT);
         ASSERT(rptr);
@@ -371,10 +368,10 @@ void* sct_lua_alloc_callback(void* ud, void* ptr, size_t osize, size_t nsize)
     }   else if (ptr != NULL && nsize == 0)   {
         /* free */
         uint sz = sct_alloc_getsize(ptr, &ptr);
-        uint a_idx = sct_choose_alloc(sz);
+        int a_idx = sct_choose_alloc(sz);
 
-        if (a_idx != INVALID_INDEX)
-            mem_pool_free_ts(&g_sct.buffs[a_idx], ptr);
+        if (a_idx != -1)
+            mem_pool_free(&g_sct.buffs[a_idx], ptr);
         else
             mem_alignedfree(ptr);
 
@@ -384,13 +381,13 @@ void* sct_lua_alloc_callback(void* ud, void* ptr, size_t osize, size_t nsize)
         nsize += sizeof(uint);
         void* real_ptr;
         uint sz = sct_alloc_getsize(ptr, &real_ptr);
-        uint a_idx = sct_choose_alloc(nsize);
-        uint a_idx2 = sct_choose_alloc(sz);
+        int a_idx = sct_choose_alloc(nsize);
+        int a_idx2 = sct_choose_alloc(sz);
 
         /* alloc from new allocator */
         void* tmp;
-        if (a_idx != INVALID_INDEX)
-            tmp = mem_pool_alloc_ts(&g_sct.buffs[a_idx]);
+        if (a_idx != -1)
+            tmp = mem_pool_alloc(&g_sct.buffs[a_idx]);
         else
             tmp = mem_alignedalloc(nsize, 16, __FILE__, __LINE__, MID_SCT);
         ASSERT(tmp);
@@ -398,8 +395,8 @@ void* sct_lua_alloc_callback(void* ud, void* ptr, size_t osize, size_t nsize)
         memcpy(tmp, ptr, minui((uint)nsize, sz) - sizeof(uint));
 
         /* free from previous allocator */
-        if (a_idx2 != INVALID_INDEX) {
-            mem_pool_free_ts(&g_sct.buffs[a_idx2], real_ptr);
+        if (a_idx != -1) {
+            mem_pool_free(&g_sct.buffs[a_idx2], real_ptr);
         }   else    {
             mem_alignedfree(real_ptr);
         }
@@ -412,7 +409,7 @@ void* sct_lua_alloc_callback(void* ud, void* ptr, size_t osize, size_t nsize)
     return rptr;
 }
 
-uint sct_choose_alloc(size_t sz)
+static int sct_choose_alloc(size_t sz)
 {
     if (sz <= 32)
         return SCT_ALLOC_32;
@@ -429,11 +426,11 @@ uint sct_choose_alloc(size_t sz)
     else if (sz > 1024 && sz <= 2048)
         return SCT_ALLOC_2K;
     else
-        return INVALID_INDEX;
+        return -1;
 }
 
 
-int sct_lua_panic_callback(lua_State* l)
+static int panic_callback(lua_State* l)
 {
     log_printf(LOG_ERROR, "lua: unprotected error: %s", sct_geterror(l));
     return 0;
@@ -453,7 +450,7 @@ void sct_throwerror(const char* fmt, ...)
     }
 }
 
-result_t sct_console_runfile(uint argc, const char** argv, void* param)
+static result_t console_runfile(uint argc, const char** argv, void* param)
 {
     if (argc != 1)
         return RET_INVALIDARG;
@@ -473,7 +470,7 @@ result_t sct_runfile(const char* lua_filepath)
     return RET_OK;
 }
 
-void sct_runscript(reshandle_t s_hdl)
+static void sct_runscript(reshandle_t s_hdl)
 {
     /* run main script code */
     sct_call(s_hdl, NULL, 0);
@@ -489,7 +486,7 @@ void sct_runscript(reshandle_t s_hdl)
     }
 }
 
-int sct_call(reshandle_t s_hdl, const char* fname, uint arg_cnt, ...)
+static int sct_call(reshandle_t s_hdl, const char* fname, uint arg_cnt, ...)
 {
     lua_State* ls = (lua_State*)rs_get_script(s_hdl);
     if (ls == NULL)
@@ -634,7 +631,7 @@ void sct_addtrigger(cmphandle_t trigger_cmp, const char* funcname)
     list_add(&g_sct.trigger_events, &e->lnode, e);
     sct_addgc(ls);
 
-    cmp_trigger_register_callback(trigger_cmp, sct_trigger_callback, e);
+    cmp_trigger_register_callback(trigger_cmp, trigger_callback, e);
 }
 
 void sct_removetrigger(struct sct_trigger_event* te)
@@ -672,7 +669,7 @@ void sct_removetrigger_byfuncname(const char* funcname)
 }
 
 
-void sct_addgarbage(reshandle_t hdl)
+static void sct_addgarbage(reshandle_t hdl)
 {
     /* check if we have anymore pending tm_events from the script */
     if (!sct_checkresident(hdl)) {
@@ -686,7 +683,7 @@ void sct_addgarbage(reshandle_t hdl)
     }
 }
 
-int sct_checkresident(reshandle_t hdl)
+static int sct_checkresident(reshandle_t hdl)
 {
     /* check for existance of timer events */
     struct linked_list* node = g_sct.tm_events;
@@ -709,7 +706,7 @@ int sct_checkresident(reshandle_t hdl)
     return FALSE;
 }
 
-void sct_collectgarbage(float dt)
+static void sct_collectgarbage(float dt)
 {
     /* unload scripts that are assigned as garbage */
     uint cnt = g_sct.garbage_scripts.item_cnt;
@@ -742,7 +739,7 @@ void sct_collectgarbage(float dt)
     }
 }
 
-void sct_removealltimers()
+static void sct_removealltimers()
 {
     struct linked_list* node = g_sct.tm_events;
     while (node != NULL)    {
@@ -757,7 +754,7 @@ void sct_removealltimers()
     }
 }
 
-void sct_removealltriggers()
+static void sct_removealltriggers()
 {
     struct linked_list* node = g_sct.trigger_events;
     while (node != NULL)    {
@@ -773,7 +770,7 @@ void sct_removealltriggers()
 }
 
 /* remove registered events for specific script */
-void sct_removeevents(reshandle_t hdl)
+static void sct_removeevents(reshandle_t hdl)
 {
     /* timers */
     struct linked_list* node = g_sct.tm_events;
@@ -808,15 +805,15 @@ void sct_getmemstats(struct sct_memstats* stats)
 
 void* sct_alloc(size_t sz)
 {
-    return sct_lua_alloc_callback(NULL, NULL, sz, sz);
+    return alloc_callback(NULL, NULL, sz, sz);
 }
 
 void sct_free(void* p)
 {
-    sct_lua_alloc_callback(p, p, 0, 0);
+    alloc_callback(p, p, 0, 0);
 }
 
-void sct_addgc(lua_State* ls)
+static void sct_addgc(lua_State* ls)
 {
     /* check if we haven't added it to the list yet */
     struct linked_list* node = g_sct.gcs;
@@ -840,7 +837,7 @@ void sct_addgc(lua_State* ls)
     list_add(&g_sct.gcs, &gc->lnode, gc);
 }
 
-void sct_removegc(lua_State* ls)
+static void sct_removegc(lua_State* ls)
 {
     struct linked_list* node = g_sct.gcs;
     while (node != NULL)    {
@@ -868,7 +865,8 @@ void sct_setthreshold(int mem_sz)
     }
 }
 
-void sct_trigger_callback(struct cmp_obj* trigger_obj, struct cmp_obj* other_obj,
+
+static void trigger_callback(struct cmp_obj* trigger_obj, struct cmp_obj* other_obj,
     enum phx_trigger_state state, void* param)
 {
     struct sct_trigger_event* e = (struct sct_trigger_event*)param;
@@ -880,4 +878,3 @@ void sct_trigger_callback(struct cmp_obj* trigger_obj, struct cmp_obj* other_obj
     if (!r)
         sct_removetrigger(e);
 }
-

@@ -14,6 +14,7 @@
  ***********************************************************************************/
 
 #include "dhcore/core.h"
+#include "dhcore/mt.h"
 
 #if defined(_D3D_)
 
@@ -55,13 +56,14 @@ struct gfx_device
 {
     struct gfx_params params;
     struct gfx_gpu_memstats memstats;
-    struct pool_alloc_ts obj_pool;
+    struct pool_alloc obj_pool;
     gfx_rasterstate default_raster;
     gfx_depthstencilstate default_depthstencil;
     gfx_blendstate default_blend;
     int threaded_creates;
     int threaded_cmdqueues;
     enum gfx_hwver ver;
+    mt_mutex objpool_mtx;
 };
 
 /* globals */
@@ -85,7 +87,9 @@ INLINE const char* get_hwverstr(enum gfx_hwver hwver)
 
 INLINE struct gfx_obj_data* create_obj(uptr_t api_obj, enum gfx_obj_type type)
 {
-	struct gfx_obj_data* obj = (struct gfx_obj_data*)mem_pool_alloc_ts(&g_gfxdev.obj_pool);
+    mt_mutex_lock(&g_gfxdev.objpool_mtx);
+	struct gfx_obj_data* obj = (struct gfx_obj_data*)mem_pool_alloc(&g_gfxdev.obj_pool);
+    mt_mutex_unlock(&g_gfxdev.objpool_mtx);
     ASSERT(obj != NULL);
     memset(obj, 0x00, sizeof(struct gfx_obj_data));
     obj->api_obj = (uptr_t)api_obj;
@@ -100,7 +104,9 @@ INLINE void destroy_obj(struct gfx_obj_data* obj)
     ID3D11DeviceChild* d3d_obj =  (ID3D11DeviceChild*)obj->api_obj;
     RELEASE(d3d_obj);
     obj->type = GFX_OBJ_NULL;
-    mem_pool_free_ts(&g_gfxdev.obj_pool, obj);
+    mt_mutex_lock(&g_gfxdev.objpool_mtx);
+    mem_pool_free(&g_gfxdev.obj_pool, obj);
+    mt_mutex_unlock(&g_gfxdev.objpool_mtx);
 }
 
 INLINE enum D3D11_FILTER sampler_choose_filter(
@@ -356,11 +362,12 @@ result_t gfx_initdev(const struct gfx_params* params)
 
     log_print(LOG_INFO, "  init gfx-device ...");
 
-    r = mem_pool_create_ts(mem_heap(), &g_gfxdev.obj_pool, sizeof(struct gfx_obj_data), 100, MID_GFX);
+    r = mem_pool_create(mem_heap(), &g_gfxdev.obj_pool, sizeof(struct gfx_obj_data), 100, MID_GFX);
     if (IS_FAIL(r))     {
         err_print(__FILE__, __LINE__, "gfx-device init failed: could not create object pool");
         return RET_FAIL;
     }
+    mt_mutex_init(&g_gfxdev.objpool_mtx);
 
     /* check features support */
     ID3D11Device* dev = app_d3d_getdevice();
@@ -402,11 +409,12 @@ result_t gfx_initdev(const struct gfx_params* params)
 void gfx_releasedev()
 {
     /* detect leaks and delete remaining objects */
-    uint leaks_cnt = mem_pool_getleaks_ts(&g_gfxdev.obj_pool);
+    uint leaks_cnt = mem_pool_getleaks(&g_gfxdev.obj_pool);
     if (leaks_cnt > 0)
         log_printf(LOG_WARNING, "gfx-device: total %d leaks found", leaks_cnt);
 
-    mem_pool_destroy_ts(&g_gfxdev.obj_pool);
+    mem_pool_destroy(&g_gfxdev.obj_pool);
+    mt_mutex_release(&g_gfxdev.objpool_mtx);
 
     gfx_zerodev();
 }
