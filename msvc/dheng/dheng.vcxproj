@@ -74,6 +74,8 @@
     <TargetName>$(ProjectName)-dbg</TargetName>
     <OutDir>$(SolutionDir)..\bin\</OutDir>
     <IntDir>$(SolutionDir)..\build\$(Configuration)\$(ProjectName)\</IntDir>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -83,6 +85,8 @@
     <OutDir>$(SolutionDir)..\bin\</OutDir>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <IntDir>$(SolutionDir)..\build\$(Configuration)\$(ProjectName)\</IntDir>
+    <IncludePath>D:\Sepul\Dev\SDK\Physx\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Sepul\Dev\SDK\Physx\Lib\vc11win64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -105,12 +109,13 @@
       <PreprocessorDefinitions>WIN32;_ENGINE_EXPORT_;_SIMD_SSE_;_WIN_;FULL_VERSION="0.5.0";_D3D_;LUA_BUILD_AS_DLL;_CRT_SECURE_NO_WARNINGS;_PROFILE_;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)..\include\dheng;$(SolutionDir)..\3rdparty\mongoose;$(SolutionDir)..\include;$(SolutionDir)..\include\lua;$(SolutionDir);$(SolutionDir)..\libdhcore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)..\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lua.lib;mongoose-dbg.lib;dhcore-dbg.lib;dhapp-dbg.lib;d3dcompiler.lib;dxguid.lib;d3d11.lib;dxgi.lib;PhysX3DEBUG_x64.lib;PhysX3CommonDEBUG_x64.lib;PhysX3ExtensionsDEBUG.lib;PhysxProfileSDKDEBUG.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua.lib;mongoose-dbg.lib;dhcore-dbg.lib;dhapp-dbg.lib;d3dcompiler.lib;dxguid.lib;d3d11.lib;dxgi.lib;PhysX3DEBUG_x64.lib;PhysX3CommonDEBUG_x64.lib;PhysX3ExtensionsDEBUG.lib;PhysXProfileSDKDEBUG.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)..\lib\$(TargetName).lib</ImportLibrary>
     </Link>
     <PreBuildEvent>

@@ -29,9 +29,9 @@ function update_param(id)
     input = eng.Input()
     anim = obj:getCharacterAnim()
     if input:keyPressed(eng.KEY_UP) then
-        anim:setParam("MoveDir", anim:getParam("MoveDir") + 0.01)
+        anim:setParam("Direction", anim:getParam("Direction") + 0.01)
     elseif input:keyPressed(eng.KEY_DOWN) then
-        anim:setParam("MoveDir", anim:getParam("MoveDir") - 0.01)
+        anim:setParam("Direction", anim:getParam("Direction") - 0.01)
     end
     
     anim:setParam("Walk", input:keyPressed(eng.KEY_SPACE))

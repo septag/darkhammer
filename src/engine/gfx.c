@@ -813,6 +813,7 @@ struct gfx_renderpass* gfx_renderpass_create(struct allocator* alloc)
     struct gfx_renderpass* rpass = (struct gfx_renderpass*)A_ALLOC(alloc,
         sizeof(struct gfx_renderpass), MID_GFX);
     ASSERT(rpass);
+    memset(rpass, 0x00, sizeof(struct gfx_renderpass));
     r = arr_create(alloc, &rpass->subpasses, sizeof(struct gfx_renderpass_sub),
         2*GFX_RENDERPASS_MAX, GFX_RENDERPASS_MAX, MID_GFX);
     if (IS_FAIL(r))

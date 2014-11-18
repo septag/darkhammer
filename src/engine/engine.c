@@ -263,9 +263,12 @@ result_t eng_init(const struct init_params* params)
         char data_path[DH_PATH_MAX];
         char share_dir[DH_PATH_MAX];
 #ifndef SHARE_DIR
-#define SHARE_DIR "d:\\darkhammer"
-#endif
+        char exe_dir[DH_PATH_MAX];
+        path_join(share_dir, util_getexedir(exe_dir), "..", NULL);
+        path_norm(share_dir, share_dir);
+#else
         path_norm(share_dir, SHARE_DIR);
+#endif
         path_join(data_path, share_dir, "data", NULL);
         if (!util_pathisdir(data_path)) {
             err_print(__FILE__, __LINE__, "engine init: data path is not valid");

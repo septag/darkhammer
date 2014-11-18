@@ -91,6 +91,7 @@ int tut02_load_data()
         }
 
         /* Create rigid body physics component for the object */
+#if 0
         cmphandle_t rbody_hdl = cmp_create_instance_forobj("rbody", barrel);
         if (rbody_hdl == INVALID_HANDLE)    {
             scn_destroy_obj(barrel);
@@ -106,7 +107,7 @@ int tut02_load_data()
             err_print(__FILE__, __LINE__, "Loading barrel models failed");
             return FALSE;
         }
-
+#endif      
         /* Place barrel randomly in space */
         cmp_xform_setposf(barrel,
             rand_getf(-5.0f, 5.0f), rand_getf(10.0f, 16.0f), rand_getf(-5.0f, 5.0f));

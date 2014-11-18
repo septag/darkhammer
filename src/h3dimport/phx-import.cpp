@@ -15,7 +15,7 @@
 
 #include "PxPhysicsAPI.h"
 #include "cooking/PxCooking.h"
-#include "common/PxIO.h"
+#include "foundation/PxIO.h"
 
 #include "dhcore/core.h"
 #include "dhcore/array.h"
@@ -229,7 +229,7 @@ int import_phx(const struct import_params* params)
         printf(TERM_BOLDRED "Error: could not initalize physx" TERM_RESET);
         return FALSE;
     }
-    g_pxcook = PxCreateCooking(PX_PHYSICS_VERSION, *pxbase, PxCookingParams());
+    g_pxcook = PxCreateCooking(PX_PHYSICS_VERSION, *pxbase, PxCookingParams(PxTolerancesScale()));
     if (g_pxcook == NULL)   {
         ezxml_free(xroot);
         pxbase->release();
@@ -284,7 +284,7 @@ int import_phx(const struct import_params* params)
             break;
         }
 
-        for (uint i = 0; i < geos.item_cnt; i++)  {
+        for (int i = 0; i < geos.item_cnt; i++)  {
             struct pgeo_ext* geo = &((struct pgeo_ext*)geos.buffer)[i];
             switch (geo->g.type)    {
             case H3D_PHX_GEO_CONVEX:
@@ -307,7 +307,7 @@ cleanup:
     if (p.rigid != NULL)
         import_phx_destroyrigid(p.rigid);
 
-    for (uint i = 0; i < geos.item_cnt; i++)  {
+    for (int i = 0; i < geos.item_cnt; i++)  {
         struct pgeo_ext* geo = &((struct pgeo_ext*)geos.buffer)[i];
         if (geo->data != NULL)
             FREE(geo->data);
@@ -552,7 +552,7 @@ int import_phx_createconvexmesh(struct pgeo_ext* geo, ezxml_t xcmesh, ezxml_t xr
     }
 
     /* convert coords */
-    for (uint i = 0; i < pts.item_cnt; i+=3)   {
+    for (int i = 0; i < pts.item_cnt; i+=3)   {
         float* pt = &((float*)pts.buffer)[i];
         import_phx_convert3f(pt);
     }
@@ -622,7 +622,7 @@ int import_phx_createtrimesh(struct pgeo_ext* geo, ezxml_t xtrimesh, ezxml_t xro
     }
 
     /* convert coords */
-    for (uint i = 0; i < pts.item_cnt; i+=3)   {
+    for (int i = 0; i < pts.item_cnt; i+=3)   {
         float* pt = &((float*)pts.buffer)[i];
         import_phx_convert3f(pt);
     }
@@ -644,7 +644,7 @@ int import_phx_createtrimesh(struct pgeo_ext* geo, ezxml_t xtrimesh, ezxml_t xro
     }
 
     /* convert triangle winding */
-    for (uint i = 0; i < idxs.item_cnt; i+=3)   {
+    for (int i = 0; i < idxs.item_cnt; i+=3)   {
         int16* tri = &((int16*)idxs.buffer)[i];
         int16 tmp = tri[0];
         tri[0] = tri[2];

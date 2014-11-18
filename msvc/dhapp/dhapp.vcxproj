@@ -122,8 +122,8 @@
       <ImportLibrary>$(SolutionDir)..\lib\$(TargetName).lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>copy $(SolutionDir)..\libdhcore\Bin\dhcore-dbg.* $(SolutionDir)..\bin\
-copy $(SolutionDir)..\libdhcore\Lib\dhcore-dbg.lib $(SolutionDir)..\lib\</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

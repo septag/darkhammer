@@ -102,8 +102,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;ASSIMP_DLL;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\3rdparty\nvtt;$(SolutionDir)..\3rdparty</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;ASSIMP_DLL;_CRT_SECURE_NO_WARNINGS;FULL_VERSION="1.0.0";_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\3rdparty\nvtt;$(SolutionDir)..\3rdparty;$(SolutionDir)..\libdhcore\include</AdditionalIncludeDirectories>
       <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>
@@ -138,8 +138,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;ASSIMP_DLL;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\3rdparty\nvtt;$(SolutionDir)..\3rdparty</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;ASSIMP_DLL;_CRT_SECURE_NO_WARNINGS;FULL_VERSION="1.0.0";NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\3rdparty\nvtt;$(SolutionDir)..\3rdparty;$(SolutionDir)..\libdhcore\include</AdditionalIncludeDirectories>
       <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>

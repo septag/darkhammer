@@ -395,7 +395,7 @@ static void* alloc_callback(void* ud, void* ptr, size_t osize, size_t nsize)
         memcpy(tmp, ptr, minui((uint)nsize, sz) - sizeof(uint));
 
         /* free from previous allocator */
-        if (a_idx != -1) {
+        if (a_idx2 != -1) {
             mem_pool_free(&g_sct.buffs[a_idx2], real_ptr);
         }   else    {
             mem_alignedfree(real_ptr);

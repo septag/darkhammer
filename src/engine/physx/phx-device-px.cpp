@@ -51,38 +51,32 @@ void phx_destroy_scenedata(struct phx_scene_data* sdata);
 void phx_trigger_call(struct phx_scene_data* s, phx_obj trigger, phx_obj other,
     enum phx_trigger_state state);
 
-/*************************************************************************************************
- * class overrides
- */
-inline void* operator new(size_t sz, void* ptr)
-{
-    return ptr;
-}
-
-inline void operator delete(void* ptr)
-{
-}
-
 /* Physx allocators */
 /* freelist (dynamic but fixed total size) */
 class phx_allocator_fs : public PxAllocatorCallback
 {
 private:
-    struct freelist_alloc_ts* mfreelist;
+    struct freelist_alloc* mfreelist;
+    mt_mutex mlock;
 
 public:
-    phx_allocator_fs(struct freelist_alloc_ts* alloc) : mfreelist(alloc)
+    phx_allocator_fs(struct freelist_alloc* alloc) : mfreelist(alloc)
     {
+        mt_mutex_init(&mlock);
     }
 
     virtual ~phx_allocator_fs()
     {
+        mt_mutex_release(&mlock);
     }
 
     /* from PxAllocatorCallback */
     void* allocate(size_t sz, const char* type_name, const char* filename, int line)
     {
-        void* p = mem_freelist_alignedalloc_ts(mfreelist, sz, 16, MID_PHX);
+        mt_mutex_lock(&mlock);
+        void* p = mem_freelist_alignedalloc(mfreelist, sz, 16, MID_PHX);
+        mt_mutex_unlock(&mlock);
+
         ASSERT(p);
         return p;
     }
@@ -90,7 +84,9 @@ public:
     void deallocate(void* ptr)
     {
         if (ptr)    {
-            mem_freelist_alignedfree_ts(mfreelist, ptr);
+            mt_mutex_lock(&mlock);
+            mem_freelist_alignedfree(mfreelist, ptr);
+            mt_mutex_unlock(&mlock);
         }
     }
 };
@@ -209,8 +205,8 @@ public:
                 continue;
             }
 
-            PxActor* other = &pairs[i].otherShape->getActor();
-            PxActor* trigger = &pairs[i].triggerShape->getActor();
+            PxActor* other = pairs[i].otherShape->getActor();
+            PxActor* trigger = pairs[i].triggerShape->getActor();
 
             phx_trigger_call(ms, (phx_obj)trigger->userData, (phx_obj)other->userData,
                 phx_get_triggertype(pairs[i].status));
@@ -250,7 +246,7 @@ struct phx_device
     struct pool_alloc obj_pool;
     class PxAllocatorCallback* alloc;
     class phx_error err;
-    struct freelist_alloc_ts fs_mem;
+    struct freelist_alloc fs_mem;
     class PxFoundation* base;
     class PxPhysics* sdk;
     class PxProfileZoneManager* profiler;
@@ -326,14 +322,14 @@ INLINE PxQuat phx_quat4topx(const struct quat4f* q)
 INLINE struct phx_scene_data** phx_getfreescene_slot(uint* pid)
 {
     struct phx_scene_data** pscenes = (struct phx_scene_data**)g_phxdev.scenes.buffer;
-    for (uint i = 0; i < g_phxdev.scenes.item_cnt; i++)  {
+    for (int i = 0; i < g_phxdev.scenes.item_cnt; i++)  {
         if (pscenes[i] == NULL) {
-            *pid = i + 1;
+            *pid = (uint)(i + 1);
             return pscenes + i;
         }
     }
 
-    *pid = g_phxdev.scenes.item_cnt + 1;
+    *pid = (uint)(g_phxdev.scenes.item_cnt + 1);
     return (struct phx_scene_data**)arr_add(&g_phxdev.scenes);
 }
 
@@ -416,7 +412,7 @@ result_t phx_initdev(const struct init_params* params)
 
     /* allocator */
     if (BIT_CHECK(params->flags, ENG_FLAG_OPTIMIZEMEMORY))  {
-        r = mem_freelist_create_ts(mem_heap(), &g_phxdev.fs_mem,
+        r = mem_freelist_create(mem_heap(), &g_phxdev.fs_mem,
             pparams->mem_sz != 0 ? (pparams->mem_sz*1024) : PHX_DEFAULT_MEMSIZE, MID_PHX);
         if (IS_FAIL(r)) {
             err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
@@ -470,7 +466,7 @@ result_t phx_initdev(const struct init_params* params)
 void phx_releasedev()
 {
     /* release un-released scenes */
-    for (uint i = 0; i < g_phxdev.scenes.item_cnt; i++)  {
+    for (int i = 0; i < g_phxdev.scenes.item_cnt; i++)  {
         struct phx_scene_data* s = ((struct phx_scene_data**)g_phxdev.scenes.buffer)[i];
         if (s != NULL)  {
             log_printf(LOG_INFO, "phx-device: releasing scene id %d", i+1);
@@ -498,13 +494,13 @@ void phx_releasedev()
         FREE(g_phxdev.alloc);
     }
 
-    uint leak_cnt = mem_freelist_getleaks_ts(&g_phxdev.fs_mem, NULL);
+    int leak_cnt = mem_freelist_getleaks(&g_phxdev.fs_mem, NULL);
     if (leak_cnt > 0)   {
         void** ptrs = (void**)ALLOC(sizeof(void*)*leak_cnt, MID_PHX);
         ASSERT(ptrs);
         log_printf(LOG_WARNING, "phx-device: total %d mem-leaks found:", leak_cnt);
-        mem_freelist_getleaks_ts(&g_phxdev.fs_mem, ptrs);
-        for (uint i = 0; i < leak_cnt; i++)
+        mem_freelist_getleaks(&g_phxdev.fs_mem, ptrs);
+        for (int i = 0; i < leak_cnt; i++)
             log_printf(LOG_INFO, "  0x%x", (uptr_t)ptrs[i]);
     }
 
@@ -515,7 +511,7 @@ void phx_releasedev()
     if (g_phxdev.scratch_buff != NULL)
         ALIGNED_FREE(g_phxdev.scratch_buff);
     if (g_phxdev.optimize_mem)
-        mem_freelist_destroy_ts(&g_phxdev.fs_mem);
+        mem_freelist_destroy(&g_phxdev.fs_mem);
     mem_pool_destroy(&g_phxdev.obj_pool);
     arr_destroy(&g_phxdev.scenes);
 }
@@ -617,7 +613,7 @@ void phx_destroy_scenedata(struct phx_scene_data* sdata)
 void phx_destroy_scene(uint scene_id)
 {
     ASSERT(scene_id > 0);
-    ASSERT(scene_id <= g_phxdev.scenes.item_cnt);
+    ASSERT(scene_id <= (uint)g_phxdev.scenes.item_cnt);
 
     struct phx_scene_data** pscenes = (struct phx_scene_data**)g_phxdev.scenes.buffer;
     if (pscenes[scene_id-1] != NULL)    {
@@ -634,11 +630,11 @@ void phx_scene_getstats(uint scene_id, struct phx_scene_stats* stats)
     PxScene* s = phx_getscene(scene_id);
     s->getSimulationStatistics(pstats);
 
-    stats->st_cnt = pstats.numStaticBodies;
-    stats->dyn_cnt = pstats.numDynamicBodies;
-    stats->active_constaint_cnt = pstats.numActiveConstraints;
-    stats->active_kinamatic_cnt = pstats.numActiveKinematicBodies;
-    stats->active_dyn_cnt = pstats.numActiveDynamicBodies;
+    stats->st_cnt = pstats.nbStaticBodies;
+    stats->dyn_cnt = pstats.nbDynamicBodies;
+    stats->active_constaint_cnt = pstats.nbActiveConstraints;
+    stats->active_kinamatic_cnt = pstats.nbActiveKinematicBodies;
+    stats->active_dyn_cnt = pstats.nbActiveDynamicBodies;
 }
 
 void phx_scene_setgravity(uint scene_id, const struct vec3f* gravity)
@@ -695,7 +691,7 @@ struct phx_active_transform* phx_scene_activexforms(uint scene_id, struct alloca
     PxU32 pxform_cnt;
     PxScene* s = phx_getscene(scene_id);
 
-    PxActiveTransform* pxforms = s->getActiveTransforms(pxform_cnt);
+    const PxActiveTransform* pxforms = s->getActiveTransforms(pxform_cnt);
     if (pxform_cnt == 0)
         return NULL;
 
@@ -1180,7 +1176,7 @@ phx_trimesh phx_create_trimesh(const void* data, int make_gpugeo, struct allocat
     struct phx_geo_gpu* geo = NULL;
     if (make_gpugeo)    {
         uint vert_cnt = pxtri->getNbVertices();
-        ASSERT(pxtri->has16BitTriangleIndices());
+        ASSERT(pxtri->getTriangleMeshFlags().isSet(PxTriangleMeshFlag::e16_BIT_INDICES));
 
         struct vec3f* poss = (struct vec3f*)A_ALLOC(tmp_alloc, sizeof(struct vec3f)*vert_cnt,
             MID_PHX);
@@ -1318,12 +1314,12 @@ void phx_rigid_applytorque(phx_obj rigid_obj, const struct vec3f* torque, enum p
 
 void phx_rigid_clearforce(phx_obj rigid_obj, enum phx_force_mode mode, int wakeup)
 {
-    ((PxRigidBody*)rigid_obj->api_obj)->clearForce(phx_fmodetopx(mode), wakeup != FALSE);
+    ((PxRigidBody*)rigid_obj->api_obj)->clearForce(phx_fmodetopx(mode));
 }
 
 void phx_rigid_cleartorque(phx_obj rigid_obj, enum phx_force_mode mode, int wakeup)
 {
-    ((PxRigidBody*)rigid_obj->api_obj)->clearTorque(phx_fmodetopx(mode), wakeup != FALSE);
+    ((PxRigidBody*)rigid_obj->api_obj)->clearTorque(phx_fmodetopx(mode));
 }
 
 void phx_rigid_freeze(phx_obj rigid_obj, int wakeup)
@@ -1466,8 +1462,8 @@ void phx_draw_rigid(phx_obj obj, const struct color* clr)
 void phx_getmemstats(struct phx_memstats* stats)
 {
     if (g_phxdev.optimize_mem)  {
-        stats->buff_alloc = g_phxdev.fs_mem.fl.alloc_size;
-        stats->buff_max = g_phxdev.fs_mem.fl.size;
+        stats->buff_alloc = g_phxdev.fs_mem.alloc_size;
+        stats->buff_max = g_phxdev.fs_mem.size;
     }   else    {
         stats->buff_alloc = mem_sizebyid(MID_PHX);
         stats->buff_max = 0;
@@ -1477,7 +1473,7 @@ void phx_getmemstats(struct phx_memstats* stats)
 void phx_shape_setccd(phx_obj shape, int enable)
 {
     PxShape* pxshape = (PxShape*)shape->api_obj;
-    pxshape->setFlag(PxShapeFlag::eUSE_SWEPT_BOUNDS, enable != FALSE);
+    //pxshape->setFlag(PxShapeFlag::eUSE_SWEPT_BOUNDS, enable != FALSE);
 }
 
 /* NOTE: this call is not performance friendly, don't call it in tight loop */

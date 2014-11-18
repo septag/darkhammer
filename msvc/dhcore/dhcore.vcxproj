@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E83AC8DB-43CA-43D6-9A53-610D6A94449F}</ProjectGuid>
+    <ProjectGuid>{835B4AB2-F1A0-4B7F-8CAE-21FE534A4C80}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>dhcore</RootNamespace>
   </PropertyGroup>
@@ -71,17 +71,17 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\..\Bin\</OutDir>
+    <IntDir>..\..\Build\$(ProjectName)\$(Platform)_$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)-dbg</TargetName>
-    <OutDir>$(SolutionDir)..\bin\</OutDir>
-    <IntDir>$(SolutionDir)..\build\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)..\bin\</OutDir>
-    <IntDir>$(SolutionDir)..\build\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>..\..\Bin\</OutDir>
+    <IntDir>..\..\Build\$(ProjectName)\$(Platform)_$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -98,28 +98,22 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WIN_;_CORE_EXPORT_;_FILEMON_;_SIMD_SSE_;_CRT_SECURE_NO_WARNINGS;_DEBUG_;_ENABLEASSERT_;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src\core\deps;$(SolutionDir)..\include;$(SolutionDir)..\include\dhcore;$(SolutionDir)</AdditionalIncludeDirectories>
-      <CompileAs>CompileAsCpp</CompileAs>
+      <PreprocessorDefinitions>WIN32;_WIN_;_SIMD_SSE_;_CORE_EXPORT_;_CRT_SECURE_NO_WARNINGS;_FILEMON_;_DEBUG;_WINDOWS;_USRDLL;DHCORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>..\..\libdhcore\include\;..\..\libdhcore\src\core\deps\;..\..\include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;efsw.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ImportLibrary>$(SolutionDir)..\lib\$(TargetName).lib</ImportLibrary>
+      <ImportLibrary>..\..\Lib\$(TargetName).lib</ImportLibrary>
+      <AdditionalDependencies>ws2_32.lib;Shlwapi.lib;efsw.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\lib\</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>set __TEMP__=$(SolutionDir)..
-set __TEMP__=%__TEMP__:\=\\%
-
-if NOT EXIST ..\sharedir.h (
-    echo #define SHARE_DIR "%__TEMP__%"  &gt; ..\sharedir.h
-)</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -133,7 +127,7 @@ if NOT EXIST ..\sharedir.h (
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -141,110 +135,203 @@ if NOT EXIST ..\sharedir.h (
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_WIN_;_CORE_EXPORT_;_FILEMON_;_SIMD_SSE_;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src\core\deps;$(SolutionDir)..\include;$(SolutionDir)..\include\dhcore;$(SolutionDir)</AdditionalIncludeDirectories>
-      <CompileAs>CompileAsCpp</CompileAs>
+      <PreprocessorDefinitions>WIN32;_WIN_;_SIMD_SSE_;_CORE_EXPORT_;_CRT_SECURE_NO_WARNINGS;_FILEMON_;NDEBUG;_WINDOWS;_USRDLL;DHCORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>..\..\libdhcore\include\;..\..\libdhcore\src\core\deps\;..\..\include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;efsw.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ImportLibrary>$(SolutionDir)..\lib\$(TargetName).lib</ImportLibrary>
+      <ImportLibrary>..\..\Lib\$(TargetName).lib</ImportLibrary>
+      <AdditionalDependencies>ws2_32.lib;Shlwapi.lib;efsw.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\lib\</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>set __TEMP__=$(SolutionDir)..
-set __TEMP__=%__TEMP__:\=\\%
-
-if NOT EXIST ..\sharedir.h (
-    echo #define SHARE_DIR "%__TEMP__%"  &gt; ..\sharedir.h
-)</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\dhcore\allocator.h" />
-    <ClInclude Include="..\..\include\dhcore\array.h" />
-    <ClInclude Include="..\..\include\dhcore\color.h" />
-    <ClInclude Include="..\..\include\dhcore\core-api.h" />
-    <ClInclude Include="..\..\include\dhcore\core.h" />
-    <ClInclude Include="..\..\include\dhcore\crash.h" />
-    <ClInclude Include="..\..\include\dhcore\err.h" />
-    <ClInclude Include="..\..\include\dhcore\error-codes.h" />
-    <ClInclude Include="..\..\include\dhcore\file-io.h" />
-    <ClInclude Include="..\..\include\dhcore\freelist-alloc.h" />
-    <ClInclude Include="..\..\include\dhcore\hash-table.h" />
-    <ClInclude Include="..\..\include\dhcore\hash.h" />
-    <ClInclude Include="..\..\include\dhcore\hwinfo.h" />
-    <ClInclude Include="..\..\include\dhcore\json.h" />
-    <ClInclude Include="..\..\include\dhcore\linked-list.h" />
-    <ClInclude Include="..\..\include\dhcore\log.h" />
-    <ClInclude Include="..\..\include\dhcore\mem-mgr.h" />
-    <ClInclude Include="..\..\include\dhcore\mt.h" />
-    <ClInclude Include="..\..\include\dhcore\net-socket.h" />
-    <ClInclude Include="..\..\include\dhcore\numeric.h" />
-    <ClInclude Include="..\..\include\dhcore\pak-file-fmt.h" />
-    <ClInclude Include="..\..\include\dhcore\pak-file.h" />
-    <ClInclude Include="..\..\include\dhcore\pool-alloc.h" />
-    <ClInclude Include="..\..\include\dhcore\prims.h" />
-    <ClInclude Include="..\..\include\dhcore\queue.h" />
-    <ClInclude Include="..\..\include\dhcore\stack-alloc.h" />
-    <ClInclude Include="..\..\include\dhcore\stack.h" />
-    <ClInclude Include="..\..\include\dhcore\std-math.h" />
-    <ClInclude Include="..\..\include\dhcore\str.h" />
-    <ClInclude Include="..\..\include\dhcore\task-mgr.h" />
-    <ClInclude Include="..\..\include\dhcore\timer.h" />
-    <ClInclude Include="..\..\include\dhcore\types.h" />
-    <ClInclude Include="..\..\include\dhcore\util.h" />
-    <ClInclude Include="..\..\include\dhcore\variant.h" />
-    <ClInclude Include="..\..\include\dhcore\vec-math.h" />
-    <ClInclude Include="..\..\include\dhcore\win.h" />
-    <ClInclude Include="..\..\include\dhcore\zip.h" />
-    <ClInclude Include="..\..\src\core\deps\cJSON\cJSON.h" />
-    <ClInclude Include="..\..\src\core\deps\miniz\miniz.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\allocator.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\array.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\color.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\commander.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\core-api.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\core.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\crash.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\err.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\error-codes.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\file-io.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\freelist-alloc.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\hash-table.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\hash.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\hwinfo.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\json.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\linked-list.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\log.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\mem-mgr.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\mt.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\net-socket.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\numeric.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\pak-file-fmt.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\pak-file.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\path.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\pool-alloc.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\prims.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\queue.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\rpc.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\stack-alloc.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\stack.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\std-math.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\str.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\task-mgr.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\timer.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\types.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\util.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\variant.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\vec-math.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\win.h" />
+    <ClInclude Include="..\..\libdhcore\include\dhcore\zip.h" />
+    <ClInclude Include="..\..\libdhcore\src\core\deps\cJSON\cJSON.h" />
+    <ClInclude Include="..\..\libdhcore\src\core\deps\miniz\miniz.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\core\array.c" />
-    <ClCompile Include="..\..\src\core\core.c" />
-    <ClCompile Include="..\..\src\core\deps\cJSON\cJSON.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</CompileAs>
+    <ClCompile Include="..\..\libdhcore\src\core\array.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\deps\miniz\miniz.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</CompileAs>
+    <ClCompile Include="..\..\libdhcore\src\core\core.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\errors.c" />
-    <ClCompile Include="..\..\src\core\file-io.c" />
-    <ClCompile Include="..\..\src\core\freelist-alloc.c" />
-    <ClCompile Include="..\..\src\core\hash-table.c" />
-    <ClCompile Include="..\..\src\core\hash.c" />
-    <ClCompile Include="..\..\src\core\hwinfo.c" />
-    <ClCompile Include="..\..\src\core\json.c" />
-    <ClCompile Include="..\..\src\core\log.c" />
-    <ClCompile Include="..\..\src\core\mem-mgr.c" />
-    <ClCompile Include="..\..\src\core\net-socket.c" />
-    <ClCompile Include="..\..\src\core\numeric.c" />
-    <ClCompile Include="..\..\src\core\pak-file.c" />
-    <ClCompile Include="..\..\src\core\platform\win\crash-win.cpp" />
-    <ClCompile Include="..\..\src\core\platform\win\hwinfo-win.c" />
-    <ClCompile Include="..\..\src\core\platform\win\mt-win.c" />
-    <ClCompile Include="..\..\src\core\platform\win\timer-win.c" />
-    <ClCompile Include="..\..\src\core\platform\win\util-win.c" />
-    <ClCompile Include="..\..\src\core\pool-alloc.c" />
-    <ClCompile Include="..\..\src\core\prims.c" />
-    <ClCompile Include="..\..\src\core\stack-alloc.c" />
-    <ClCompile Include="..\..\src\core\std-math.c" />
-    <ClCompile Include="..\..\src\core\str.c" />
-    <ClCompile Include="..\..\src\core\task-mgr.c" />
-    <ClCompile Include="..\..\src\core\timer.c" />
-    <ClCompile Include="..\..\src\core\util.c" />
-    <ClCompile Include="..\..\src\core\variant.c" />
-    <ClCompile Include="..\..\src\core\vec-math.c" />
-    <ClCompile Include="..\..\src\core\zip.c" />
+    <ClCompile Include="..\..\libdhcore\src\core\deps\cJSON\cJSON.c" />
+    <ClCompile Include="..\..\libdhcore\src\core\deps\commander\commander.c" />
+    <ClCompile Include="..\..\libdhcore\src\core\deps\miniz\miniz.c" />
+    <ClCompile Include="..\..\libdhcore\src\core\errors.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\file-io.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\freelist-alloc.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\hash-table.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\hash.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\hwinfo.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\json.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\log.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\mem-mgr.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\net-socket.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\numeric.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\pak-file.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\path.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\platform\win\crash-win.cpp" />
+    <ClCompile Include="..\..\libdhcore\src\core\platform\win\hwinfo-win.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\platform\win\mt-win.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\platform\win\timer-win.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\platform\win\util-win.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\pool-alloc.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\prims.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\rpc.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\stack-alloc.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\static-vars.cpp">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\std-math.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\str.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\task-mgr.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\timer.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\util.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\variant.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\vec-math.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\libdhcore\src\core\zip.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
