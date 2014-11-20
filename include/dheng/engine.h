@@ -62,7 +62,7 @@ struct eng_mem_stats
  * @see eng_release
  * @ingroup eng
  */
-ENGINE_API result_t eng_init(const struct init_params* params);
+ENGINE_API result_t eng_init(const struct appInitParams* params);
 
 /**
  * Releases engine and all it's sub-systems, must be called before @e app_release
@@ -130,7 +130,7 @@ _EXTERN_BEGIN_
 
 ENGINE_API const struct frame_stats* eng_get_framestats();
 ENGINE_API float eng_get_frametime();
-const struct init_params* eng_get_params();
+const struct appInitParams* eng_get_params();
 void eng_get_memstats(struct eng_mem_stats* stats);
 
 _EXTERN_END_

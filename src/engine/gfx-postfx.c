@@ -394,7 +394,7 @@ struct gfx_pfx_ssao* gfx_pfx_ssao_create(uint width, uint height,
     gfx_pfx_ssao_setparams(pfx, radius, bias, scale, intensity);
 
     /* console commands */
-    if (BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))    {
+    if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))    {
         con_register_cmd("gfx_ssaoparams", pfx_console_ssao_setparams, pfx,
             "gfx_ssaoparams [radius:R] [bias:B] [scale:S] [intensity:I]");
     }
@@ -726,12 +726,12 @@ struct gfx_pfx_shadow* gfx_pfx_shadowcsm_create(uint width, uint height,
 
     /* shaders */
     char cascadecnt[16];
-    enum gfx_hwver hwver = gfx_get_hwver();
+    appGfxDeviceVersion hwver = gfx_get_hwver();
     str_itos(cascadecnt, gfx_csm_get_cascadecnt());
     gfx_shader_beginload(eng_get_lsralloc(), "shaders/fsq-pos.vs", "shaders/df-shadow-csm.ps",
         NULL, 2, "shaders/common.inc", "shaders/df-common.inc");
 
-    if (hwver != GFX_HWVER_D3D10_0 && hwver != GFX_HWVER_GL3_2 && hwver != GFX_HWVER_GL3_3) {
+    if (hwver != appGfxDeviceVersion::D3D10_0 && hwver != appGfxDeviceVersion::GL3_2 && hwver != appGfxDeviceVersion::GL3_3) {
         pfx->shader_id =
             gfx_shader_add("df-csm", 2, 1,
             GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
@@ -803,7 +803,7 @@ struct gfx_pfx_shadow* gfx_pfx_shadowcsm_create(uint width, uint height,
     }
 
     /* console commnads */
-    if (BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))
+    if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))
         con_register_cmd("gfx_showcsm", pfx_console_shadowcsm_prev, pfx, "gfx_showcsm [1*/0]");
 
     return pfx;
@@ -905,8 +905,8 @@ INLINE result_t pfx_tonemap_creatert(struct gfx_pfx_tonemap* pfx, uint width, ui
         return RET_FAIL;
 
     /* mipmapped luminance buffer */
-    enum shading_quality sh_quality = gfx_get_params()->shading_quality;
-    uint divider = sh_quality == SHADING_QUALITY_HIGH ? 3 : 4;
+    enum appGfxShadingQuality sh_quality = gfx_get_params()->shading_quality;
+    uint divider = sh_quality == appGfxShadingQuality::HIGH ? 3 : 4;
     int lum_texsz = maxi(width/divider, height/divider);
     pfx->lum_tex = gfx_create_texturert(lum_texsz, lum_texsz, GFX_FORMAT_R32_FLOAT, TRUE);
     if (pfx->lum_tex == NULL)
@@ -955,7 +955,7 @@ INLINE result_t pfx_tonemap_creatert(struct gfx_pfx_tonemap* pfx, uint width, ui
     gfx_output_setrendertarget(cmdqueue, NULL);
 
     /* preview */
-    if (BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))   {
+    if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))   {
         pfx->lumprev_tex = gfx_create_texturert(PFX_TONEMAP_LUMPREV_SIZE, PFX_TONEMAP_LUMPREV_SIZE,
             GFX_FORMAT_RGBA_UNORM, FALSE);
         if (pfx->lumprev_tex == NULL)
@@ -1116,7 +1116,7 @@ struct gfx_pfx_tonemap* gfx_pfx_tonemap_create(uint width, uint height, float mi
     ASSERT(pfx->tm);
 
     /* console commands */
-    if (BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))   {
+    if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))   {
         con_register_cmd("gfx_showlum", pfx_console_tonemap_showlum, pfx, "gfx_showlum [1*/0]");
         con_register_cmd("gfx_toneparams", gfx_console_tonemap_setparams, pfx,
             "gfx_toneparams [midgrey:N] [lum_min:N] [lum_max:N] [bloom:1*/0]");
@@ -1444,24 +1444,24 @@ struct gfx_pfx_fxaa* gfx_pfx_fxaa_create(uint width, uint height)
     defines[0].name = "FXAA_PC";
     defines[0].value = "1";
     switch (gfx_get_hwver())  {
-    case GFX_HWVER_D3D11_0:
+    case appGfxDeviceVersion::D3D11_0:
         defines[1].name = "FXAA_HLSL_5";
         defines[1].value = "1";
         break;
-    case GFX_HWVER_D3D10_1:
-    case GFX_HWVER_D3D10_0:
+    case appGfxDeviceVersion::D3D10_1:
+    case appGfxDeviceVersion::D3D10_0:
         defines[1].name = "FXAA_HLSL_4";
         defines[1].value = "1";
         break;
-    case GFX_HWVER_GL3_2:
-    case GFX_HWVER_GL3_3:
+    case appGfxDeviceVersion::GL3_2:
+    case appGfxDeviceVersion::GL3_3:
         defines[1].name = "FXAA_GLSL_130";
         defines[1].value = "1";
         break;
 
-    case GFX_HWVER_GL4_0:
-    case GFX_HWVER_GL4_1:
-    case GFX_HWVER_GL4_2:
+    case appGfxDeviceVersion::GL4_0:
+    case appGfxDeviceVersion::GL4_1:
+    case appGfxDeviceVersion::GL4_2:
         defines[1].name = "FXAA_GLSL_130";
         defines[1].value = "1";
         defines[2].name = "GL_ARB_gpu_shader5";

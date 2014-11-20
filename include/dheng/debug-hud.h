@@ -20,7 +20,7 @@
 #include "gfx-types.h"
 #include "gui.h"
 
-enum input_key;
+inKey;
 
 /**
  * callback for rendering label items
@@ -44,7 +44,7 @@ result_t hud_init(int init_console);
 void hud_release();
 
 void hud_render(gfx_cmdqueue cmdqueue);
-void hud_send_input(char c, enum input_key key);
+void hud_send_input(char c, inKey key);
 void hud_console_scroll();
 
 ENGINE_API int hud_console_isactive();

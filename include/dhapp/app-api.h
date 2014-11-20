@@ -19,21 +19,25 @@
 #define __APPAPI_H__
 
 #if defined(_APP_EXPORT_)
-    #if defined(_MSVC_)
-        #define APP_API _EXTERN_EXPORT_ __declspec(dllexport)
-    #elif defined(_GNUC_)
-        #define APP_API _EXTERN_EXPORT_ __attribute__((visibility("protected")))
-    #endif
+  #if defined(_MSVC_)
+    #define APP_API _EXTERN_EXPORT_ __declspec(dllexport)
+    #define APP_CPP_API __declspec(dllexport)
+  #elif defined(_GNUC_)
+    #define APP_API _EXTERN_EXPORT_ __attribute__((visibility("default)))
+    #define APP_CPP_API __attribute__((visibility("default")))
+  #endif
 #else
-    #if defined(_MSVC_)
-        #define APP_API _EXTERN_EXPORT_ __declspec(dllimport)
-    #elif defined(_GNUC_)
-        #define APP_API _EXTERN_EXPORT_ __attribute__((visibility("default")))
-    #endif
+  #if defined(_MSVC_)
+    #define APP_API _EXTERN_EXPORT_ __declspec(dllimport)
+    #define APP_CPP_API __declspec(dllimport)
+  #elif defined(_GNUC_)
+    #define APP_API _EXTERN_EXPORT_ __attribute__((visibility("default")))
+    #define APP_CPP_API __attribute__((visibility("default")))
+  #endif
 #endif /* defined(_APP_EXPORT_) */
 
 #if defined(SWIG)
-#define APP_API
+  #define APP_API
 #endif
 
 #endif /* __APPAPI_H__ */

@@ -145,7 +145,7 @@ result_t cmp_initmgr()
     }
 
     /* console commands */
-    if (BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))   {
+    if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))   {
         con_register_cmd("debug", cmp_console_debug, NULL, "debug [obj-name] [component-name]");
         con_register_cmd("undebug", cmp_console_undebug, NULL, "undebug [obj-name] [component-name]");
     }

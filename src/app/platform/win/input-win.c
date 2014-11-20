@@ -15,13 +15,14 @@
 
 #if defined(_D3D_)
 
+#include "win-keycodes.h"
+
 #include "dhcore/core.h"
 #include "dhcore/win.h"
 
-#include "win-keycodes.h"
-#include "input.h"
+#include "dhapp/input.h"
 
-void input_make_keymap_platform(uint keymap[INPUT_KEY_CNT])
+void input_make_keymap_platform(uint keymap[inKey::COUNT])
 {
     keymap[0] = KEY_ESC;
     keymap[1] = KEY_F1;
@@ -143,23 +144,23 @@ void input_mouse_setpos_platform(HWND hwnd, int x, int y)
     SetCursorPos(pt.x, pt.y);
 }
 
-int input_mouse_getkey_platform(HWND hwnd, enum input_mouse_key mkey)
+int input_mouse_getkey_platform(HWND hwnd, inMouseKey mkey)
 {
     int vkey = 0;
     switch (mkey)   {
-    case INPUT_MOUSEKEY_LEFT:
+    case inMouseKey::LEFT:
         vkey = VK_LBUTTON;
         break;
-    case INPUT_MOUSEKEY_RIGHT:
+    case inMouseKey::RIGHT:
         vkey = VK_RBUTTON;
         break;
-    case INPUT_MOUSEKEY_MIDDLE:
+    case inMouseKey::MIDDLE:
         vkey = VK_MBUTTON;
         break;
-    case INPUT_MOUSEKEY_PGUP:
+    case inMouseKey::PGUP:
         vkey = VK_XBUTTON1;
         break;
-    case INPUT_MOUSEKEY_PGDOWN:
+    case inMouseKey::PGDOWN:
         vkey = VK_XBUTTON2;
         break;
     }
@@ -167,7 +168,7 @@ int input_mouse_getkey_platform(HWND hwnd, enum input_mouse_key mkey)
     return (GetAsyncKeyState(vkey)&0x8000);
 }
 
-int input_kb_getkey_platform(HWND hwnd, const uint keymap[INPUT_KEY_CNT], enum input_key key)
+int input_kb_getkey_platform(HWND hwnd, const uint keymap[inKey::COUNT], inKey key)
 {
     int keycode = (int)keymap[(uint)key];
     return (GetAsyncKeyState(keycode)&0x8000) >> 15;

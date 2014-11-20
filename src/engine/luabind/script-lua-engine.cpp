@@ -729,20 +729,20 @@ void Scene::setMin(float x, float y, float z)
 void Scene::setGravity(float gx, float gy, float gz)
 {
     PROTECT_SCENE();
-    if (!BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DISABLEPHX))
+    if (!BIT_CHECK(eng_get_params()->flags, appEngineFlags::DISABLE_PHYSICS))
         setGravity(Vector(gx, gy, gz));
 }
 
 void Scene::setGravity(const Vector& gravity)
 {
     PROTECT_SCENE();
-    if (!BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DISABLEPHX))
+    if (!BIT_CHECK(eng_get_params()->flags, appEngineFlags::DISABLE_PHYSICS))
         phx_scene_setgravity(scn_getphxscene(id_), &gravity.v_);
 }
 
 void Scene::createPhysicsPlane()
 {
-    if (!BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DISABLEPHX))
+    if (!BIT_CHECK(eng_get_params()->flags, appEngineFlags::DISABLE_PHYSICS))
         phx_create_debugplane(0.5f, 0.1f);
 }
 
@@ -847,22 +847,22 @@ Input::Input()
 
 bool Input::keyPressed(enum InputKey key)
 {
-    return input_kb_getkey((enum input_key)key, FALSE) ? true : false;
+    return input_kb_getkey((inKey)key, FALSE) ? true : false;
 }
 
 bool Input::mouseLeftPressed()
 {
-    return input_mouse_getkey(INPUT_MOUSEKEY_LEFT, FALSE) ? true : false;
+    return input_mouse_getkey(inMouseKey::LEFT, FALSE) ? true : false;
 }
 
 bool Input::mouseRightPressed()
 {
-    return input_mouse_getkey(INPUT_MOUSEKEY_RIGHT, FALSE) ? true : false;
+    return input_mouse_getkey(inMouseKey::RIGHT, FALSE) ? true : false;
 }
 
 bool Input::mouseMiddlePressed()
 {
-    return input_mouse_getkey(INPUT_MOUSEKEY_MIDDLE, FALSE) ? true : false;
+    return input_mouse_getkey(inMouseKey::MIDDLE, FALSE) ? true : false;
 }
 
 Vector2D Input::mousePos()

@@ -49,18 +49,17 @@ typedef Window wnd_t;
   #endif
 typedef id wnd_t;
 #else
-  #error "specific window type is not implemented for this platform"
+  #error "Specific window type is not implemented for this platform"
 #endif
 
-enum app_mouse_key
+enum class appMouseKey : int
 {
-    APP_MOUSEKEY_UNKNOWN = 0,
-    APP_MOUSEKEY_LEFT,
-    APP_MOUSEKEY_RIGHT,
-    APP_MOUSEKEY_MIDDLE
+    UNKNOWN = 0,
+    LEFT,
+    RIGHT,
+    MIDDLE
 };
 
-/* event callback definitions */
 /**
  * @ingroup app
  */
@@ -76,7 +75,7 @@ typedef void (*pfn_app_resize)(uint width, uint height);
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_active)(int active);
+typedef void (*pfn_app_active)(bool active);
 /**
  * @ingroup app
  */
@@ -84,11 +83,11 @@ typedef void (*pfn_app_keypress)(char charcode, uint vkeycode);
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_mousedown)(int x, int y, enum app_mouse_key key);
+typedef void (*pfn_app_mousedown)(int x, int y, appMouseKey key);
 /**
  * @ingroup app
  */
-typedef void (*pfn_app_mouseup)(int x, int y, enum app_mouse_key key);
+typedef void (*pfn_app_mouseup)(int x, int y, appMouseKey key);
 /**
  * @ingroup app
  */
@@ -107,7 +106,7 @@ typedef void (*pfn_app_update)();
  * @see init_params
  * @ingroup app
  */
-APP_API struct init_params* app_config_load(const char* cfg_jsonfile);
+APP_API appInitParams* app_config_load(const char* cfg_jsonfile);
 
 /**
  * Loads default configuration, use this function to get a valid configuration structure and then
@@ -117,13 +116,13 @@ APP_API struct init_params* app_config_load(const char* cfg_jsonfile);
  * @see init_params
  * @ingroup app
  */
-APP_API struct init_params* app_config_default();
+APP_API struct appInitParams* app_config_default();
 
 /**
  * Adds console command to config
  * @ingroup app
  */
-APP_API void app_config_addconsolecmd(struct init_params* cfg, const char* cmd);
+APP_API void app_config_addconsolecmd(struct appInitParams* cfg, const char* cmd);
 
 /**
  * Unloads configuration structure from memory
@@ -133,7 +132,7 @@ APP_API void app_config_addconsolecmd(struct init_params* cfg, const char* cmd);
  * @see init_params
  * @ingroup app
  */
-APP_API void app_config_unload(struct init_params* cfg);
+APP_API void app_config_unload(struct appInitParams* cfg);
 
 /**
  * Receives JSON data string of supported display modes for the device\n
@@ -163,7 +162,7 @@ APP_API void app_display_freemodes(char* dispmodes);
  * @see init_params
  * @ingroup app
  */
-APP_API result_t app_init(const char* name, const struct init_params* params);
+APP_API result_t app_init(const char* name, const struct appInitParams* params);
 
 /**
  * Releases the application and 3D device, must be called after engine is released
@@ -191,7 +190,7 @@ APP_API void app_window_readjust(uint client_width, uint client_height);
  * Sets if application should always be active and running, no matter if it loses focus or not
  * @ingroup app
  */
-APP_API void app_window_alwaysactive(int active);
+APP_API void app_window_alwaysactive(bool active);
 
 /**
  * Swaps render buffers and presents the render data to the window.\n
@@ -324,7 +323,7 @@ APP_API result_t app_window_resize(uint width, uint height);
 #ifdef _D3D_
 #include <dxgi.h>
 #include <d3d11.h>
-APP_API result_t app_d3d_initdev(wnd_t hwnd, const char* name, const struct init_params* params);
+APP_API result_t app_d3d_initdev(wnd_t hwnd, const char* name, const struct appInitParams* params);
 APP_API void app_d3d_getswapchain_buffers(OUT ID3D11Texture2D** pbackbuff, 
                                           OUT ID3D11Texture2D** pdepthbuff);
 APP_API void app_d3d_getswapchain_views(OUT ID3D11RenderTargetView** prtv, 
@@ -332,7 +331,27 @@ APP_API void app_d3d_getswapchain_views(OUT ID3D11RenderTargetView** prtv,
 APP_API ID3D11Device* app_d3d_getdevice();
 APP_API ID3D11DeviceContext* app_d3d_getcontext();
 APP_API IDXGIAdapter* app_d3d_getadapter();
-APP_API enum gfx_hwver app_d3d_getver();
+APP_API appGfxDeviceVersion app_d3d_getver();
+#endif
+
+// CPP API
+#ifdef __cplusplus
+class appEvents
+{
+public:
+    virtual void on_create() {}
+    virtual void on_destroy() {}
+    virtual void on_resize(int width, int height)   {}
+    virtual void on_activate(bool active)   {}
+    virtual void on_keypress(char charcode, uint vkeycodes) {}
+    virtual void on_mousedown(int x, int y, appMouseKey key) {}
+    virtual void on_mouseup(int x, int y, appMouseKey key) {}
+    virtual void on_mousemove(int x, int y) {}
+    virtual void on_update()    {}
+};
+
+APP_API void app_window_setevents(appEvents *events);
+
 #endif
 
 #endif /* __APP_H__ */

@@ -378,11 +378,11 @@ void phx_zerodev()
     memset(&g_phxdev, 0x00, sizeof(g_phxdev));
 }
 
-result_t phx_initdev(const struct init_params* params)
+result_t phx_initdev(const struct appInitParams* params)
 {
     result_t r;
 
-    const struct phx_params* pparams = &params->phx;
+    const struct appPhysicsParams* pparams = &params->phx;
 
     r = arr_create(mem_heap(), &g_phxdev.scenes, sizeof(struct phx_scene_data*), 5, 5, MID_PHX);
     if (IS_FAIL(r)) {
@@ -411,7 +411,7 @@ result_t phx_initdev(const struct init_params* params)
     }
 
     /* allocator */
-    if (BIT_CHECK(params->flags, ENG_FLAG_OPTIMIZEMEMORY))  {
+    if (BIT_CHECK(params->flags, appEngineFlags::OPTIMIZE_MEMORY))  {
         r = mem_freelist_create(mem_heap(), &g_phxdev.fs_mem,
             pparams->mem_sz != 0 ? (pparams->mem_sz*1024) : PHX_DEFAULT_MEMSIZE, MID_PHX);
         if (IS_FAIL(r)) {
@@ -433,12 +433,12 @@ result_t phx_initdev(const struct init_params* params)
         return RET_FAIL;
     }
 
-    if (BIT_CHECK(pparams->flags, PHX_FLAG_PROFILE)) {
+    if (BIT_CHECK(pparams->flags, appPhysicsFlags::PROFILE)) {
         g_phxdev.profiler = &PxProfileZoneManager::createProfileZoneManager(g_phxdev.base);
     }
 
     g_phxdev.sdk = PxCreatePhysics(PX_PHYSICS_VERSION, *g_phxdev.base, PxTolerancesScale(),
-        BIT_CHECK(pparams->flags, PHX_FLAG_TRACKMEM) ? true : false, g_phxdev.profiler);
+        BIT_CHECK(pparams->flags, appPhysicsFlags::TRACKMEM) ? true : false, g_phxdev.profiler);
     if (g_phxdev.sdk == NULL)  {
         err_print(__FILE__, __LINE__, "phx-device init failed: could not create Physx SDK");
         return RET_FAIL;
@@ -1092,6 +1092,7 @@ phx_convexmesh phx_create_convexmesh(const void* data, int make_gpugeo,
         return NULL;
 
     struct phx_geo_gpu* geo = NULL;
+#if 0
     if (make_gpugeo)    {
         PxHullPolygon pdata;
         uint tri_cnt = 0;
@@ -1099,8 +1100,10 @@ phx_convexmesh phx_create_convexmesh(const void* data, int make_gpugeo,
         uint vert_cnt = pxconvex->getNbVertices();
 
         for (uint i = 0; i < poly_cnt; i++)   {
+            memset(&pdata, 0x00, sizeof(pdata));
             pxconvex->getPolygonData(i, pdata);
-            tri_cnt += (pdata.mNbVerts - 2);
+            if (pdata.mNbVerts)
+                tri_cnt += (pdata.mNbVerts - 2);
         }
 
         struct vec3f* poss = (struct vec3f*)A_ALLOC(tmp_alloc, sizeof(struct vec3f)*vert_cnt,
@@ -1121,6 +1124,8 @@ phx_convexmesh phx_create_convexmesh(const void* data, int make_gpugeo,
         const uint8* src_idxs = pxconvex->getIndexBuffer();
         for (uint i = 0; i < poly_cnt; i++)   {
             pxconvex->getPolygonData(i, pdata);
+            if (!pdata.mNbVerts)
+                continue;
             uint prev_idx1 = 1;
             uint prev_idx2 = 2;
 
@@ -1146,6 +1151,7 @@ phx_convexmesh phx_create_convexmesh(const void* data, int make_gpugeo,
                 " convex mesh");
         }
     }
+#endif
 
     phx_convexmesh convex = phx_createobj((uptr_t)pxconvex, PHX_OBJ_CONVEXMESH);
     convex->user_ptr = geo; /* assign graphic geo as user_ptr */

@@ -21,12 +21,12 @@
  * @see gfx_params
  * @ingroup eng
  */
-enum msaa_mode
+enum class appGfxMSAA : int
 {
-    MSAA_NONE = 0,
-    MSAA_2X = 2,
-    MSAA_4X = 4,
-    MSAA_8X = 8
+    NONE = 0,
+    X2 = 2,
+    X4 = 4,
+    X8 = 8
 };
 
 /**
@@ -34,12 +34,12 @@ enum msaa_mode
  * @see gfx_params
  * @ingroup eng
  */
-enum texture_quality
+enum class appGfxTextureQuality : int
 {
-    TEXTURE_QUALITY_HIGH = 1, /**< uses 1 lower mip level of the texture for prefabs */
-    TEXTURE_QUALITY_NORMAL = 2, /**< uses 2 lower mip level of the texture for prefabs */
-    TEXTURE_QUALITY_LOW = 3, /**< uses 3 lower mip level of the texture for prefabs */
-    TEXTURE_QUALITY_HIGHEST = 0 /**< (default) uses the highest texture mip level */
+    HIGH = 1, /**< uses 1 lower mip level of the texture for prefabs */
+    NORMAL = 2, /**< uses 2 lower mip level of the texture for prefabs */
+    LOW = 3, /**< uses 3 lower mip level of the texture for prefabs */
+    HIGHEST = 0 /**< (default) uses the highest texture mip level */
 };
 
 /**
@@ -47,14 +47,14 @@ enum texture_quality
  * @see gfx_params
  * @ingroup eng
  */
-enum texture_filter
+enum class appGfxTextureFilter : int
 {
-    TEXTURE_FILTER_TRILINEAR = 0, /**< (default) uses triliear filtering for scene assets */
-    TEXTURE_FILTER_BILINEAR, /**< uses biliear filtering for scene assets */
-    TEXTURE_FILTER_ANISO2X, /**< uses 2x anisotropic filtering for scene assets */
-    TEXTURE_FILTER_ANISO4X, /**< uses 4x anisotropic filtering for scene assets */
-    TEXTURE_FILTER_ANISO8X, /**< uses 8x anisotropic filtering for scene assets */
-    TEXTURE_FILTER_ANISO16X /**< uses 16x anisotropic filtering for scene assets */
+    TRILINEAR = 0, /**< (default) uses triliear filtering for scene assets */
+    BILINEAR, /**< uses biliear filtering for scene assets */
+    ANISO2X, /**< uses 2x anisotropic filtering for scene assets */
+    ANISO4X, /**< uses 4x anisotropic filtering for scene assets */
+    ANISO8X, /**< uses 8x anisotropic filtering for scene assets */
+    ANISO16X /**< uses 16x anisotropic filtering for scene assets */
 };
 
 /**
@@ -62,11 +62,11 @@ enum texture_filter
  * @see gfx_params
  * @ingroup eng
  */
-enum shading_quality
+enum class appGfxShadingQuality : int
 {
-    SHADING_QUALITY_LOW = 2, /**< loads lowest quality shaders (for low-end cards) */
-    SHADING_QUALITY_NORMAL = 1, /**< loads normal quality shaders (for mid-range cards) */
-    SHADING_QUALITY_HIGH = 0    /**< (default) loads highest quality shaders (mid-range to high-range cards) */
+    LOW = 2, /**< loads lowest quality shaders (for low-end cards) */
+    NORMAL = 1, /**< loads normal quality shaders (for mid-range cards) */
+    HIGH = 0    /**< (default) loads highest quality shaders (mid-range to high-range cards) */
 };
 
 /**
@@ -76,50 +76,50 @@ enum shading_quality
  * @see gfx_params
  * @ingroup eng
  */
-enum gfx_hwver
+enum class appGfxDeviceVersion : int
 {
-    GFX_HWVER_UNKNOWN = 0,  /**< (default) uses the highest graphics capabilities for current gpu */
-    GFX_HWVER_D3D11_0 = 3,  /**< uses D3D11 graphics capabilities for current gpu (must be _D3D_ build) */
-    GFX_HWVER_D3D10_1 = 2,  /**< uses D3D10.1 graphics capabilities for current gpu (must be _D3D_ build) */
-    GFX_HWVER_D3D10_0 = 1,  /**< uses D3D10 graphics capabilities for current gpu (must be _D3D_ build) */
-    GFX_HWVER_D3D11_1 = 4, /**< uses D3D11.1 graphics capabilities for current gpu (must be _D3D_ build) */
-    GFX_HWVER_GL4_4 = 12, /**< uses GL4.4 graphics capabilities for current gpu (must be _GL_ build) */
-    GFX_HWVER_GL4_3 = 11, /**< uses GL4.3 graphics capabilities for current gpu (must be _GL_ build) */
-    GFX_HWVER_GL4_2 = 10, /**< uses GL4.2 graphics capabilities for current gpu (must be _GL_ build) */
-    GFX_HWVER_GL4_1 = 9, /**< uses GL4.0 graphics capabilities for current gpu (must be _GL_ build) */
-    GFX_HWVER_GL4_0 = 8, /**< uses GL4.0 graphics capabilities for current gpu (must be _GL_ build) */
-    GFX_HWVER_GL3_3 = 7, /**< uses GL3.3 graphics capabilities for current gpu (must be _GL_ build) */
-    GFX_HWVER_GL3_2 = 6 /**< uses GL3.2 graphics capabilities for current gpu (must be _GL_ build) - not recommended */
+    UNKNOWN = 0,  /**< (default) uses the highest graphics capabilities for current gpu */
+    D3D11_0 = 3,  /**< uses D3D11 graphics capabilities for current gpu (must be _D3D_ build) */
+    D3D10_1 = 2,  /**< uses D3D10.1 graphics capabilities for current gpu (must be _D3D_ build) */
+    D3D10_0 = 1,  /**< uses D3D10 graphics capabilities for current gpu (must be _D3D_ build) */
+    D3D11_1 = 4, /**< uses D3D11.1 graphics capabilities for current gpu (must be _D3D_ build) */
+    GL4_4 = 12, /**< uses GL4.4 graphics capabilities for current gpu (must be _GL_ build) */
+    GL4_3 = 11, /**< uses GL4.3 graphics capabilities for current gpu (must be _GL_ build) */
+    GL4_2 = 10, /**< uses GL4.2 graphics capabilities for current gpu (must be _GL_ build) */
+    GL4_1 = 9, /**< uses GL4.0 graphics capabilities for current gpu (must be _GL_ build) */
+    GL4_0 = 8, /**< uses GL4.0 graphics capabilities for current gpu (must be _GL_ build) */
+    GL3_3 = 7, /**< uses GL3.3 graphics capabilities for current gpu (must be _GL_ build) */
+    GL3_2 = 6 /**< uses GL3.2 graphics capabilities for current gpu (must be _GL_ build) - not recommended */
 };
 
 /**
  * engine init flags, used in init_params::flag value
  * @ingroup eng
  */
-enum gfx_flags
+enum class appGfxFlags : uint
 {
-    GFX_FLAG_FULLSCREEN = (1<<0), /**< sets device to fullscreen view instead of windowed mode */
-    GFX_FLAG_VSYNC = (1<<1), /**< enables vertical-sync for device */
-    GFX_FLAG_DEBUG = (1<<2), /**< sets renderer device to debug mode, also shaders may be recompiled for debug-mode */
-    GFX_FLAG_FXAA = (1<<3), /**< enables FXAA anti-aliasing */
-    GFX_FLAG_REBUILDSHADERS = (1<<4) /**< rebuild shaders, clears shader cache and forces recompile on shaders */
+    FULLSCREEN = (1<<0), /**< sets device to fullscreen view instead of windowed mode */
+    VSYNC = (1<<1), /**< enables vertical-sync for device */
+    DEBUG = (1<<2), /**< sets renderer device to debug mode, also shaders may be recompiled for debug-mode */
+    FXAA = (1<<3), /**< enables FXAA anti-aliasing */
+    REBUILD_SHADERS = (1<<4) /**< rebuild shaders, clears shader cache and forces recompile on shaders */
 };
 
 /**
  * engine init flags, used in init_params::flag value
  * @ingroup eng
  */
-enum eng_flags
+enum class appEngineFlags : uint
 {
-    ENG_FLAG_DEBUG = (1<<0), /**< Enables engine debug facilities */
-    ENG_FLAG_DEV = (1<<1), /**< Enables engine developer facilities, like dynamic resource manager and extra console commands */
-    ENG_FLAG_EDITOR = (1<<2), /**< Enables engine editor facilities */
-    ENG_FLAG_CONSOLE = (1<<3), /**< Enables engine built-in console, log data will also be sent to engine instead of custom logger */
-    ENG_FLAG_DISABLEPHX = (1<<4), /**< disabe physics simulation */
-    ENG_FLAG_OPTIMIZEMEMORY = (1<<5),   /**< use fixed (but fast) allocators for common buffers,
+    DEBUG = (1<<0), /**< Enables engine debug facilities */
+    DEV = (1<<1), /**< Enables engine developer facilities, like dynamic resource manager and extra console commands */
+    EDITOR = (1<<2), /**< Enables engine editor facilities */
+    CONSOLE = (1<<3), /**< Enables engine built-in console, log data will also be sent to engine instead of custom logger */
+    DISABLE_PHYSICS = (1<<4), /**< disabe physics simulation */
+    OPTIMIZE_MEMORY = (1<<5),   /**< use fixed (but fast) allocators for common buffers,
                                         If you want to set this option, make sure you have profiled
                                         memory usage for each buffer and set them in init_params */
-    ENG_FLAG_DISABLEBGLOAD = (1<<6) /**< Disables background loading feature */
+    DISABLE_BGLOAD = (1<<6) /**< Disables background loading feature */
 };
 
 /**
@@ -127,7 +127,7 @@ enum eng_flags
  * @see init_params
  * @ingroup eng
  */
-struct dev_params
+struct appDevParams
 {
     int fpsgraph_max; /**< maximum value for 'fps' (frames-per-second) graph */
     int ftgraph_max;  /**< maximum value for 'ft' (frame-time) graph, this should be a value */
@@ -144,10 +144,10 @@ struct dev_params
  * @see phx_params
  * @ingroup eng
  */
-enum phx_flags
+enum class appPhysicsFlags : uint
 {
-    PHX_FLAG_TRACKMEM = (1<<0), /**< Track internal physics memory allocations */
-    PHX_FLAG_PROFILE = (1<<1) /**< Enable internal physics profiler */
+    TRACKMEM = (1<<0), /**< Track internal physics memory allocations */
+    PROFILE = (1<<1) /**< Enable internal physics profiler */
 };
 
 /**
@@ -155,7 +155,7 @@ enum phx_flags
  * @see init_params
  * @ingroup eng
  */
-struct phx_params
+struct appPhysicsParams
 {
     uint flags;   /**< Combination of init flags, @see phx_flags */
     uint mem_sz; /**< Fixed custom allocator memory size (in kilobytes), if =0, default size will be set (32mb) */
@@ -168,7 +168,7 @@ struct phx_params
  * @see init_params
  * @ingroup eng
  */
-struct sct_params
+struct appScriptParams
 {
     uint mem_sz; /**< Fixed custom allocator memory size (in kilobytes), if =0, default size will be set (8mb) */
 };
@@ -178,14 +178,14 @@ struct sct_params
  * @see init_params
  * @ingroup eng
  */
-struct gfx_params
+struct appGfxParams
 {
     uint flags;  /**< combination of gfx_flags enum */
-    enum msaa_mode msaa;   /**< multisample mode, @see msaa_mode */
-    enum texture_quality tex_quality; /**< texture quality */
-    enum texture_filter tex_filter;  /**< texture filtering */
-    enum shading_quality shading_quality; /**< shading quality */
-    enum gfx_hwver hwver; /**< graphics hardware version */
+    appGfxMSAA msaa;   /**< multisample mode, @see msaa_mode */
+    appGfxTextureQuality tex_quality; /**< texture quality */
+    appGfxTextureFilter tex_filter;  /**< texture filtering */
+    appGfxShadingQuality shading_quality; /**< shading quality */
+    appGfxDeviceVersion hwver; /**< graphics hardware version */
     uint adapter_id; /**< graphics adapter Id, if system has more than one gpu, must be set to adapter ID */
     uint width; /**< render buffer width in pixels */
     uint height; /**< render buffer height in pixels */
@@ -198,15 +198,15 @@ struct gfx_params
  * @see eng_init
  * @ingroup eng
  */
-struct init_params
+struct appInitParams
 {
     uint flags;  /**< combination of eng_flags enum @see eng_flags */
     uint console_lines_max;   /**< maximum console lines */
 
-    struct gfx_params gfx; /**< graphics parameters @see gfx_params*/
-    struct dev_params dev; /**< dev paramters @see dev_params*/
-    struct phx_params phx;  /**< physics paramters @see phx_params */
-    struct sct_params sct; /**< script parameters @see sct_params */
+    appGfxParams gfx; /**< graphics parameters @see gfx_params*/
+    appDevParams dev; /**< dev paramters @see dev_params*/
+    appPhysicsParams phx;  /**< physics paramters @see phx_params */
+    appScriptParams sct; /**< script parameters @see sct_params */
     char* console_cmds; /**< array of initial console commands (each item is char[128]) */
     uint console_cmds_cnt;
 

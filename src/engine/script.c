@@ -107,7 +107,7 @@ struct sct_gcitem
 
 struct sct_mgr
 {
-    struct sct_params params;
+    struct appScriptParams params;
     lua_State* cur_ls;  /* current running lua script (=NULL if nothing's running) */
     reshandle_t cur_hdl;    /* current running script handle */
     struct timer* tm;
@@ -198,13 +198,13 @@ void sct_zero()
     memset(&g_sct, 0x00, sizeof(g_sct));
 }
 
-result_t sct_init(const struct sct_params* params, int monitor)
+result_t sct_init(const struct appScriptParams* params, int monitor)
 {
     result_t r;
 
     log_print(LOG_TEXT, "init script ...");
 
-    memcpy(&g_sct.params, params, sizeof(struct sct_params));
+    memcpy(&g_sct.params, params, sizeof(struct appScriptParams));
 
     r = sct_create_buffs();
     if (IS_FAIL(r)) {

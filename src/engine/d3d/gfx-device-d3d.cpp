@@ -54,7 +54,7 @@
 /* types */
 struct gfx_device
 {
-    struct gfx_params params;
+    appGfxParams params;
     struct gfx_gpu_memstats memstats;
     struct pool_alloc obj_pool;
     gfx_rasterstate default_raster;
@@ -62,7 +62,7 @@ struct gfx_device
     gfx_blendstate default_blend;
     int threaded_creates;
     int threaded_cmdqueues;
-    enum gfx_hwver ver;
+    appGfxDeviceVersion ver;
     mt_mutex objpool_mtx;
 };
 
@@ -70,16 +70,16 @@ struct gfx_device
 struct gfx_device g_gfxdev;
 
 /* inlines */
-INLINE const char* get_hwverstr(enum gfx_hwver hwver)
+INLINE const char* get_hwverstr(appGfxDeviceVersion hwver)
 {
     switch (hwver)  {
-    case GFX_HWVER_D3D10_0:
+    case appGfxDeviceVersion::D3D10_0:
         return "10.0";
-    case GFX_HWVER_D3D10_1:
+    case appGfxDeviceVersion::D3D10_1:
         return "10.1";
-    case GFX_HWVER_D3D11_0:
+    case appGfxDeviceVersion::D3D11_0:
         return "11.0";
-    case GFX_HWVER_D3D11_1:
+    case appGfxDeviceVersion::D3D11_1:
         return "11.1";
     }
     return "";
@@ -172,7 +172,7 @@ INLINE int texture_is_depth(enum gfx_format fmt)
 INLINE const char* shader_get_target(enum gfx_shader_type type)
 {
     static char target[32];
-    enum gfx_hwver hwver = gfx_get_hwver();
+    appGfxDeviceVersion hwver = gfx_get_hwver();
 
     switch (type)   {
     case GFX_SHADER_VERTEX:
@@ -187,13 +187,13 @@ INLINE const char* shader_get_target(enum gfx_shader_type type)
     }
 
     switch (hwver)    {
-    case GFX_HWVER_D3D10_0:
+    case appGfxDeviceVersion::D3D10_0:
         strcat(target, "4_0");
         break;
-    case GFX_HWVER_D3D10_1:
+    case appGfxDeviceVersion::D3D10_1:
         strcat(target, "4_1");
         break;
-    case GFX_HWVER_D3D11_0:
+    case appGfxDeviceVersion::D3D11_0:
         strcat(target, "5_0");
         break;
     }
@@ -353,12 +353,12 @@ void gfx_zerodev()
     memset(&g_gfxdev, 0x00, sizeof(struct gfx_device));
 }
 
-result_t gfx_initdev(const struct gfx_params* params)
+result_t gfx_initdev(const appGfxParams* params)
 {
     result_t r;
     HRESULT dxhr;
 
-    memcpy(&g_gfxdev.params, params, sizeof(struct gfx_params));
+    memcpy(&g_gfxdev.params, params, sizeof(appGfxParams));
 
     log_print(LOG_INFO, "  init gfx-device ...");
 
@@ -1232,7 +1232,7 @@ gfx_program gfx_create_program(const struct gfx_shader_data* source_data,
 
     /* compile flags/treat warnings as errors */
     uint flags = D3DCOMPILE_WARNINGS_ARE_ERRORS;
-    if(BIT_CHECK(g_gfxdev.params.flags, GFX_FLAG_DEBUG))
+    if(BIT_CHECK(g_gfxdev.params.flags, appGfxFlags::DEBUG))
         BIT_ADD(flags, D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION);
     else
         BIT_ADD(flags, D3DCOMPILE_OPTIMIZATION_LEVEL3);
@@ -1631,7 +1631,7 @@ void gfx_get_devinfo(struct gfx_device_info* info)
     }
 }
 
-enum gfx_hwver gfx_get_hwver()
+appGfxDeviceVersion gfx_get_hwver()
 {
     return g_gfxdev.ver;
 }

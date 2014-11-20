@@ -194,8 +194,7 @@ int main(int argc, char** argv)
         "(diffuse, gloss, norm, opacity, emissive, reflection)", cmdline_ttype);
     command_option(&cmd, "-X", "--texture-dxt3 <name>", "force dxt3 texture compression "
         "instead of dxt5", cmdline_tdxt3);
-    cmd.data = &params;
-    command_parse(&cmd, argc, argv, NULL);
+    command_parse(&cmd, argc, argv, &params);
     command_free(&cmd);
 
 	r = core_init(CORE_INIT_ALL);

@@ -412,7 +412,7 @@ result_t gfx_deferred_init(uint width, uint height)
     }
 
     /* debug/preview stuff */
-    if (BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))   {
+    if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))   {
         if (!deferred_load_prev_shaders(lsr_alloc))    {
             err_print(__FILE__, __LINE__,
                 "gfx-deferred init failed: could not create preview shaders");
@@ -669,7 +669,7 @@ result_t gfx_deferred_resize(uint width, uint height)
     deferred_destroytiles(&g_deferred->tiles);
     deferred_createtiles(&g_deferred->tiles, width, height);
 
-    if (BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))   {
+    if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))   {
         deferred_destroyprevbuffrt();
         r = deferred_createprevbuffrt(width, height);
         if (IS_FAIL(r))
@@ -1143,7 +1143,7 @@ void deferred_unload_prev_shaders()
 
 void gfx_deferred_setpreview(enum gfx_deferred_preview_mode mode)
 {
-    if (g_deferred != NULL && BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))
+    if (g_deferred != NULL && BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))
         g_deferred->prev_mode = mode;
 }
 

@@ -159,7 +159,7 @@ result_t gfx_occ_init(uint width, uint height, uint cpu_caps)
 #endif
 
     /* create preview buffers/shaders for dev-mode */
-    if (BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))   {
+    if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))   {
         if (IS_FAIL(occ_creatert(width, height)))   {
             err_print(__FILE__, __LINE__, "occ-init failed: could not create buffers");
             return RET_FAIL;

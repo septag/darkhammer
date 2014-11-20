@@ -72,7 +72,7 @@ result_t cmp_register_main_components()
         return RET_FAIL;
 
     /* physics related */
-    if (!BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DISABLEPHX))    {
+    if (!BIT_CHECK(eng_get_params()->flags, appEngineFlags::DISABLE_PHYSICS))    {
         r = cmp_rbody_register(alloc);
         if (IS_FAIL(r))
             return RET_FAIL;

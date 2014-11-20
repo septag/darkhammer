@@ -102,6 +102,7 @@ void unload_props()
 
     if (g_scene != 0)
         scn_destroy_scene(g_scene);
+
     if (g_timer != NULL)    {
         timer_destroyinstance(g_timer);
         g_timer = NULL;
@@ -138,13 +139,13 @@ void update_camera()
 
     if (app_window_isactive() && !hud_console_isactive())   {
         /* alter camera movement speed */
-        if (input_kb_getkey(INPUT_KEY_LSHIFT, FALSE) || input_kb_getkey(INPUT_KEY_RSHIFT, FALSE))
+        if (input_kb_getkey(inKey::LSHIFT, FALSE) || input_kb_getkey(inKey::RSHIFT, FALSE))
             cam_fps_set_movespeed(&g_cam, 0.3f*5.0f);
         else
             cam_fps_set_movespeed(&g_cam, 0.3f);
 
         /* rotation - with mouse */
-        if (input_mouse_getkey(INPUT_MOUSEKEY_LEFT, FALSE))
+        if (input_mouse_getkey(inMouseKey::LEFT, FALSE))
             cam_fps_update(&g_cam, mpos.x - prev_x, mpos.y - prev_y, dt);
     }
 
@@ -180,12 +181,12 @@ void resize_callback(uint width, uint height)
     gfx_resize(width, height);
 }
 
-void mousedown_callback(int x, int y, enum app_mouse_key key)
+void mousedown_callback(int x, int y, appMouseKey key)
 {
     input_mouse_lockcursor(x, y);
 }
 
-void mouseup_callback(int x, int y, enum app_mouse_key key)
+void mouseup_callback(int x, int y, appMouseKey key)
 {
     input_mouse_unlockcursor();
 }
@@ -194,7 +195,7 @@ void mouseup_callback(int x, int y, enum app_mouse_key key)
 int main(int argc, char** argv)
 {
     result_t r;
-    init_params* params = NULL;
+    appInitParams* params = NULL;
 
     /* init core library */
     uint flags = CORE_INIT_ALL;
@@ -228,8 +229,8 @@ int main(int argc, char** argv)
     params = app_config_default();
     if (params == NULL)
         err_sendtolog(TRUE);
-    params->flags |= (ENG_FLAG_DEBUG | ENG_FLAG_DEV | ENG_FLAG_CONSOLE);
-    params->gfx.flags |= (GFX_FLAG_DEBUG | GFX_FLAG_FXAA);
+    params->flags |= (appEngineFlags::DEBUG | appEngineFlags::CONSOLE | appEngineFlags::CONSOLE);
+    params->gfx.flags |= (appGfxFlags::DEBUG | appGfxFlags::FXAA);
     app_config_addconsolecmd(params, "showfps");
     app_config_addconsolecmd(params, "showft");
 

@@ -20,15 +20,15 @@
 #include "phx-types.h"
 #include "engine-api.h"
 
-struct init_params;
+struct appInitParams;
 struct variant;
-struct phx_params;
+struct appPhysicsParams;
 
 /* */
 void phx_zero();
 
-void phx_parseparams(struct phx_params* params, json_t j);
-result_t phx_init(const struct init_params* params);
+void phx_parseparams(struct appPhysicsParams* params, json_t j);
+result_t phx_init(const struct appInitParams* params);
 void phx_release();
 
 void phx_update_xforms(int simulated);

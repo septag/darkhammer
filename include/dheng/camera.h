@@ -69,10 +69,10 @@ struct ALIGN16 camera_fps
 {
     struct camera c;    /**< Embedded common camera, you can use this to set active camera to scene or other low-level camera related stuff */
 
-    enum input_key fwd_keys[2];
-    enum input_key back_keys[2];
-    enum input_key strafe_left_keys[2];
-    enum input_key strafe_right_keys[2];
+    inKey fwd_keys[2];
+    inKey back_keys[2];
+    inKey strafe_left_keys[2];
+    inKey strafe_right_keys[2];
 
     /* speeds */
     float mouse_speed;
@@ -249,8 +249,8 @@ ENGINE_API void cam_fps_set_movespeed(struct camera_fps* cfps, float speed);
  * @see input_key
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_keys_fwd(struct camera_fps* cfps, enum input_key key1,
-                                     enum input_key key2);
+ENGINE_API void cam_fps_set_keys_fwd(struct camera_fps* cfps, inKey key1,
+                                     inKey key2);
 
 /**
  * Sets keys that moves the FPS camera backward, you can set 2 keys for each movement direction\n
@@ -261,8 +261,8 @@ ENGINE_API void cam_fps_set_keys_fwd(struct camera_fps* cfps, enum input_key key
  * @see input_key
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_keys_backwd(struct camera_fps* cfps, enum input_key key1,
-                                        enum input_key key2);
+ENGINE_API void cam_fps_set_keys_backwd(struct camera_fps* cfps, inKey key1,
+                                        inKey key2);
 
 /**
  * Sets keys that moves the FPS camera forward, you can set 2 keys for each movement direction\n
@@ -273,8 +273,8 @@ ENGINE_API void cam_fps_set_keys_backwd(struct camera_fps* cfps, enum input_key 
  * @see input_key
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_keys_strafeleft(struct camera_fps* cfps, enum input_key key1,
-                                            enum input_key key2);
+ENGINE_API void cam_fps_set_keys_strafeleft(struct camera_fps* cfps, inKey key1,
+                                            inKey key2);
 
 /**
  * Sets keys that moves the FPS camera forward, you can set 2 keys for each movement direction\n
@@ -285,8 +285,8 @@ ENGINE_API void cam_fps_set_keys_strafeleft(struct camera_fps* cfps, enum input_
  * @see input_key
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_keys_straferight(struct camera_fps* cfps, enum input_key key1,
-                                            enum input_key key2);
+ENGINE_API void cam_fps_set_keys_straferight(struct camera_fps* cfps, inKey key1,
+                                            inKey key2);
 
 /**
  * Enable/Disable FPS camera smoothing. It makes rotation and movement less jerky.

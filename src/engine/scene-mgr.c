@@ -252,7 +252,7 @@ result_t scn_initmgr()
         return RET_OUTOFMEMORY;
 
     /* console */
-    if (BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))   {
+    if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))   {
         con_register_cmd("showgrid", scene_console_debuggrid, NULL, "showgrid [1*/0]");
         con_register_cmd("setcellsize", scene_console_setcellsize, NULL, "setgridsize N");
     }
@@ -380,7 +380,7 @@ struct scn_data* scene_create(const char* name)
     }
 
     /* create physics scene */
-    if (!BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DISABLEPHX))   {
+    if (!BIT_CHECK(eng_get_params()->flags, appEngineFlags::DISABLE_PHYSICS))   {
         /* default gravity */
         struct vec3f gravity;
         uint sec_phys = wld_find_section("physics");

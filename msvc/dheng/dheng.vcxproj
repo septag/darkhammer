@@ -119,8 +119,12 @@
       <ImportLibrary>$(SolutionDir)..\lib\$(TargetName).lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>set __TEMP__=$(SolutionDir)..
+set __TEMP__=%__TEMP__:\=\\%
+
+if NOT EXIST ..\sharedir.h (
+    echo #define SHARE_DIR "%__TEMP__%"  &gt; ..\sharedir.h
+)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -165,7 +169,7 @@
 set __TEMP__=%__TEMP__:\=\\%
 
 if NOT EXIST ..\sharedir.h (
-    echo #define SHARE_DIR "%__TEMP__%"  &amp;gt; ..\sharedir.h
+    echo #define SHARE_DIR "%__TEMP__%"  &gt; ..\sharedir.h
 )</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>

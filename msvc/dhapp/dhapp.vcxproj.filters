@@ -43,12 +43,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\app\app.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\app\input.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\app\platform\win\input-win.c">
       <Filter>Source Files\platform\win</Filter>
     </ClCompile>
@@ -60,6 +54,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\app\gl\input-glfw.c">
       <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\app\app.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\app\input.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

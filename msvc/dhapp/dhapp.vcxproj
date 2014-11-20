@@ -184,7 +184,7 @@
     <ClInclude Include="..\..\src\app\platform\win\win-keycodes.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\app\app.c" />
+    <ClCompile Include="..\..\src\app\app.cpp" />
     <ClCompile Include="..\..\src\app\d3d\app-d3d.cpp" />
     <ClCompile Include="..\..\src\app\gl\app-gl.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -198,7 +198,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\app\input.c" />
+    <ClCompile Include="..\..\src\app\input.cpp" />
     <ClCompile Include="..\..\src\app\platform\win\input-win.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

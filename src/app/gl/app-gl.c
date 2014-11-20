@@ -102,34 +102,34 @@ void app_remove_window(const char* name);
 /*************************************************************************************************
  * inlines
  */
-INLINE void app_convert_gfxver(enum gfx_hwver hwver, OUT int* major, OUT int* minor)
+INLINE void app_convert_gfxver(appGfxDeviceVersion hwver, OUT int* major, OUT int* minor)
 {
     switch (hwver)	{
-    case GFX_HWVER_GL3_2:
+    case appGfxDeviceVersion::GL3_2:
         *major = 3;
         *minor = 2;
         break;
-    case GFX_HWVER_GL3_3:
+    case appGfxDeviceVersion::GL3_3:
         *major = 3;
         *minor = 3;
         break;
-    case GFX_HWVER_GL4_0:
+    case appGfxDeviceVersion::GL4_0:
         *major = 4;
         *minor = 0;
         break;
-    case GFX_HWVER_GL4_1:
+    case appGfxDeviceVersion::GL4_1:
         *major = 4;
         *minor = 1;
         break;
-    case GFX_HWVER_GL4_2:
+    case appGfxDeviceVersion::GL4_2:
         *major = 4;
         *minor = 2;
         break;
-    case GFX_HWVER_GL4_3:
+    case appGfxDeviceVersion::GL4_3:
         *major = 4;
         *minor = 3;
         break;
-    case GFX_HWVER_GL4_4:
+    case appGfxDeviceVersion::GL4_4:
         *major = 4;
         *minor = 4;
         break;
@@ -140,7 +140,7 @@ INLINE void app_convert_gfxver(enum gfx_hwver hwver, OUT int* major, OUT int* mi
 }
 
 /*************************************************************************************************/
-result_t app_init(const char* name, const struct init_params* params)
+result_t app_init(const char* name, const struct appInitParams* params)
 {
     ASSERT(g_app == NULL);
     if (g_app != NULL)  {
@@ -187,12 +187,12 @@ result_t app_init(const char* name, const struct init_params* params)
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
     }
-    if (BIT_CHECK(params->gfx.flags, GFX_FLAG_DEBUG))
+    if (BIT_CHECK(params->gfx.flags, appGfxFlags::DEBUG))
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
     log_print(LOG_INFO, "  init OpenGL context and window ...");
 
-    GLFWmonitor* mon = BIT_CHECK(params->gfx.flags, GFX_FLAG_FULLSCREEN) ? 
+    GLFWmonitor* mon = BIT_CHECK(params->gfx.flags, appGfxFlags::FULLSCREEN) ? 
         glfwGetPrimaryMonitor() : NULL;
 
     GLFWwindow* wnd = glfwCreateWindow((int)width, (int)height, name, mon, NULL);
@@ -212,7 +212,7 @@ result_t app_init(const char* name, const struct init_params* params)
     glfwSetCursorPosCallback(wnd, glfw_window_mousepos);
 
     glfwMakeContextCurrent(wnd);
-    glfwSwapInterval(BIT_CHECK(params->gfx.flags, GFX_FLAG_VSYNC) ? 1 : 0);
+    glfwSwapInterval(BIT_CHECK(params->gfx.flags, appGfxFlags::VSYNC) ? 1 : 0);
 
     str_safecpy(app->name, sizeof(app->name), name);
     g_app->wnd = wnd;
@@ -430,20 +430,20 @@ void glfw_window_keypress(GLFWwindow* wnd, int key, int scancode, int action, in
 
 void glfw_window_mousebtn(GLFWwindow* wnd, int button, int action, int mods)
 {
-    enum app_mouse_key mousekey;
+    appMouseKey mousekey;
 
     switch (button) {
     case GLFW_MOUSE_BUTTON_LEFT:
-        mousekey = APP_MOUSEKEY_LEFT;
+        mousekey = appMouseKey::LEFT;
         break;
     case GLFW_MOUSE_BUTTON_RIGHT:
-        mousekey = APP_MOUSEKEY_RIGHT;
+        mousekey = appMouseKey::RIGHT;
         break;
     case GLFW_MOUSE_BUTTON_MIDDLE:
-        mousekey = APP_MOUSEKEY_MIDDLE;
+        mousekey = appMouseKey::MIDDLE;
         break;
     default:
-        mousekey = APP_MOUSEKEY_UNKNOWN;
+        mousekey = appMouseKey::UNKNOWN;
         break;
     }
 

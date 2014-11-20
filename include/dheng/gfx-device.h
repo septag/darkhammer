@@ -37,7 +37,7 @@ struct gfx_cblock;
 _EXTERN_BEGIN_
 
 void gfx_zerodev();
-result_t gfx_initdev(const struct gfx_params* params);
+result_t gfx_initdev(const appGfxParams* params);
 void gfx_releasedev();
 
 /* create/destroy device objects */
@@ -69,7 +69,7 @@ const struct gfx_rasterizer_desc* gfx_get_defaultraster();
 const struct gfx_depthstencil_desc* gfx_get_defaultdepthstencil();
 const char* gfx_get_driverstr();
 void gfx_get_devinfo(struct gfx_device_info* info);
-enum gfx_hwver gfx_get_hwver();
+appGfxDeviceVersion gfx_get_hwver();
 
 gfx_sampler gfx_create_sampler(const struct gfx_sampler_desc* desc);
 void gfx_destroy_sampler(gfx_sampler sampler);

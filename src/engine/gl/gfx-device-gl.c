@@ -110,7 +110,7 @@ struct gfx_dev_delayed_item
 
 struct gfx_device
 {
-	struct gfx_params params;
+	appGfxParams params;
 	struct gfx_gpu_memstats memstats;
 	struct pool_alloc obj_pool; /* no need to be thread-safe, we always call it in main thread */
 
@@ -125,7 +125,7 @@ struct gfx_device
     struct array objcreate_signals; /* item: gfx_dev_delayed_signal */
     int release_delayed;
 
-    enum gfx_hwver ver;
+    appGfxDeviceVersion ver;
 };
 
 /*************************************************************************************************
@@ -237,23 +237,23 @@ INLINE const struct gfx_input_element* get_elem(enum gfx_input_element_id id)
 	return NULL;
 }
 
-INLINE enum gfx_hwver gfx_get_glver(int major, int minor)
+INLINE appGfxDeviceVersion gfx_get_glver(int major, int minor)
 {
     if (major == 3)  {
         if (minor == 2)
-            return GFX_HWVER_GL3_2;
+            return appGfxDeviceVersion::GL3_2;
         else if (minor >= 3)
-            return GFX_HWVER_GL3_3;
+            return appGfxDeviceVersion::GL3_3;
     }   else if (major == 4) {
         if (minor==0)
-            return GFX_HWVER_GL4_0;
+            return appGfxDeviceVersion::GL4_0;
         else if (minor==1)
-            return GFX_HWVER_GL4_1;
+            return appGfxDeviceVersion::GL4_1;
         else if (minor >= 2)
-            return GFX_HWVER_GL4_2;
+            return appGfxDeviceVersion::GL4_2;
     }
 
-    return GFX_HWVER_UNKNOWN;
+    return appGfxDeviceVersion::UNKNOWN;
 }
 
 /*************************************************************************************************/
@@ -262,11 +262,11 @@ void gfx_zerodev()
 	memset(&g_gfxdev, 0x00, sizeof(struct gfx_device));
 }
 
-result_t gfx_initdev(const struct gfx_params* params)
+result_t gfx_initdev(const appGfxParams* params)
 {
 	result_t r;
 
-	memcpy(&g_gfxdev.params, params, sizeof(struct gfx_params));
+	memcpy(&g_gfxdev.params, params, sizeof(appGfxParams));
 
     log_print(LOG_INFO, "  init gfx-device ...");
 
@@ -623,26 +623,26 @@ void shader_make_defines(char* define_code,
 {
     char version[32];
 	char line[128];
-    enum gfx_hwver gfxver = gfx_get_hwver();
+    appGfxDeviceVersion gfxver = gfx_get_hwver();
 
     /* make version preprocessor */
     switch (gfxver)   {
-    case GFX_HWVER_GL3_2:
+    case appGfxDeviceVersion::GL3_2:
         strcpy(version, "#version 150\n");
         break;
-    case GFX_HWVER_GL3_3:
+    case appGfxDeviceVersion::GL3_3:
         strcpy(version, "#version 330\n");
         break;
-    case GFX_HWVER_GL4_0:
+    case appGfxDeviceVersion::GL4_0:
         strcpy(version, "#version 400\n");
         break;
-    case GFX_HWVER_GL4_1:
+    case appGfxDeviceVersion::GL4_1:
         strcpy(version, "#version 410\n");
         break;
-    case GFX_HWVER_GL4_2:
+    case appGfxDeviceVersion::GL4_2:
         strcpy(version, "#version 420\n");
         break;
-    case GFX_HWVER_GL4_3:
+    case appGfxDeviceVersion::GL4_3:
         strcpy(version, "#version 430\n");
         break;
     default:
@@ -652,7 +652,7 @@ void shader_make_defines(char* define_code,
     strcpy(define_code, version);
 
     /* attrib location is required if GL is 3.2 (osx) */
-    if (gfxver == GFX_HWVER_GL3_2)
+    if (gfxver == appGfxDeviceVersion::GL3_2)
         strcat(define_code, "#extension GL_ARB_explicit_attrib_location : require\n");
 
 	for (uint i = 0; i < define_cnt; i++)	{
@@ -1988,7 +1988,7 @@ void gfx_get_devinfo(struct gfx_device_info* info)
     }
 }
 
-enum gfx_hwver gfx_get_hwver()
+appGfxDeviceVersion gfx_get_hwver()
 {
     return g_gfxdev.ver;
 }

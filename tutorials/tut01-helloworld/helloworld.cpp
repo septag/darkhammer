@@ -129,7 +129,7 @@ void update_camera()
     /* update only if application is active and mouse activity is enabled */
     if (app_window_isactive() && !hud_console_isactive())   {
         /* Move camera only if left mouse key is pressed inside the window */
-        if (prev_x != 0 && prev_y != 0 && input_mouse_getkey(INPUT_MOUSEKEY_LEFT, FALSE))   {
+        if (prev_x != 0 && prev_y != 0 && input_mouse_getkey(inMouseKey::LEFT, FALSE))   {
             /* Camera Rotation (with mouse) */
             float dx = (float)(mpos.x - prev_x);
             float dy = (float)(mpos.y - prev_y);
@@ -137,15 +137,15 @@ void update_camera()
             if (!math_iszero(dy))   cam_pitch(&g_cam, dy*multiplier);
 
             /* Camera movement (with keyboard) */
-            if (input_kb_getkey(INPUT_KEY_LSHIFT, FALSE) || input_kb_getkey(INPUT_KEY_RSHIFT, FALSE))
+            if (input_kb_getkey(inKey::LSHIFT, FALSE) || input_kb_getkey(inKey::RSHIFT, FALSE))
                 move *= 5.0f;
-            if (input_kb_getkey(INPUT_KEY_W, FALSE) || input_kb_getkey(INPUT_KEY_UP, FALSE))
+            if (input_kb_getkey(inKey::W, FALSE) || input_kb_getkey(inKey::UP, FALSE))
                 cam_fwd(&g_cam, move);
-            if (input_kb_getkey(INPUT_KEY_S, FALSE) || input_kb_getkey(INPUT_KEY_DOWN, FALSE))
+            if (input_kb_getkey(inKey::S, FALSE) || input_kb_getkey(inKey::DOWN, FALSE))
                 cam_fwd(&g_cam, -move);
-            if (input_kb_getkey(INPUT_KEY_A, FALSE) || input_kb_getkey(INPUT_KEY_LEFT, FALSE))
+            if (input_kb_getkey(inKey::A, FALSE) || input_kb_getkey(inKey::LEFT, FALSE))
                 cam_strafe(&g_cam, -move);
-            if (input_kb_getkey(INPUT_KEY_D, FALSE) || input_kb_getkey(INPUT_KEY_RIGHT, FALSE))
+            if (input_kb_getkey(inKey::D, FALSE) || input_kb_getkey(inKey::RIGHT, FALSE))
                 cam_strafe(&g_cam, move);
 
             cam_update(&g_cam);
@@ -210,7 +210,7 @@ int main(int argc, char** argv)
     set_logfile();
 
     /* load config file (json) */
-    init_params* params = app_config_default();
+    appInitParams* params = app_config_default();
     if (params == NULL) {
         err_sendtolog(FALSE);
         core_release(FALSE);
@@ -220,7 +220,7 @@ int main(int argc, char** argv)
     /* Add our stuff to init params
      * Engine's data directory must be changed
      */
-    params->flags |= (ENG_FLAG_CONSOLE | ENG_FLAG_DEV);
+    params->flags |= (appEngineFlags::CONSOLE | appEngineFlags::CONSOLE);
 
     /* Initialize application (graphics device and rendering window)
      * Application name will also, be the name of the main window */

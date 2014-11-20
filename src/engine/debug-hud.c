@@ -158,7 +158,7 @@ result_t hud_console_init();
 void hud_console_release();
 void hud_console_render(gfx_cmdqueue cmdqueue);
 void hud_console_update();
-void hud_console_input(char c, enum input_key key);
+void hud_console_input(char c, inKey key);
 void hud_console_activate(int active);
 void hud_console_savecmd(const char* cmd);
 uint hud_console_loadcmd(int idx);
@@ -543,7 +543,7 @@ void hud_console_update()
 	}
 }
 
-void hud_send_input(char c, enum input_key key)
+void hud_send_input(char c, inKey key)
 {
 	/* console */
 	if (g_hud.console != NULL)	{
@@ -556,19 +556,19 @@ void hud_send_input(char c, enum input_key key)
 	}
 }
 
-void hud_console_input(char c, enum input_key key)
+void hud_console_input(char c, inKey key)
 {
 	struct debug_console* console = g_hud.console;
 	uint idx = console->cursor_idx;
 
 	/* special characters */
 	switch (key)	{
-	case INPUT_KEY_BACKSPACE:
+	case inKey::BACKSPACE:
 		if (idx > 0)
 			idx --;	/* then continue to DELETE */
 		else
 			break;
-	case INPUT_KEY_DELETE:
+	case inKey::DELETE:
 		{
 			uint s = (uint)strlen(console->cmd);
 			if (idx < s)	{
@@ -581,7 +581,7 @@ void hud_console_input(char c, enum input_key key)
 			}
 		}
 		break;
-	case INPUT_KEY_ENTER:
+	case inKey::ENTER:
 		if (console->cmd[0] != 0)	{
 			/* run and save command */
 			con_exec(console->cmd);
@@ -589,35 +589,35 @@ void hud_console_input(char c, enum input_key key)
 			console->cmd[0] = 0;
 		}
 		/* continue to ESC */
-	case INPUT_KEY_ESC:
+	case inKey::ESC:
 		console->cmd[0] = 0;
 		idx = 0;
 		break;
-	case INPUT_KEY_END:
+	case inKey::END:
 		idx = (uint)strlen(console->cmd);
 		break;
-	case INPUT_KEY_HOME:
+	case inKey::HOME:
 		idx = 0;
 		break;
-	case INPUT_KEY_LEFT:
+	case inKey::LEFT:
 		if (idx > 0)
 			idx--;
 		break;
-	case INPUT_KEY_RIGHT:
+	case inKey::RIGHT:
 		if (idx < strlen(console->cmd))
 			idx++;
 		break;
-	case INPUT_KEY_UP:
+	case inKey::UP:
 		idx = hud_console_loadcmd(++console->cmdcursor_idx);
 		break;
-	case INPUT_KEY_DOWN:
+	case inKey::DOWN:
 		idx = hud_console_loadcmd(--console->cmdcursor_idx);
 		break;
-	case INPUT_KEY_PGUP:
+	case inKey::PGUP:
 		if (console->line_idx > 0)
 			console->line_idx --;
 		break;
-	case INPUT_KEY_PGDWN:
+	case inKey::PGDWN:
 		{
 			console->line_idx++;
 			uint line_cnt = con_get_linecnt();

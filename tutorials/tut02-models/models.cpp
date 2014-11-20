@@ -91,7 +91,6 @@ int tut02_load_data()
         }
 
         /* Create rigid body physics component for the object */
-#if 0
         cmphandle_t rbody_hdl = cmp_create_instance_forobj("rbody", barrel);
         if (rbody_hdl == INVALID_HANDLE)    {
             scn_destroy_obj(barrel);
@@ -107,7 +106,7 @@ int tut02_load_data()
             err_print(__FILE__, __LINE__, "Loading barrel models failed");
             return FALSE;
         }
-#endif      
+
         /* Place barrel randomly in space */
         cmp_xform_setposf(barrel,
             rand_getf(-5.0f, 5.0f), rand_getf(10.0f, 16.0f), rand_getf(-5.0f, 5.0f));
@@ -223,7 +222,7 @@ void update_camera()
     /* update only if application is active and mouse activity is enabled */
     if (app_window_isactive() && !hud_console_isactive())   {
         /* Move camera only if left mouse key is pressed inside the window */
-        if (prev_x != 0 && prev_y != 0 && input_mouse_getkey(INPUT_MOUSEKEY_LEFT, FALSE))
+        if (prev_x != 0 && prev_y != 0 && input_mouse_getkey(inMouseKey::LEFT, FALSE))
         {
             int dx = mpos.x - prev_x;
             int dy = mpos.y - prev_y;
@@ -249,13 +248,13 @@ void update_light()
     mat3_set_ident(&m);
 
     /* Pressing "1" key rotates global light (sun light) around x-axis */
-    if (input_kb_getkey(INPUT_KEY_1, FALSE)) {
+    if (input_kb_getkey(inKey::K1, FALSE)) {
         mat3_set_roteuler(&m, math_torad(0.5f), 0.0f, 0.0f);
         vec3_transformsr(&dir, &dir, &m);
     }
 
     /* Pressing "2" key rotates global light (sun light) around z-axis */
-    if (input_kb_getkey(INPUT_KEY_2, FALSE)) {
+    if (input_kb_getkey(inKey::K2, FALSE)) {
         mat3_set_roteuler(&m, 0.0f, math_torad(0.5f), 0.0f);
         vec3_transformsr(&dir, &dir, &m);
     }
@@ -320,7 +319,7 @@ int main(int argc, char** argv)
     set_logfile();
 
     /* load config file (json) */
-    init_params* params = app_config_default();
+    appInitParams* params = app_config_default();
     if (params == NULL) {
         err_sendtolog(FALSE);
         core_release(FALSE);
@@ -330,7 +329,7 @@ int main(int argc, char** argv)
     /* Add our stuff to init params
      * Engine's data directory must be changed
      */
-    params->flags |= (ENG_FLAG_CONSOLE | ENG_FLAG_DEV);
+    params->flags |= (appEngineFlags::CONSOLE | appEngineFlags::CONSOLE);
 
     /* Initialize application (graphics device and rendering window)
      * Application name will also, be the name of the main window */

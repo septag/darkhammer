@@ -34,7 +34,7 @@
  */
 struct phx_mgr
 {
-    struct phx_params params;
+    struct appPhysicsParams params;
     float steptm;
     float last_steptm;
     uint active_scene;
@@ -53,12 +53,12 @@ void phx_zero()
     memset(&g_phx, 0x00, sizeof(g_phx));
 }
 
-result_t phx_init(const struct init_params* params)
+result_t phx_init(const struct appInitParams* params)
 {
     result_t r;
 
     log_print(LOG_TEXT, "init physics ...");
-    memcpy(&g_phx.params, &params->phx, sizeof(struct phx_params));
+    memcpy(&g_phx.params, &params->phx, sizeof(struct appPhysicsParams));
 
     r = phx_initdev(params);
     if (IS_FAIL(r)) {

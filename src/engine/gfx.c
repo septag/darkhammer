@@ -101,7 +101,7 @@ struct gfx_renderer
 {
     /* note: width, height defined in 'params' will change in runtime
      * width, height represents current active display-target dimensions */
-	struct gfx_params params;
+	appGfxParams params;
 	gfx_cmdqueue cmdqueue;  /* default (immediate) command-queue */
 	pfn_debug_render debug_render_fn;
 	struct array rpaths;	/* item: gfx_rpath */
@@ -139,7 +139,7 @@ result_t gfx_rpath_init();
 void gfx_rpath_release();
 result_t gfx_rpath_init_registered();
 void gfx_rpath_release_registered();
-gfx_sampler gfx_create_sampler_fromtexfilter(enum texture_filter filter);
+gfx_sampler gfx_create_sampler_fromtexfilter(appGfxTextureFilter filter);
 
 /* batching and renderpasses
  * note that allocators are all assumed as stack allocator, where there is not need for destroy*/
@@ -246,12 +246,12 @@ void gfx_zero()
     g_gfx.tex_blank_black = INVALID_HANDLE;
 }
 
-result_t gfx_init(const struct gfx_params* params)
+result_t gfx_init(const appGfxParams* params)
 {
 	result_t r;
 
     log_print(LOG_TEXT, "init gfx ...");
-	memcpy(&g_gfx.params, params, sizeof(struct gfx_params));
+	memcpy(&g_gfx.params, params, sizeof(appGfxParams));
 
 	/* initialize device and cmd-queue */
 	r = gfx_initdev(params);
@@ -266,14 +266,14 @@ result_t gfx_init(const struct gfx_params* params)
     log_print(LOG_INFO, "  graphics:");
     char ver[32];
     switch (gfx_get_hwver())        {
-        case GFX_HWVER_D3D10_0:     strcpy(ver, "d3d10.0");     break;
-        case GFX_HWVER_D3D10_1:     strcpy(ver, "d3d10.1");     break;
-        case GFX_HWVER_D3D11_0:     strcpy(ver, "d3d11.0");     break;
-        case GFX_HWVER_GL3_2:       strcpy(ver, "GL3.2");       break;
-        case GFX_HWVER_GL3_3:       strcpy(ver, "GL3.3");       break;
-        case GFX_HWVER_GL4_0:       strcpy(ver, "GL4.0");       break;
-        case GFX_HWVER_GL4_1:       strcpy(ver, "GL4.1");       break;
-        case GFX_HWVER_GL4_2:       strcpy(ver, "GL4.2");       break;
+        case appGfxDeviceVersion::D3D10_0:     strcpy(ver, "d3d10.0");     break;
+        case appGfxDeviceVersion::D3D10_1:     strcpy(ver, "d3d10.1");     break;
+        case appGfxDeviceVersion::D3D11_0:     strcpy(ver, "d3d11.0");     break;
+        case appGfxDeviceVersion::GL3_2:       strcpy(ver, "GL3.2");       break;
+        case appGfxDeviceVersion::GL3_3:       strcpy(ver, "GL3.3");       break;
+        case appGfxDeviceVersion::GL4_0:       strcpy(ver, "GL4.0");       break;
+        case appGfxDeviceVersion::GL4_1:       strcpy(ver, "GL4.1");       break;
+        case appGfxDeviceVersion::GL4_2:       strcpy(ver, "GL4.2");       break;
         default:                    strcpy(ver, "unknown");     break;
     }
 
@@ -288,8 +288,8 @@ result_t gfx_init(const struct gfx_params* params)
 
 
     /* shader cache/manager */
-    int disable_cache = BIT_CHECK(params->flags, GFX_FLAG_DEBUG) &&
-        BIT_CHECK(params->flags, GFX_FLAG_REBUILDSHADERS);
+    int disable_cache = BIT_CHECK(params->flags, appGfxFlags::DEBUG) &&
+        BIT_CHECK(params->flags, appGfxFlags::REBUILD_SHADERS);
     if (IS_FAIL(gfx_shader_initmgr(disable_cache)))	{
         err_print(__FILE__, __LINE__, "gfx-init failed: could not initialize shader cache");
         return RET_FAIL;
@@ -329,8 +329,8 @@ result_t gfx_init(const struct gfx_params* params)
     /* global sampler which is used for models and common textures */
     g_gfx.global_sampler = gfx_create_sampler_fromtexfilter(params->tex_filter);
     g_gfx.global_sampler_low = gfx_create_sampler_fromtexfilter(
-        params->tex_filter != TEXTURE_FILTER_BILINEAR ? TEXTURE_FILTER_TRILINEAR :
-        TEXTURE_FILTER_BILINEAR);
+        params->tex_filter != appGfxTextureFilter::BILINEAR ? appGfxTextureFilter::TRILINEAR :
+        appGfxTextureFilter::BILINEAR);
     if (g_gfx.global_sampler == NULL || g_gfx.global_sampler_low == NULL)   {
         err_printf(__FILE__, __LINE__, "gfx-init failed: could not create global samplers");
         return RET_FAIL;
@@ -350,7 +350,7 @@ result_t gfx_init(const struct gfx_params* params)
         return RET_FAIL;
     }
 
-    if (BIT_CHECK(params->flags, GFX_FLAG_FXAA))    {
+    if (BIT_CHECK(params->flags, appGfxFlags::FXAA))    {
         g_gfx.fxaa = gfx_pfx_fxaa_create(params->width, params->height);
         if (g_gfx.fxaa == NULL) {
             err_print(__FILE__, __LINE__, "gfx-init failed: could not create fxaa postfx");
@@ -753,40 +753,40 @@ void gfx_rpath_release_registered()
     }
 }
 
-gfx_sampler gfx_create_sampler_fromtexfilter(enum texture_filter filter)
+gfx_sampler gfx_create_sampler_fromtexfilter(appGfxTextureFilter filter)
 {
     struct gfx_sampler_desc sdesc;
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
     switch (filter) {
-    case TEXTURE_FILTER_TRILINEAR:
+    case appGfxTextureFilter::TRILINEAR:
         sdesc.filter_mag = GFX_FILTER_LINEAR;
         sdesc.filter_min = GFX_FILTER_LINEAR;
         sdesc.filter_mip = GFX_FILTER_LINEAR;
         break;
-    case TEXTURE_FILTER_BILINEAR:
+    case appGfxTextureFilter::BILINEAR:
         sdesc.filter_mag = GFX_FILTER_LINEAR;
         sdesc.filter_min = GFX_FILTER_LINEAR;
         sdesc.filter_mip = GFX_FILTER_NEAREST;
         break;
-    case TEXTURE_FILTER_ANISO2X:
+    case appGfxTextureFilter::ANISO2X:
         sdesc.filter_mag = GFX_FILTER_LINEAR;
         sdesc.filter_min = GFX_FILTER_LINEAR;
         sdesc.filter_mip = GFX_FILTER_LINEAR;
         sdesc.aniso_max = 2;
         break;
-    case TEXTURE_FILTER_ANISO4X:
+    case appGfxTextureFilter::ANISO4X:
         sdesc.filter_mag = GFX_FILTER_LINEAR;
         sdesc.filter_min = GFX_FILTER_LINEAR;
         sdesc.filter_mip = GFX_FILTER_LINEAR;
         sdesc.aniso_max = 4;
         break;
-    case TEXTURE_FILTER_ANISO8X:
+    case appGfxTextureFilter::ANISO8X:
         sdesc.filter_mag = GFX_FILTER_LINEAR;
         sdesc.filter_min = GFX_FILTER_LINEAR;
         sdesc.filter_mip = GFX_FILTER_LINEAR;
         sdesc.aniso_max = 8;
         break;
-    case TEXTURE_FILTER_ANISO16X:
+    case appGfxTextureFilter::ANISO16X:
         sdesc.filter_mag = GFX_FILTER_LINEAR;
         sdesc.filter_min = GFX_FILTER_LINEAR;
         sdesc.filter_mip = GFX_FILTER_LINEAR;
@@ -1474,7 +1474,7 @@ int gfx_hud_renderdrawinfo(gfx_cmdqueue cmdqueue, int x, int y, int line_stride,
     return y;
 }
 
-const struct gfx_params* gfx_get_params()
+const appGfxParams* gfx_get_params()
 {
     return &g_gfx.params;
 }

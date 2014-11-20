@@ -23,7 +23,7 @@
 #include "engine-api.h"
 
 /* fwd */
-struct sct_params;
+struct appScriptParams;
 struct sct_trigger_event;
 
 struct sct_memstats
@@ -48,9 +48,9 @@ ENGINE_API result_t sct_runfile(const char* lua_filepath);
 _EXTERN_BEGIN_
 
 void sct_zero();
-result_t sct_init(const struct sct_params* params, int monitor);
+result_t sct_init(const struct appScriptParams* params, int monitor);
 void sct_release();
-void sct_parseparams(struct sct_params* params, json_t j);
+void sct_parseparams(struct appScriptParams* params, json_t j);
 
 void sct_update();
 

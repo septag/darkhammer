@@ -322,14 +322,14 @@ void cam_fps_init(struct camera_fps* cfps, const struct vec4f* pos, const struct
     cfps->mouse_smoothness = 70.0f;
     cfps->move_smoothness = 80.0f;
 
-    cfps->fwd_keys[0] = INPUT_KEY_UP;
-    cfps->fwd_keys[1] = INPUT_KEY_W;
-    cfps->back_keys[0] = INPUT_KEY_S;
-    cfps->back_keys[1] = INPUT_KEY_DOWN;
-    cfps->strafe_right_keys[0] = INPUT_KEY_RIGHT;
-    cfps->strafe_right_keys[1] = INPUT_KEY_D;
-    cfps->strafe_left_keys[0] = INPUT_KEY_LEFT;
-    cfps->strafe_left_keys[1] = INPUT_KEY_A;
+    cfps->fwd_keys[0] = inKey::UP;
+    cfps->fwd_keys[1] = inKey::W;
+    cfps->back_keys[0] = inKey::S;
+    cfps->back_keys[1] = inKey::DOWN;
+    cfps->strafe_right_keys[0] = inKey::RIGHT;
+    cfps->strafe_right_keys[1] = inKey::D;
+    cfps->strafe_left_keys[0] = inKey::LEFT;
+    cfps->strafe_left_keys[1] = inKey::A;
 
     vec3_setv(&cfps->spos, pos);
 
@@ -347,25 +347,25 @@ void cam_fps_set_movespeed(struct camera_fps* cfps, float speed)
     cfps->move_speed = maxf(EPSILON, speed);
 }
 
-void cam_fps_set_keys_fwd(struct camera_fps* cfps, enum input_key key1, enum input_key key2)
+void cam_fps_set_keys_fwd(struct camera_fps* cfps, inKey key1, inKey key2)
 {
     cfps->fwd_keys[0] = key1;
     cfps->fwd_keys[1] = key2;
 }
 
-void cam_fps_set_keys_backwd(struct camera_fps* cfps, enum input_key key1, enum input_key key2)
+void cam_fps_set_keys_backwd(struct camera_fps* cfps, inKey key1, inKey key2)
 {
     cfps->back_keys[0] = key1;
     cfps->back_keys[1] = key2;
 }
 
-void cam_fps_set_keys_strafeleft(struct camera_fps* cfps, enum input_key key1, enum input_key key2)
+void cam_fps_set_keys_strafeleft(struct camera_fps* cfps, inKey key1, inKey key2)
 {
     cfps->strafe_left_keys[0] = key1;
     cfps->strafe_left_keys[1] = key2;
 }
 
-void cam_fps_set_keys_straferight(struct camera_fps* cfps, enum input_key key1, enum input_key key2)
+void cam_fps_set_keys_straferight(struct camera_fps* cfps, inKey key1, inKey key2)
 {
     cfps->strafe_right_keys[0] = key1;
     cfps->strafe_right_keys[1] = key2;

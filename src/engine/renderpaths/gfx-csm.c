@@ -155,7 +155,7 @@ result_t gfx_csm_init(uint width, uint height)
 		return RET_FAIL;
 	}
 
-	if (BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))	{
+	if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))	{
         if (!csm_load_prev_shaders(lsr_alloc))  {
             err_print(__FILE__, __LINE__, "gfx-csm init failed: could not load preview shaders");
             return RET_FAIL;
@@ -441,7 +441,7 @@ void csm_drawbatchnode(gfx_cmdqueue cmdqueue, struct gfx_batch_node* bnode,
 
 result_t gfx_csm_resize(uint width, uint height)
 {
-	if (BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV))	{
+	if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))	{
 		csm_destroy_prevrt();
 		if (IS_FAIL(csm_create_prevrt(width, height)))
 			return RET_FAIL;
@@ -451,8 +451,8 @@ result_t gfx_csm_resize(uint width, uint height)
 
 result_t csm_create_shadowrt(uint width, uint height)
 {
-	enum gfx_hwver hwver = gfx_get_hwver();
-	if (hwver == GFX_HWVER_D3D10_0 || hwver == GFX_HWVER_GL3_3 || hwver == GFX_HWVER_GL3_2)
+	appGfxDeviceVersion hwver = gfx_get_hwver();
+	if (hwver == appGfxDeviceVersion::D3D10_0 || hwver == appGfxDeviceVersion::GL3_3 || hwver == appGfxDeviceVersion::GL3_2)
 	{
 		g_csm->shadow_tex = gfx_create_texturert_cube(width, height, GFX_FORMAT_DEPTH32);
 	}	else	{
@@ -920,11 +920,11 @@ result_t csm_console_debugcsm(uint argc, const char** argv, void* param)
 int csm_load_prev_shaders(struct allocator* alloc)
 {
     char cascadecnt[10];
-    enum gfx_hwver hwver = gfx_get_hwver();
+    appGfxDeviceVersion hwver = gfx_get_hwver();
 
     gfx_shader_beginload(alloc, "shaders/fsq.vs", "shaders/csm-prev.ps", NULL, 1,
         "shaders/common.inc");
-    if (hwver == GFX_HWVER_D3D10_0 || hwver == GFX_HWVER_GL3_2 || hwver == GFX_HWVER_GL3_3)    {
+    if (hwver == appGfxDeviceVersion::D3D10_0 || hwver == appGfxDeviceVersion::GL3_2 || hwver == appGfxDeviceVersion::GL3_3)    {
         g_csm->prev_shader = gfx_shader_add("csm-prev", 2, 2,
             GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
             GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,

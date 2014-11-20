@@ -185,7 +185,7 @@ result_t gfx_initcmdqueue(gfx_cmdqueue cmdqueue)
     }
 
     /* blitting stuff (only for d3d10.0) */
-    if (gfx_get_hwver() == GFX_HWVER_D3D10_0)   {
+    if (gfx_get_hwver() == appGfxDeviceVersion::D3D10_0)   {
         struct gfx_depthstencil_desc dsdesc;
         memcpy(&dsdesc, gfx_get_defaultdepthstencil(), sizeof(dsdesc));
         dsdesc.depth_enable = TRUE;
@@ -598,7 +598,7 @@ void gfx_rendertarget_blit(gfx_cmdqueue cmdqueue,
 
 void gfx_rendertarget_blitraw(gfx_cmdqueue cmdqueue, gfx_rendertarget src_rt)
 {
-    if (gfx_get_hwver() != GFX_HWVER_D3D10_0 || src_rt->desc.rt.ds_texture == NULL)   {
+    if (gfx_get_hwver() != appGfxDeviceVersion::D3D10_0 || src_rt->desc.rt.ds_texture == NULL)   {
         ID3D11Texture2D* backbuff;
         ID3D11Texture2D* depthbuff;
         app_d3d_getswapchain_buffers(&backbuff, &depthbuff);

@@ -329,7 +329,7 @@ void shader_loadcache()
 	char cache_filepath[DH_PATH_MAX];
     char cache_filename[64];
     strcpy(cache_filename, CACHE_FILENAME);
-    if (BIT_CHECK(eng_get_params()->gfx.flags, GFX_FLAG_DEBUG))
+    if (BIT_CHECK(eng_get_params()->gfx.flags, appGfxFlags::DEBUG))
         strcat(cache_filename, "-dbg");
     strcat(cache_filename, ".bin");
 
@@ -404,7 +404,7 @@ void shader_saveunloadcache()
 {
     char cache_filename[64];
     strcpy(cache_filename, CACHE_FILENAME);
-    if (BIT_CHECK(eng_get_params()->gfx.flags, GFX_FLAG_DEBUG))
+    if (BIT_CHECK(eng_get_params()->gfx.flags, appGfxFlags::DEBUG))
         strcat(cache_filename, "-dbg");
     strcat(cache_filename, ".bin");
 

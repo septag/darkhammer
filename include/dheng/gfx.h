@@ -128,8 +128,8 @@ typedef void (*pfn_debug_render)(gfx_cmdqueue cmdqueue, const struct gfx_view_pa
  */
 /* init/release functions */
 void gfx_zero();
-void gfx_parseparams(struct gfx_params* params, json_t j);
-result_t gfx_init(const struct gfx_params* params);
+void gfx_parseparams(appGfxParams* params, json_t j);
+result_t gfx_init(const appGfxParams* params);
 void gfx_release();
 
 /* render/display */
@@ -151,7 +151,7 @@ void gfx_get_wndsize(OUT int* width, OUT int* height);
 gfx_sampler gfx_get_globalsampler();
 gfx_sampler gfx_get_globalsampler_low();
 void gfx_draw_fullscreenquad();
-const struct gfx_params* gfx_get_params();
+const appGfxParams* gfx_get_params();
 void gfx_set_previewrenderflag();
 
 

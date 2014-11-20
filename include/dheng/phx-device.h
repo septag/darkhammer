@@ -25,7 +25,7 @@
 _EXTERN_BEGIN_
 
 void phx_zerodev();
-result_t phx_initdev(const struct init_params* params);
+result_t phx_initdev(const struct appInitParams* params);
 void phx_releasedev();
 
 /* scene */

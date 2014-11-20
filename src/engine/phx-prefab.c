@@ -190,7 +190,7 @@ phx_prefab phx_prefab_load(const char* h3dp_filepath, struct allocator* alloc, u
     }
 
     /* meshes (geos) */
-    int gpu_mesh = BIT_CHECK(eng_get_params()->flags, ENG_FLAG_DEV);
+    int gpu_mesh = BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE);
     for (uint i = 0; i < h3ddesc.geo_cnt; i++)    {
         prefab->meshes[i] = phx_prefab_loadmesh(f, gpu_mesh, tmp_alloc, thread_id);
         if (prefab->meshes[i] == NULL)  {
