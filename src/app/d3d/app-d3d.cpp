@@ -524,9 +524,9 @@ result_t app_init_dxgi(const appInitParams *params, OUT IDXGIFactory **pfactory,
     D3D_FEATURE_LEVEL levels[3];
     uint levels_cnt;
     D3D_FEATURE_LEVEL ft_level;
-    IDXGIFactory* factory;
-    IDXGIAdapter* adapter;
-    ID3D11Device* dev;
+    IDXGIFactory *factory;
+    IDXGIAdapter *adapter;
+    ID3D11Device *dev;
     ID3D11DeviceContext *ctx = nullptr;
     appGfxDeviceVersion gfxver;
 
@@ -572,7 +572,7 @@ result_t app_init_dxgi(const appInitParams *params, OUT IDXGIFactory **pfactory,
         levels_cnt = 1;
     }
 
-    /* create device */
+    // Create device
     dxhr = D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, dev_flags,
         levels, levels_cnt, D3D11_SDK_VERSION, &dev, &ft_level, &ctx);
     if (FAILED(dxhr))   {
@@ -585,14 +585,12 @@ result_t app_init_dxgi(const appInitParams *params, OUT IDXGIFactory **pfactory,
     case D3D_FEATURE_LEVEL_10_1:    gfxver = appGfxDeviceVersion::D3D10_1;    break;
     case D3D_FEATURE_LEVEL_11_0:    gfxver = appGfxDeviceVersion::D3D11_0;    break;
     case D3D_FEATURE_LEVEL_11_1:    gfxver = appGfxDeviceVersion::D3D11_1;    break;
-    default:
-        gfxver = appGfxDeviceVersion::UNKNOWN;
-        break;
+    default:                        gfxver = appGfxDeviceVersion::UNKNOWN;    break;
     }
 
+#if 0
     /* elevate the API to d3d11.1 */
     /* fetch context (currently not working because I don't have win8 dev system) */
-    /*
     ID3D11Device* dev1;
     dxhr = dev->QueryInterface(__uuidof(ID3D11Device), (void**)&dev1);
     if (FAILED(dxhr))   {
@@ -604,7 +602,7 @@ result_t app_init_dxgi(const appInitParams *params, OUT IDXGIFactory **pfactory,
     ID3D11DeviceContext* ctx1;
     dev1->GetImmediateContext1(&ctx1);
     ctx->Release();
-    */
+#endif
 
     /* assign output values */
     *pfactory = factory;
@@ -620,7 +618,7 @@ void app_release_dxgi()
 {
     ASSERT(g_app);
 
-    struct View3D* app = g_app;
+    struct View3D *app = g_app;
 
     RELEASE(app->main_ctx);
     RELEASE(app->dev);
@@ -628,18 +626,18 @@ void app_release_dxgi()
     RELEASE(app->dxgi_factory);
 }
 
-result_t app_init_swapchain(SwapChain* sc, HWND hwnd, uint width, uint height,
-    uint refresh_rate, int fullscreen, int vsync)
+result_t app_init_swapchain(SwapChain *sc, HWND hwnd, uint width, uint height, uint refresh_rate, 
+                            bool fullscreen, bool vsync)
 {
     ASSERT(g_app);
 
     HRESULT dxhr;
-    IDXGISwapChain* swapchain;
-    ID3D11Texture2D* backbuffer;
-    ID3D11RenderTargetView* rtv;
-    ID3D11Texture2D* depthstencil = nullptr;
-    ID3D11DepthStencilView* dsv = nullptr;
-    struct View3D* app = g_app;
+    IDXGISwapChain *swapchain;
+    ID3D11Texture2D *backbuffer;
+    ID3D11RenderTargetView *rtv;
+    ID3D11Texture2D *depthstencil = nullptr;
+    ID3D11DepthStencilView *dsv = nullptr;
+    struct View3D *app = g_app;
 
     DXGI_SWAP_CHAIN_DESC d3d_desc;
     memset(&d3d_desc, 0x00, sizeof(d3d_desc));
@@ -671,7 +669,7 @@ result_t app_init_swapchain(SwapChain* sc, HWND hwnd, uint width, uint height,
         return nullptr;
     }
 
-    /* get BackBuffer and Create RenderTargetView from it */
+    // Get BackBuffer
     if (FAILED(swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backbuffer)))    {
         swapchain->Release();
         return RET_FAIL;
@@ -683,7 +681,7 @@ result_t app_init_swapchain(SwapChain* sc, HWND hwnd, uint width, uint height,
         return RET_FAIL;
     }
 
-    /* depth/stencil */
+    // Depth/Stencil
     D3D11_TEXTURE2D_DESC ds_desc;
     memset(&ds_desc, 0x00, sizeof(ds_desc));
     ds_desc.ArraySize = 1;
@@ -721,7 +719,7 @@ result_t app_init_swapchain(SwapChain* sc, HWND hwnd, uint width, uint height,
     return RET_OK;
 }
 
-void app_release_swapchain(SwapChain* sc)
+void app_release_swapchain(SwapChain *sc)
 {
     if (sc->fullscreen)
         sc->sc->SetFullscreenState(FALSE, nullptr);
@@ -736,7 +734,7 @@ void app_release_swapchain(SwapChain* sc)
 result_t app_window_resize(uint width, uint height)
 {
     ASSERT(g_app);
-    struct View3D* app = g_app;
+    struct View3D *app = g_app;
 
     if (!app->init)
         return RET_FAIL;
