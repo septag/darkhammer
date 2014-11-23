@@ -44,7 +44,7 @@ void gfx_releasedev();
 gfx_inputlayout gfx_create_inputlayout(const struct gfx_input_vbuff_desc* vbuffs, uint vbuff_cnt,
                                        const struct gfx_input_element_binding* inputs,
                                        uint input_cnt, OPTIONAL gfx_buffer idxbuffer,
-                                       OPTIONAL enum gfx_index_type itype, uint thread_id);
+                                       OPTIONAL enum gfxIndexType itype, uint thread_id);
 
 void gfx_destroy_inputlayout(gfx_inputlayout input_layout);
 
@@ -55,7 +55,7 @@ gfx_program gfx_create_program(const struct gfx_shader_data* source_data,
 gfx_program gfx_create_program_bin(const struct gfx_program_bin_desc* bindesc);
 void gfx_destroy_program(gfx_program prog);
 
-gfx_buffer gfx_create_buffer(enum gfx_buffer_type type, enum gfx_mem_hint memhint,
+gfx_buffer gfx_create_buffer(enum gfxBufferType type, enum gfxMemHint memhint,
 		uint size, const void* data, uint thread_id);
 void gfx_destroy_buffer(gfx_buffer buff);
 
@@ -88,14 +88,14 @@ void gfx_destroy_depthstencilstate(gfx_depthstencilstate ds);
  * (tex-array0)[mip0, mip1, ...] - (tex-array1)[mip0, mip1, mip2]
  *             data[0], data[1], ...            data[n], data[n+1], data[n+2], ...
  */
-gfx_texture gfx_create_texture(enum gfx_texture_type type, uint width, uint height,
-		uint depth, enum gfx_format fmt, uint mip_cnt, uint array_size, uint total_size,
-		const struct gfx_subresource_data* data, enum gfx_mem_hint memhint, uint thread_id);
-gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt,
+gfx_texture gfx_create_texture(enum gfxTextureType type, uint width, uint height,
+		uint depth, enum gfxFormat fmt, uint mip_cnt, uint array_size, uint total_size,
+		const struct gfx_subresource_data* data, enum gfxMemHint memhint, uint thread_id);
+gfx_texture gfx_create_texturert(uint width, uint height, enum gfxFormat fmt,
     int has_mipmap /* =FALSE */);
-gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format fmt);
+gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfxFormat fmt);
 gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
-		enum gfx_format fmt);
+		enum gfxFormat fmt);
 void gfx_destroy_texture(gfx_texture tex);
 
 /* get info */

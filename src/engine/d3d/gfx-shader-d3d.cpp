@@ -123,58 +123,58 @@ INLINE uint shader_find_sampler(uint name_hash, const struct array* samplers)
     return INVALID_INDEX;
 }
 
-INLINE enum gfx_constant_type shader_get_vartype(
+INLINE enum gfxUniformType shader_get_vartype(
     D3D10_SHADER_VARIABLE_CLASS cls, D3D10_SHADER_VARIABLE_TYPE type,
     uint row_cnt, uint col_cnt)
 {
     if (cls == D3D10_SVC_SCALAR)    {
         switch (type)   {
         case D3D10_SVT_FLOAT:
-            return GFX_CONSTANT_FLOAT;
+            return gfxUniformType::FLOAT;
         case D3D10_SVT_INT:
-            return GFX_CONSTANT_INT;
+            return gfxUniformType::INT;
         case D3D10_SVT_UINT:
-            return GFX_CONSTANT_UINT;
+            return gfxUniformType::UINT;
         }
     } else if (cls == D3D10_SVC_MATRIX_COLUMNS)    {
         if (type == D3D10_SVT_FLOAT && row_cnt == 4 && col_cnt == 4)
-            return GFX_CONSTANT_MAT4x4;
+            return gfxUniformType::MAT4x4;
         else if (type == D3D10_SVT_FLOAT && row_cnt == 4 && col_cnt == 3)
-            return GFX_CONSTANT_MAT4x3;
+            return gfxUniformType::MAT4x3;
     }   else if (cls == D3D10_SVC_VECTOR)   {
         if (type == D3D10_SVT_FLOAT)    {
             switch (col_cnt)    {
             case 4:
-                return GFX_CONSTANT_FLOAT4;
+                return gfxUniformType::FLOAT4;
             case 3:
-                return GFX_CONSTANT_FLOAT3;
+                return gfxUniformType::FLOAT3;
             case 2:
-                return GFX_CONSTANT_FLOAT2;
+                return gfxUniformType::FLOAT2;
             }
         }   else if (type == D3D10_SVT_INT) {
             switch (col_cnt)    {
             case 4:
-                return GFX_CONSTANT_INT4;
+                return gfxUniformType::INT4;
             case 3:
-                return GFX_CONSTANT_INT3;
+                return gfxUniformType::INT3;
             case 2:
-                return GFX_CONSTANT_INT2;
+                return gfxUniformType::INT2;
             }
         }   else if (type == D3D10_SVT_UINT) {
             switch (col_cnt)    {
             case 4:
-                return GFX_CONSTANT_INT4;
+                return gfxUniformType::INT4;
             case 3:
-                return GFX_CONSTANT_INT3;
+                return gfxUniformType::INT3;
             case 2:
-                return GFX_CONSTANT_INT2;
+                return gfxUniformType::INT2;
             }
         }
     }   else if (cls == D3D10_SVC_STRUCT)   {
-        return GFX_CONSTANT_STRUCT;
+        return gfxUniformType::STRUCT;
     }
 
-    return GFX_CONSTANT_UNKNOWN;
+    return gfxUniformType::UNKNOWN;
 }
 
 INLINE ID3D11ShaderReflectionConstantBuffer* shader_findconstantbuffer(ID3D11ShaderReflection* refl,
@@ -607,7 +607,7 @@ struct gfx_cblock* shader_create_cblock(struct allocator* alloc,
     cb->cpu_buffer = (uint8*)A_ALLOC(&stack_alloc, cb_desc.Size, MID_GFX);
     ASSERT(cb_desc.Type != D3D11_CT_TBUFFER);
     if (shared_buff == NULL)    {
-        cb->gpu_buffer = gfx_create_buffer(GFX_BUFFER_CONSTANT, GFX_MEMHINT_DYNAMIC, cb_desc.Size,
+        cb->gpu_buffer = gfx_create_buffer(gfxBufferType::CONSTANT, gfxMemHint::DYNAMIC, cb_desc.Size,
             NULL, 0);
         if (cb->cpu_buffer == NULL || cb->gpu_buffer == NULL)		{
             gfx_shader_destroy_cblock(cb);
@@ -749,7 +749,7 @@ void gfx_shader_bindcblocks(gfx_cmdqueue cmdqueue, struct gfx_shader* shader,
     for (uint i = 0; i < cblock_cnt; i++)		{
         const struct gfx_cblock* cb = cblocks[i];
         uint hash_val = cb->name_hash;
-        ASSERT(cb->gpu_buffer->desc.buff.type == GFX_BUFFER_CONSTANT);
+        ASSERT(cb->gpu_buffer->desc.buff.type == gfxBufferType::CONSTANT);
 
         struct hashtable_item* item = hashtable_fixed_find(&shader->cblock_bindtable, hash_val);
         if (item != NULL)	{

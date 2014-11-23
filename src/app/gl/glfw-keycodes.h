@@ -16,7 +16,7 @@
 #ifndef __GLFWKEYCODES_H__
 #define __GLFWKEYCODES_H__
 
-#include "GLFWEXT/glfw3.h"
+#include "GLFW/glfw3.h"
 
 #define KEY_ESC			GLFW_KEY_ESCAPE
 #define KEY_F1			GLFW_KEY_F1

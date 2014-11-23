@@ -43,23 +43,23 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\app\platform\win\input-win.c">
-      <Filter>Source Files\platform\win</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\app\d3d\app-d3d.cpp">
       <Filter>Source Files\d3d</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\app\gl\app-gl.c">
-      <Filter>Source Files\gl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\app\gl\input-glfw.c">
-      <Filter>Source Files\gl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\app\app.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\app\input.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\app\platform\win\input-win.cpp">
+      <Filter>Source Files\platform\win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\app\gl\app-gl.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\app\gl\input-glfw.cpp">
+      <Filter>Source Files\gl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

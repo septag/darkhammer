@@ -901,7 +901,7 @@ void gfx_cb_set4m(struct gfx_cblock* cb, uint name_hash, const struct mat4f* m)
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_MAT4x4);
+	ASSERT(c->type == gfxUniformType::MAT4x4);
 
     struct mat4f_cm* mcm = (struct mat4f_cm*)(cb->cpu_buffer + c->offset);
     mat4f_togpu(mcm, m);
@@ -911,7 +911,7 @@ void gfx_cb_set3m(struct gfx_cblock* cb, uint name_hash, const struct mat3f* m)
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_MAT4x3);
+	ASSERT(c->type == gfxUniformType::MAT4x3);
 
     struct mat3f_cm* mcm = (struct mat3f_cm*)(cb->cpu_buffer + c->offset);
     mat3f_togpu(mcm, m);
@@ -921,7 +921,7 @@ void gfx_cb_set4f(struct gfx_cblock* cb, uint name_hash, const float* fv)
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_FLOAT4);
+	ASSERT(c->type == gfxUniformType::FLOAT4);
 
     float* buff = (float*)(cb->cpu_buffer + c->offset);
     buff[0] = fv[0];
@@ -934,7 +934,7 @@ void gfx_cb_set3f(struct gfx_cblock* cb, uint name_hash, const float* fv)
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_FLOAT3);
+	ASSERT(c->type == gfxUniformType::FLOAT3);
     float* buff = (float*)(cb->cpu_buffer + c->offset);
     buff[0] = fv[0];
     buff[1] = fv[1];
@@ -945,7 +945,7 @@ void gfx_cb_set2f(struct gfx_cblock* cb, uint name_hash, const float* fv)
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_FLOAT2);
+	ASSERT(c->type == gfxUniformType::FLOAT2);
     float* buff = (float*)(cb->cpu_buffer + c->offset);
     buff[0] = fv[0];
     buff[1] = fv[1];
@@ -955,7 +955,7 @@ void gfx_cb_setf(struct gfx_cblock* cb, uint name_hash, float f)
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_FLOAT);
+	ASSERT(c->type == gfxUniformType::FLOAT);
 	*((float*)(cb->cpu_buffer + c->offset)) = f;
 }
 
@@ -963,7 +963,7 @@ void gfx_cb_setfv(struct gfx_cblock* cb, uint name_hash, const float* fv, uint c
 {
     const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
     ASSERT(c);
-    ASSERT(c->type == GFX_CONSTANT_FLOAT);
+    ASSERT(c->type == gfxUniformType::FLOAT);
     for (uint i = 0; i < cnt; i++)
         *((float*)(cb->cpu_buffer + c->offset + c->arr_stride*i)) = fv[i];
 }
@@ -972,7 +972,7 @@ void gfx_cb_set4ivn(struct gfx_cblock* cb, uint name_hash, const int* nv, uint c
 {
     const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
     ASSERT(c);
-    ASSERT(c->type == GFX_CONSTANT_INT4);
+    ASSERT(c->type == gfxUniformType::INT4);
     memcpy(cb->cpu_buffer + c->offset, nv, sizeof(int)*cnt);
 }
 
@@ -981,7 +981,7 @@ void gfx_cb_set4i(struct gfx_cblock* cb, uint name_hash, const int* nv)
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_INT4);
+	ASSERT(c->type == gfxUniformType::INT4);
     int* buff = (int*)(cb->cpu_buffer + c->offset);
     buff[0] = nv[0];
     buff[1] = nv[1];
@@ -993,7 +993,7 @@ void gfx_cb_set3i(struct gfx_cblock* cb, uint name_hash, const int* nv)
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_INT3);
+	ASSERT(c->type == gfxUniformType::INT3);
     int* buff = (int*)(cb->cpu_buffer + c->offset);
     buff[0] = nv[0];
     buff[1] = nv[1];
@@ -1004,7 +1004,7 @@ void gfx_cb_set3ui(struct gfx_cblock* cb, uint name_hash, const uint* nv)
 {
     const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
     ASSERT(c);
-    ASSERT(c->type == GFX_CONSTANT_INT3);
+    ASSERT(c->type == gfxUniformType::INT3);
     uint* buff = (uint*)(cb->cpu_buffer + c->offset);
     buff[0] = nv[0];
     buff[1] = nv[1];
@@ -1016,7 +1016,7 @@ void gfx_cb_set2i(struct gfx_cblock* cb, uint name_hash, const int* nv)
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_INT2);
+	ASSERT(c->type == gfxUniformType::INT2);
     int* buff = (int*)(cb->cpu_buffer + c->offset);
     buff[0] = nv[0];
     buff[1] = nv[1];
@@ -1026,7 +1026,7 @@ void gfx_cb_seti(struct gfx_cblock* cb, uint name_hash, int n)
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_INT);
+	ASSERT(c->type == gfxUniformType::INT);
 	*((int*)(cb->cpu_buffer + c->offset)) = n;
 }
 
@@ -1034,7 +1034,7 @@ void gfx_cb_setiv(struct gfx_cblock* cb, uint name_hash, const int* ns, uint cnt
 {
     const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
     ASSERT(c);
-    ASSERT(c->type == GFX_CONSTANT_INT);
+    ASSERT(c->type == gfxUniformType::INT);
     cnt = minui(c->arr_size, cnt);
     for (uint i = 0; i < cnt; i++)    {
         *((int*)(cb->cpu_buffer + c->offset + c->arr_stride*i)) = ns[i];
@@ -1045,7 +1045,7 @@ void gfx_cb_setui(struct gfx_cblock* cb, uint name_hash, uint n)
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_UINT);
+	ASSERT(c->type == gfxUniformType::UINT);
 	*((uint*)(cb->cpu_buffer + c->offset)) = n;
 }
 
@@ -1053,7 +1053,7 @@ void gfx_cb_set3mv(struct gfx_cblock* cb, uint name_hash, const struct mat3f* mv
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_MAT4x3);
+	ASSERT(c->type == gfxUniformType::MAT4x3);
 
 	uint mat_cnt = minui(c->arr_size, cnt);
     uint8* buff = cb->cpu_buffer + c->offset;
@@ -1077,7 +1077,7 @@ void gfx_cb_set3mv_offset(struct gfx_cblock* cb, uint name_hash, const struct ma
     }   else    {
         const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
         ASSERT(c);
-        ASSERT(c->type == GFX_CONSTANT_STRUCT);
+        ASSERT(c->type == gfxUniformType::STRUCT);
 
         mat_cnt = minui(c->arr_size, mat_cnt);
         uint8* buff = cb->cpu_buffer + c->offset + offset;
@@ -1093,7 +1093,7 @@ void gfx_cb_set3mvp(struct gfx_cblock* cb, uint name_hash, const struct mat3f** 
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_MAT4x3);
+	ASSERT(c->type == gfxUniformType::MAT4x3);
 
 	uint mat_cnt = minui(c->arr_size, cnt);
     uint8* buff = cb->cpu_buffer + c->offset;
@@ -1107,7 +1107,7 @@ void gfx_cb_set4mv(struct gfx_cblock* cb, uint name_hash, const struct mat4f* mv
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_MAT4x4);
+	ASSERT(c->type == gfxUniformType::MAT4x4);
 
 	uint mat_cnt = minui(c->arr_size, cnt);
     uint8* buff = cb->cpu_buffer + c->offset;
@@ -1121,7 +1121,7 @@ void gfx_cb_set4fv(struct gfx_cblock* cb, uint name_hash, const struct vec4f* vv
 {
 	const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
 	ASSERT(c);
-	ASSERT(c->type == GFX_CONSTANT_FLOAT4);
+	ASSERT(c->type == gfxUniformType::FLOAT4);
 	cnt = minui(c->arr_size, cnt);
 	for (uint i = 0; i < cnt; i++)	{
         float* v = (float*)(cb->cpu_buffer + c->offset + c->arr_stride*i);
@@ -1136,7 +1136,7 @@ void gfx_cb_setp(struct gfx_cblock* cb, uint name_hash, const void* sdata, uint 
 {
     const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
     ASSERT(c);
-    ASSERT(c->type == GFX_CONSTANT_STRUCT);
+    ASSERT(c->type == gfxUniformType::STRUCT);
 
     uint s = minui(size, c->arr_stride*c->arr_size);
     memcpy(cb->cpu_buffer + c->offset, sdata, s);
@@ -1153,7 +1153,7 @@ void gfx_cb_setpv_offset(struct gfx_cblock* cb, uint name_hash, const void* sdat
     }   else    {
         const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
         ASSERT(c);
-        ASSERT(c->type == GFX_CONSTANT_STRUCT);
+        ASSERT(c->type == gfxUniformType::STRUCT);
 
         uint s = minui(size, c->elem_size);
         memcpy(cb->cpu_buffer + c->offset + offset, sdata, s);
@@ -1166,7 +1166,7 @@ void gfx_cb_setpv(struct gfx_cblock* cb, uint name_hash, const void* sdata, uint
 {
     const struct gfx_constant_desc* c = shader_find_constantcb(cb, name_hash);
     ASSERT(c);
-    ASSERT(c->type == GFX_CONSTANT_STRUCT);
+    ASSERT(c->type == gfxUniformType::STRUCT);
 
     uint s = minui(size, c->elem_size);
     cnt = minui(cnt, c->arr_size);
@@ -1245,7 +1245,7 @@ struct gfx_cblock* gfx_shader_create_cblock_tbuffer(struct allocator* alloc,
 
     /* buffers (gpu/cpu) */
     cb->cpu_buffer = buff;
-    cb->gpu_buffer = gfx_create_buffer(GFX_BUFFER_SHADERTEXTURE, GFX_MEMHINT_DYNAMIC, tb_size,
+    cb->gpu_buffer = gfx_create_buffer(gfxBufferType::SHADER_TEXTURE, gfxMemHint::DYNAMIC, tb_size,
         NULL, 0);
     if (cb->cpu_buffer == NULL || cb->gpu_buffer == NULL)		{
         gfx_shader_destroy_cblock(cb);

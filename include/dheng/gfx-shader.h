@@ -42,7 +42,7 @@ struct gfx_constant_desc
 {
 	char name[32];
 	uint shader_idx;
-	enum gfx_constant_type type;
+	enum gfxUniformType type;
 	uint elem_size;
 	uint arr_size;
 	uint arr_stride;

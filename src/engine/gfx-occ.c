@@ -184,11 +184,11 @@ result_t gfx_occ_init(uint width, uint height, uint cpu_caps)
         }
         struct gfx_sampler_desc sdesc;
         memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-        sdesc.address_u = GFX_ADDRESS_CLAMP;
-        sdesc.address_v = GFX_ADDRESS_CLAMP;
-        sdesc.filter_min = GFX_FILTER_NEAREST;
-        sdesc.filter_mag = GFX_FILTER_NEAREST;
-        sdesc.filter_mip = GFX_FILTER_UNKNOWN;
+        sdesc.address_u = gfxAddressMode::CLAMP;
+        sdesc.address_v = gfxAddressMode::CLAMP;
+        sdesc.filter_min = gfxFilterMode::NEAREST;
+        sdesc.filter_mag = gfxFilterMode::NEAREST;
+        sdesc.filter_mip = gfxFilterMode::UNKNOWN;
         g_occ.sampl_point = gfx_create_sampler(&sdesc);
 
         con_register_cmd("gfx_showocc", occ_console_show, NULL, "gfx_showocc [1*/0]");
@@ -249,11 +249,11 @@ result_t occ_creatert(uint width, uint height)
     data.pitch_row = width;
     data.pitch_slice = 0;
     data.size = width*height*sizeof(float);
-    g_occ.tex = gfx_create_texture(GFX_TEXTURE_2D, width, height, 1, GFX_FORMAT_R32_FLOAT,
-        1, 1, data.size, &data, GFX_MEMHINT_DYNAMIC, 0);
+    g_occ.tex = gfx_create_texture(gfxTextureType::TEX_2D, width, height, 1, gfxFormat::R32_FLOAT,
+        1, 1, data.size, &data, gfxMemHint::DYNAMIC, 0);
     if (g_occ.tex == NULL)
         return RET_FAIL;
-    g_occ.prev_tex = gfx_create_texturert(width, height, GFX_FORMAT_RGBA_UNORM, FALSE);
+    g_occ.prev_tex = gfx_create_texturert(width, height, gfxFormat::RGBA_UNORM, FALSE);
     if (g_occ.prev_tex == NULL)
         return RET_FAIL;
     g_occ.prev_rt = gfx_create_rendertarget(&g_occ.prev_tex, 1, NULL);
@@ -261,8 +261,8 @@ result_t occ_creatert(uint width, uint height)
         return RET_FAIL;
 
 #if defined(_OCCDEMO_)
-    g_occ.tex_ext = gfx_create_texture(GFX_TEXTURE_2D, width, height, 1, GFX_FORMAT_R32_FLOAT,
-        1, 1, data.size, &data, GFX_MEMHINT_DYNAMIC);
+    g_occ.tex_ext = gfx_create_texture(gfxTextureType::TEX_2D, width, height, 1, gfxFormat::R32_FLOAT,
+        1, 1, data.size, &data, gfxMemHint::DYNAMIC);
     if (g_occ.tex_ext == NULL)
         return RET_FAIL;
 #endif

@@ -85,30 +85,30 @@ INLINE struct mat3f_cm* mat3f_togpu(struct mat3f_cm* rm, const struct mat3f* m)
 
 
 /* according to GLSL std140 */
-INLINE uint get_constant_size(enum gfx_constant_type type)
+INLINE uint get_constant_size(enum gfxUniformType type)
 {
 	switch (type)	{
-	case GFX_CONSTANT_FLOAT:
+	case gfxUniformType::FLOAT:
 		return sizeof(GLfloat);
-	case GFX_CONSTANT_FLOAT2:
+	case gfxUniformType::FLOAT2:
 		return sizeof(GLfloat)*2;
-	case GFX_CONSTANT_FLOAT3:
+	case gfxUniformType::FLOAT3:
 		return sizeof(GLfloat)*4;
-	case GFX_CONSTANT_FLOAT4:
+	case gfxUniformType::FLOAT4:
 		return sizeof(GLfloat)*4;
-	case GFX_CONSTANT_INT:
+	case gfxUniformType::INT:
 		return sizeof(GLint);
-	case GFX_CONSTANT_INT2:
+	case gfxUniformType::INT2:
 		return sizeof(GLint)*2;
-	case GFX_CONSTANT_INT3:
+	case gfxUniformType::INT3:
 		return sizeof(GLint)*4;
-	case GFX_CONSTANT_INT4:
+	case gfxUniformType::INT4:
 		return sizeof(GLint)*4;
-	case GFX_CONSTANT_UINT:
+	case gfxUniformType::UINT:
 		return sizeof(GLuint);
-	case GFX_CONSTANT_MAT4x3:
+	case gfxUniformType::MAT4x3:
 		return sizeof(GLfloat)*12;
-	case GFX_CONSTANT_MAT4x4:
+	case gfxUniformType::MAT4x4:
 		return sizeof(GLfloat)*16;
 	default:
 		return sizeof(GLfloat)*4;   /* vec4 as default */
@@ -270,10 +270,10 @@ struct gfx_cblock* gfx_shader_create_cblock(struct allocator* alloc, struct allo
         strcpy(desc->name, name);
         desc->shader_idx = indices[i];
         desc->offset = (uint)offsets[i];
-        desc->elem_size = get_constant_size((enum gfx_constant_type)types[i]);
+        desc->elem_size = get_constant_size((enum gfxUniformType)types[i]);
         desc->arr_size = (uint)arr_sizes[i];
         desc->arr_stride = (uint)strides[i];
-        desc->type = (enum gfx_constant_type)types[i];
+        desc->type = (enum gfxUniformType)types[i];
 
         /* add to dictionary */
         hashtable_fixed_add(&cblock->ctable, hash_str(cblock->constants[i].name), i);
@@ -302,7 +302,7 @@ struct gfx_cblock* gfx_shader_create_cblock(struct allocator* alloc, struct allo
 
     /* do not create gpu buffer if we have shared buffers */
     if (shared_buff == NULL)    {
-	    cblock->gpu_buffer = gfx_create_buffer(GFX_BUFFER_CONSTANT, GFX_MEMHINT_DYNAMIC, size,
+	    cblock->gpu_buffer = gfx_create_buffer(gfxBufferType::CONSTANT, gfxMemHint::DYNAMIC, size,
             NULL, 0);
 	    if (cblock->gpu_buffer == NULL)		{
 		    gfx_shader_destroy_cblock(cblock);
@@ -382,7 +382,7 @@ uint shader_gather_cbuniforms(GLuint prog_id, GLuint block_idx,
                 types[cnt] = c_types[i];
                 is_struct = FALSE;
             }   else    {
-                types[cnt] = (GLint)GFX_CONSTANT_STRUCT;
+                types[cnt] = (GLint)gfxUniformType::STRUCT;
                 is_struct = TRUE;
             }
             strides[cnt] = c_strides[i];   /* filled later (in arrays>1) */
@@ -584,7 +584,7 @@ void gfx_shader_bindcblocks(gfx_cmdqueue cmdqueue, struct gfx_shader* shader,
     for (uint i = 0; i < cblock_cnt; i++)		{
         const struct gfx_cblock* cb = cblocks[i];
         uint hash_val = cb->name_hash;
-        ASSERT(cb->gpu_buffer->desc.buff.type == GFX_BUFFER_CONSTANT);
+        ASSERT(cb->gpu_buffer->desc.buff.type == gfxBufferType::CONSTANT);
 
         struct hashtable_item* item = hashtable_fixed_find(&shader->cblock_bindtable, hash_val);
         if (item != NULL)	{

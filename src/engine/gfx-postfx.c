@@ -153,9 +153,9 @@ void pfx_calc_gauss(struct vec4f* kernel, int kernel_cnt, float std_devsqr, floa
  *  downsample - with depth
  */
 INLINE result_t pfx_downsamplewdepth_creatert(struct gfx_pfx_downsample* pfx, uint width,
-    uint height, enum gfx_format fmt)
+    uint height, enum gfxFormat fmt)
 {
-    pfx->dest_depthtex = gfx_create_texturert(width, height, GFX_FORMAT_DEPTH24_STENCIL8, FALSE);
+    pfx->dest_depthtex = gfx_create_texturert(width, height, gfxFormat::DEPTH24_STENCIL8, FALSE);
     pfx->dest_tex = gfx_create_texturert(width, height, fmt, FALSE);
     if (pfx->dest_depthtex == NULL || pfx->dest_tex == NULL)
         return RET_FAIL;
@@ -181,7 +181,7 @@ INLINE void pfx_downsamplewdepth_destroyrt(struct gfx_pfx_downsample* pfx)
 
 
 struct gfx_pfx_downsample* gfx_pfx_downsamplewdepth_create(uint width, uint height,
-    enum gfx_format fmt, int depthpass_stencilvalue /*=-1*/)
+    enum gfxFormat fmt, int depthpass_stencilvalue /*=-1*/)
 {
      result_t r;
 
@@ -217,7 +217,7 @@ struct gfx_pfx_downsample* gfx_pfx_downsamplewdepth_create(uint width, uint heig
      memcpy(&ds_desc, gfx_get_defaultdepthstencil(), sizeof(ds_desc));
      ds_desc.depth_enable = TRUE;
      ds_desc.depth_write = TRUE;
-     ds_desc.depth_func = GFX_CMP_ALWAYS;
+     ds_desc.depth_func = gfxCmpFunc::ALWAYS;
      pfx->ds_writez = gfx_create_depthstencilstate(&ds_desc);
      if (pfx->ds_writez == NULL)    {
          err_print(__FILE__, __LINE__, "pfx-downsamplewdepth failed: could not create states");
@@ -227,11 +227,11 @@ struct gfx_pfx_downsample* gfx_pfx_downsamplewdepth_create(uint width, uint heig
 
      struct gfx_sampler_desc sdesc;
      memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-     sdesc.address_u = GFX_ADDRESS_CLAMP;
-     sdesc.address_v = GFX_ADDRESS_CLAMP;
-     sdesc.filter_mag = GFX_FILTER_NEAREST;
-     sdesc.filter_min = GFX_FILTER_NEAREST;
-     sdesc.filter_mip = GFX_FILTER_UNKNOWN;
+     sdesc.address_u = gfxAddressMode::CLAMP;
+     sdesc.address_v = gfxAddressMode::CLAMP;
+     sdesc.filter_mag = gfxFilterMode::NEAREST;
+     sdesc.filter_min = gfxFilterMode::NEAREST;
+     sdesc.filter_mip = gfxFilterMode::UNKNOWN;
      pfx->sampl = gfx_create_sampler(&sdesc);
      if (pfx->sampl == NULL)    {
          err_print(__FILE__, __LINE__, "pfx-downsamplewdepth failed: could not create states");
@@ -299,7 +299,7 @@ gfx_texture gfx_pfx_downsamplewdepth_render(gfx_cmdqueue cmdqueue, struct gfx_pf
 result_t gfx_pfx_downsamplewdepth_resize(struct gfx_pfx_downsample* pfx, uint width,
     uint height)
 {
-    enum gfx_format fmt = pfx->dest_tex->desc.tex.fmt;
+    enum gfxFormat fmt = pfx->dest_tex->desc.tex.fmt;
     pfx_downsamplewdepth_destroyrt(pfx);
     return pfx_downsamplewdepth_creatert(pfx, width, height, fmt);
 }
@@ -310,7 +310,7 @@ result_t gfx_pfx_downsamplewdepth_resize(struct gfx_pfx_downsample* pfx, uint wi
  */
 INLINE result_t pfx_ssao_creatert(struct gfx_pfx_ssao* pfx, uint width, uint height)
 {
-    pfx->ssao_tex = gfx_create_texturert(width, height, GFX_FORMAT_RGBA_UNORM, FALSE);
+    pfx->ssao_tex = gfx_create_texturert(width, height, gfxFormat::RGBA_UNORM, FALSE);
     if (pfx->ssao_tex == NULL)
         return RET_FAIL;
 
@@ -374,15 +374,15 @@ struct gfx_pfx_ssao* gfx_pfx_ssao_create(uint width, uint height,
     /* states */
     struct gfx_sampler_desc sdesc;
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-    sdesc.address_u = GFX_ADDRESS_WRAP;
-    sdesc.address_v = GFX_ADDRESS_WRAP;
-    sdesc.filter_mag = GFX_FILTER_NEAREST;
-    sdesc.filter_min = GFX_FILTER_NEAREST;
-    sdesc.filter_mip = GFX_FILTER_UNKNOWN;
+    sdesc.address_u = gfxAddressMode::WRAP;
+    sdesc.address_v = gfxAddressMode::WRAP;
+    sdesc.filter_mag = gfxFilterMode::NEAREST;
+    sdesc.filter_min = gfxFilterMode::NEAREST;
+    sdesc.filter_mip = gfxFilterMode::UNKNOWN;
     pfx->sampl_point = gfx_create_sampler(&sdesc);
 
-    sdesc.address_u = GFX_ADDRESS_MIRROR;
-    sdesc.address_v = GFX_ADDRESS_MIRROR;
+    sdesc.address_u = gfxAddressMode::MIRROR;
+    sdesc.address_v = gfxAddressMode::MIRROR;
     pfx->sampl_point_mirror = gfx_create_sampler(&sdesc);
 
     if (pfx->sampl_point == NULL || pfx->sampl_point_mirror == NULL)    {
@@ -542,7 +542,7 @@ result_t pfx_console_ssao_setparams(uint argc, const char ** argv, void* param)
 INLINE result_t pfx_upsamplebilateral_creatert(struct gfx_pfx_upsample* pfx,
     uint width, uint height)
 {
-    pfx->tex = gfx_create_texturert(width, height, GFX_FORMAT_RGBA_UNORM, FALSE);
+    pfx->tex = gfx_create_texturert(width, height, gfxFormat::RGBA_UNORM, FALSE);
     if (pfx->tex == NULL)
         return RET_FAIL;
     pfx->rt = gfx_create_rendertarget(&pfx->tex, 1, NULL);
@@ -592,19 +592,19 @@ struct gfx_pfx_upsample* gfx_pfx_upsamplebilateral_create(uint width, uint heigh
     /* states */
     struct gfx_sampler_desc sdesc;
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-    sdesc.address_u = GFX_ADDRESS_CLAMP;
-    sdesc.address_v = GFX_ADDRESS_CLAMP;
-    sdesc.filter_mag = GFX_FILTER_NEAREST;
-    sdesc.filter_min = GFX_FILTER_NEAREST;
-    sdesc.filter_mip = GFX_FILTER_UNKNOWN;
+    sdesc.address_u = gfxAddressMode::CLAMP;
+    sdesc.address_v = gfxAddressMode::CLAMP;
+    sdesc.filter_mag = gfxFilterMode::NEAREST;
+    sdesc.filter_min = gfxFilterMode::NEAREST;
+    sdesc.filter_mip = gfxFilterMode::UNKNOWN;
     pfx->sampl_point = gfx_create_sampler(&sdesc);
     if (pfx->sampl_point == NULL)   {
         err_print(__FILE__, __LINE__, "pfx-upsample-b init failed: could not create states");
         gfx_pfx_upsamplebilateral_destroy(pfx);
         return NULL;
     }
-    sdesc.filter_mag = GFX_FILTER_LINEAR;
-    sdesc.filter_min = GFX_FILTER_LINEAR;
+    sdesc.filter_mag = gfxFilterMode::LINEAR;
+    sdesc.filter_min = gfxFilterMode::LINEAR;
     pfx->sampl_lin = gfx_create_sampler(&sdesc);
     if (pfx->sampl_lin == NULL) {
         err_print(__FILE__, __LINE__, "pfx-upsample-b init failed: could not create states");
@@ -681,7 +681,7 @@ result_t gfx_pfx_upsamplebilateral_resize(struct gfx_pfx_upsample* pfx, uint wid
 INLINE result_t pfx_shadowcsm_creatert(struct gfx_pfx_shadow* pfx, uint width, uint height)
 {
     if (!pfx->ref_mode) {
-        pfx->tex = gfx_create_texturert(width, height, GFX_FORMAT_RGBA_UNORM, FALSE);
+        pfx->tex = gfx_create_texturert(width, height, gfxFormat::RGBA_UNORM, FALSE);
         if (pfx->tex == NULL)
             return RET_FAIL;
     }
@@ -778,12 +778,12 @@ struct gfx_pfx_shadow* gfx_pfx_shadowcsm_create(uint width, uint height,
     /* states */
     struct gfx_sampler_desc sdesc;
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-    sdesc.filter_mip = GFX_FILTER_UNKNOWN;
-    sdesc.filter_min = GFX_FILTER_NEAREST;
-    sdesc.filter_mag = GFX_FILTER_NEAREST;
-    sdesc.address_u = GFX_ADDRESS_CLAMP;
-    sdesc.address_v = GFX_ADDRESS_CLAMP;
-    sdesc.address_w = GFX_ADDRESS_CLAMP;
+    sdesc.filter_mip = gfxFilterMode::UNKNOWN;
+    sdesc.filter_min = gfxFilterMode::NEAREST;
+    sdesc.filter_mag = gfxFilterMode::NEAREST;
+    sdesc.address_u = gfxAddressMode::CLAMP;
+    sdesc.address_v = gfxAddressMode::CLAMP;
+    sdesc.address_w = gfxAddressMode::CLAMP;
     pfx->sampl_point = gfx_create_sampler(&sdesc);
     if (pfx->sampl_point == NULL)   {
         err_print(__FILE__, __LINE__, "pfx-shadowcsm init failed: could not create states");
@@ -791,10 +791,10 @@ struct gfx_pfx_shadow* gfx_pfx_shadowcsm_create(uint width, uint height,
         return NULL;
     }
 
-    sdesc.filter_mip = GFX_FILTER_UNKNOWN;
-    sdesc.filter_min = GFX_FILTER_LINEAR;
-    sdesc.filter_mag = GFX_FILTER_LINEAR;
-    sdesc.cmp_func = GFX_CMP_LESS;
+    sdesc.filter_mip = gfxFilterMode::UNKNOWN;
+    sdesc.filter_min = gfxFilterMode::LINEAR;
+    sdesc.filter_mag = gfxFilterMode::LINEAR;
+    sdesc.cmp_func = gfxCmpFunc::LESS;
     pfx->sampl_cmp = gfx_create_sampler(&sdesc);
     if (pfx->sampl_cmp == NULL) {
         err_print(__FILE__, __LINE__, "pfx-shadowcsm init failed: could not create states");
@@ -897,7 +897,7 @@ result_t pfx_console_shadowcsm_prev(uint argc, const char** argv, void* param)
 INLINE result_t pfx_tonemap_creatert(struct gfx_pfx_tonemap* pfx, uint width, uint height)
 {
     /* tonemapped output buffer */
-    pfx->tex = gfx_create_texturert(width, height, GFX_FORMAT_RGBA_UNORM, FALSE);
+    pfx->tex = gfx_create_texturert(width, height, gfxFormat::RGBA_UNORM, FALSE);
     if (pfx->tex == NULL)
         return RET_FAIL;
     pfx->rt = gfx_create_rendertarget(&pfx->tex, 1, NULL);
@@ -908,16 +908,16 @@ INLINE result_t pfx_tonemap_creatert(struct gfx_pfx_tonemap* pfx, uint width, ui
     enum appGfxShadingQuality sh_quality = gfx_get_params()->shading_quality;
     uint divider = sh_quality == appGfxShadingQuality::HIGH ? 3 : 4;
     int lum_texsz = maxi(width/divider, height/divider);
-    pfx->lum_tex = gfx_create_texturert(lum_texsz, lum_texsz, GFX_FORMAT_R32_FLOAT, TRUE);
+    pfx->lum_tex = gfx_create_texturert(lum_texsz, lum_texsz, gfxFormat::R32_FLOAT, TRUE);
     if (pfx->lum_tex == NULL)
         return RET_FAIL;
     pfx->lum_rt = gfx_create_rendertarget(&pfx->lum_tex, 1, NULL);
     if (pfx->lum_rt == NULL)
         return RET_FAIL;
-    pfx->bright_tex[0] = gfx_create_texturert(lum_texsz, lum_texsz, GFX_FORMAT_RGBA_UNORM, FALSE);
+    pfx->bright_tex[0] = gfx_create_texturert(lum_texsz, lum_texsz, gfxFormat::RGBA_UNORM, FALSE);
     if (pfx->bright_tex[0] == NULL)
         return RET_FAIL;
-    pfx->bright_tex[1] = gfx_create_texturert(lum_texsz, lum_texsz, GFX_FORMAT_RGBA_UNORM, FALSE);
+    pfx->bright_tex[1] = gfx_create_texturert(lum_texsz, lum_texsz, gfxFormat::RGBA_UNORM, FALSE);
     if (pfx->bright_tex[1] == NULL)
         return RET_FAIL;
 
@@ -931,8 +931,8 @@ INLINE result_t pfx_tonemap_creatert(struct gfx_pfx_tonemap* pfx, uint width, ui
         return RET_FAIL;
 
     /* luminance adaptation buffers */
-    pfx->lumadapt_tex[0] = gfx_create_texturert(1, 1, GFX_FORMAT_R16_FLOAT, FALSE);
-    pfx->lumadapt_tex[1] = gfx_create_texturert(1, 1, GFX_FORMAT_R16_FLOAT, FALSE);
+    pfx->lumadapt_tex[0] = gfx_create_texturert(1, 1, gfxFormat::R16_FLOAT, FALSE);
+    pfx->lumadapt_tex[1] = gfx_create_texturert(1, 1, gfxFormat::R16_FLOAT, FALSE);
     if (pfx->lumadapt_tex[0] == NULL || pfx->lumadapt_tex[1] == NULL)
         return RET_FAIL;
 
@@ -946,18 +946,18 @@ INLINE result_t pfx_tonemap_creatert(struct gfx_pfx_tonemap* pfx, uint width, ui
     float clear_clr[] = {0.0f, 0.0f, 0.0f, 1.0f};
     gfx_output_setrendertarget(cmdqueue, pfx->lumadapt_rt[0]);
     gfx_output_clearrendertarget(cmdqueue, pfx->lumadapt_rt[0], clear_clr, 1.0f, 0,
-        GFX_CLEAR_COLOR);
+        gfxClearFlag::COLOR);
 
     gfx_output_setrendertarget(cmdqueue, pfx->lumadapt_rt[1]);
     gfx_output_clearrendertarget(cmdqueue, pfx->lumadapt_rt[1], clear_clr, 1.0f, 0,
-        GFX_CLEAR_COLOR);
+        gfxClearFlag::COLOR);
 
     gfx_output_setrendertarget(cmdqueue, NULL);
 
     /* preview */
     if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))   {
         pfx->lumprev_tex = gfx_create_texturert(PFX_TONEMAP_LUMPREV_SIZE, PFX_TONEMAP_LUMPREV_SIZE,
-            GFX_FORMAT_RGBA_UNORM, FALSE);
+            gfxFormat::RGBA_UNORM, FALSE);
         if (pfx->lumprev_tex == NULL)
             return RET_FAIL;
         pfx->lumprev_rt = gfx_create_rendertarget(&pfx->lumprev_tex, 1, NULL);
@@ -1093,16 +1093,16 @@ struct gfx_pfx_tonemap* gfx_pfx_tonemap_create(uint width, uint height, float mi
     /* states */
     struct gfx_sampler_desc sdesc;
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-    sdesc.address_u = GFX_ADDRESS_CLAMP;
-    sdesc.address_v = GFX_ADDRESS_CLAMP;
-    sdesc.filter_min = GFX_FILTER_NEAREST;
-    sdesc.filter_mag = GFX_FILTER_NEAREST;
-    sdesc.filter_mip = GFX_FILTER_UNKNOWN;
+    sdesc.address_u = gfxAddressMode::CLAMP;
+    sdesc.address_v = gfxAddressMode::CLAMP;
+    sdesc.filter_min = gfxFilterMode::NEAREST;
+    sdesc.filter_mag = gfxFilterMode::NEAREST;
+    sdesc.filter_mip = gfxFilterMode::UNKNOWN;
     pfx->sampl_point = gfx_create_sampler(&sdesc);
 
-    sdesc.filter_min = GFX_FILTER_LINEAR;
-    sdesc.filter_mag = GFX_FILTER_LINEAR;
-    sdesc.filter_mip = GFX_FILTER_UNKNOWN;
+    sdesc.filter_min = gfxFilterMode::LINEAR;
+    sdesc.filter_mag = gfxFilterMode::LINEAR;
+    sdesc.filter_mip = gfxFilterMode::UNKNOWN;
     pfx->sampl_lin = gfx_create_sampler(&sdesc);
 
     if (pfx->sampl_point == NULL || pfx->sampl_lin == NULL) {
@@ -1375,7 +1375,7 @@ int pfx_tonemap_debugtext(gfx_cmdqueue cmdqueue, int x, int y, int line_stride,
  */
 INLINE result_t pfx_fxaa_creatert(struct gfx_pfx_fxaa* pfx, uint width, uint height)
 {
-    pfx->tex = gfx_create_texturert(width, height, GFX_FORMAT_RGBA_UNORM, FALSE);
+    pfx->tex = gfx_create_texturert(width, height, gfxFormat::RGBA_UNORM, FALSE);
     if (pfx->tex == NULL)
         return RET_FAIL;
 
@@ -1484,11 +1484,11 @@ struct gfx_pfx_fxaa* gfx_pfx_fxaa_create(uint width, uint height)
     /* states */
     struct gfx_sampler_desc sdesc;
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-    sdesc.address_u = GFX_ADDRESS_CLAMP;
-    sdesc.address_v = GFX_ADDRESS_CLAMP;
-    sdesc.filter_mip = GFX_FILTER_UNKNOWN;
-    sdesc.filter_mag = GFX_FILTER_LINEAR;
-    sdesc.filter_min = GFX_FILTER_LINEAR;
+    sdesc.address_u = gfxAddressMode::CLAMP;
+    sdesc.address_v = gfxAddressMode::CLAMP;
+    sdesc.filter_mip = gfxFilterMode::UNKNOWN;
+    sdesc.filter_mag = gfxFilterMode::LINEAR;
+    sdesc.filter_min = gfxFilterMode::LINEAR;
     pfx->sampl_lin = gfx_create_sampler(&sdesc);
     if (pfx->sampl_lin == NULL)   {
         err_print(__FILE__, __LINE__, "pfx-fxaa init failed: could not load samplers");

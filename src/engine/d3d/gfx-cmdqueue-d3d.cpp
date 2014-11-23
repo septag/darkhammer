@@ -190,7 +190,7 @@ result_t gfx_initcmdqueue(gfx_cmdqueue cmdqueue)
         memcpy(&dsdesc, gfx_get_defaultdepthstencil(), sizeof(dsdesc));
         dsdesc.depth_enable = TRUE;
         dsdesc.depth_write = TRUE;
-        dsdesc.depth_func = GFX_CMP_ALWAYS;
+        dsdesc.depth_func = gfxCmpFunc::ALWAYS;
         cmdqueue->blit_ds = gfx_create_depthstencilstate(&dsdesc);
         if (cmdqueue->blit_ds == NULL)  {
             err_print(__FILE__, __LINE__, "gfx-cmdqueue init failed: could not create blit ds state");
@@ -298,7 +298,7 @@ void gfx_buffer_update(gfx_cmdqueue cmdqueue, gfx_buffer buffer, const void* dat
     }
 }
 
-void gfx_draw(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type, uint vert_idx,
+void gfx_draw(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type, uint vert_idx,
     uint vert_cnt, uint draw_id)
 {
     cmdqueue->context->IASetPrimitiveTopology((D3D11_PRIMITIVE_TOPOLOGY)type);
@@ -310,8 +310,8 @@ void gfx_draw(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type, uint vert_idx
     cmdqueue->stats.draw_prim_cnt[draw_id] += vert_cnt;
 }
 
-void gfx_draw_indexed(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
-    uint ib_idx, uint idx_cnt, enum gfx_index_type ib_type, uint draw_id)
+void gfx_draw_indexed(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
+    uint ib_idx, uint idx_cnt, enum gfxIndexType ib_type, uint draw_id)
 {
     cmdqueue->context->IASetPrimitiveTopology((D3D11_PRIMITIVE_TOPOLOGY)type);
     cmdqueue->context->DrawIndexed(idx_cnt, ib_idx, 0);
@@ -322,7 +322,7 @@ void gfx_draw_indexed(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
     cmdqueue->stats.draw_prim_cnt[draw_id] += idx_cnt;
 }
 
-void gfx_draw_instance(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
+void gfx_draw_instance(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
     uint vert_idx, uint vert_cnt, uint instance_cnt, uint draw_id)
 {
     cmdqueue->context->IASetPrimitiveTopology((D3D11_PRIMITIVE_TOPOLOGY)type);
@@ -335,8 +335,8 @@ void gfx_draw_instance(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
     cmdqueue->stats.draw_prim_cnt[draw_id] += prim_cnt;
 }
 
-void gfx_draw_indexedinstance(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
-    uint ib_idx, uint idx_cnt, enum gfx_index_type ib_type, uint instance_cnt,
+void gfx_draw_indexedinstance(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
+    uint ib_idx, uint idx_cnt, enum gfxIndexType ib_type, uint instance_cnt,
     uint draw_id)
 {
     cmdqueue->context->IASetPrimitiveTopology((D3D11_PRIMITIVE_TOPOLOGY)type);
@@ -539,12 +539,12 @@ void gfx_output_clearrendertarget(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
         ID3D11RenderTargetView* rtv;
         ID3D11DepthStencilView* dsv;
         app_d3d_getswapchain_views(&rtv, &dsv);
-        if (BIT_CHECK(flags, GFX_CLEAR_DEPTH) || BIT_CHECK(flags, GFX_CLEAR_STENCIL))   {
+        if (BIT_CHECK(flags, gfxClearFlag::DEPTH) || BIT_CHECK(flags, gfxClearFlag::STENCIL))   {
             cmdqueue->context->ClearDepthStencilView(dsv, flags, depth, stencil);
             cmdqueue->stats.cleards_cnt ++;
         }
 
-        if (BIT_CHECK(flags, GFX_CLEAR_COLOR))  {
+        if (BIT_CHECK(flags, gfxClearFlag::COLOR))  {
              cmdqueue->context->ClearRenderTargetView(rtv, color);
              cmdqueue->stats.clearrt_cnt ++;
         }
@@ -553,7 +553,7 @@ void gfx_output_clearrendertarget(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
     }
     
     if (rt->desc.rt.ds_texture != NULL &&
-        BIT_CHECK(flags, GFX_CLEAR_DEPTH) || BIT_CHECK(flags, GFX_CLEAR_STENCIL))
+        BIT_CHECK(flags, gfxClearFlag::DEPTH) || BIT_CHECK(flags, gfxClearFlag::STENCIL))
     {
         ASSERT(rt->desc.rt.ds_texture);
         ID3D11DepthStencilView* dsv =
@@ -562,7 +562,7 @@ void gfx_output_clearrendertarget(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
         cmdqueue->stats.cleards_cnt ++;
     }
 
-    if (rt->desc.rt.rt_cnt > 0 && BIT_CHECK(flags, GFX_CLEAR_COLOR))  {
+    if (rt->desc.rt.rt_cnt > 0 && BIT_CHECK(flags, gfxClearFlag::COLOR))  {
         uint rt_cnt = rt->desc.rt.rt_cnt;
         for (uint i = 0; i < rt_cnt; i++) {
             ID3D11RenderTargetView* rtv = (ID3D11RenderTargetView*)

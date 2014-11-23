@@ -91,7 +91,7 @@ result_t gfx_blb_init()
     }
 
     /* buffers */
-    g_blb.vbuff = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_DYNAMIC,
+    g_blb.vbuff = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::DYNAMIC,
         sizeof(struct blb_vertex)*BILLBOARDS_BUFF_SIZE, NULL, 0);
     if (g_blb.vbuff == NULL)    {
         err_print(__FILE__, __LINE__, "gfx-billboard init failed: could not create buffers");
@@ -112,17 +112,17 @@ result_t gfx_blb_init()
     struct gfx_blend_desc blend_desc;
     memcpy(&blend_desc, gfx_get_defaultblend(), sizeof(blend_desc));
     blend_desc.enable = TRUE;
-    blend_desc.src_blend = GFX_BLEND_SRC_ALPHA;
-    blend_desc.dest_blend = GFX_BLEND_INV_SRC_ALPHA;
+    blend_desc.src_blend = gfxBlendMode::SRC_ALPHA;
+    blend_desc.dest_blend = gfxBlendMode::INV_SRC_ALPHA;
     g_blb.blend_alpha = gfx_create_blendstate(&blend_desc);
 
     struct gfx_sampler_desc sdesc;
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-    sdesc.address_u = GFX_ADDRESS_WRAP;
-    sdesc.address_v = GFX_ADDRESS_WRAP;
-    sdesc.filter_min = GFX_FILTER_LINEAR;
-    sdesc.filter_mag = GFX_FILTER_LINEAR;
-    sdesc.filter_mip = GFX_FILTER_LINEAR;
+    sdesc.address_u = gfxAddressMode::WRAP;
+    sdesc.address_v = gfxAddressMode::WRAP;
+    sdesc.filter_min = gfxFilterMode::LINEAR;
+    sdesc.filter_mag = gfxFilterMode::LINEAR;
+    sdesc.filter_mip = gfxFilterMode::LINEAR;
     g_blb.sampl_lin = gfx_create_sampler(&sdesc);
     if (g_blb.blend_alpha == NULL || g_blb.sampl_lin == NULL)   {
         err_print(__FILE__, __LINE__, "gfx-billboard init failed: could not create states");
@@ -141,7 +141,7 @@ result_t gfx_blb_init()
     };
 
     g_blb.il = gfx_create_inputlayout(vbuffs, GFX_INPUTVB_GETCNT(vbuffs),
-        inputs, GFX_INPUT_GETCNT(inputs), NULL, GFX_INDEX_UNKNOWN, 0);
+        inputs, GFX_INPUT_GETCNT(inputs), NULL, gfxIndexType::UNKNOWN, 0);
 
     return RET_OK;
 }
@@ -251,7 +251,7 @@ void gfx_blb_render(gfx_cmdqueue cmdqueue, const struct gfx_view_params* params)
         g_blb.tex);
     gfx_shader_bindcblocks(cmdqueue, shader, (const struct gfx_cblock**)&cb_frame, 1);
 
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_POINTLIST, 0, cnt, GFX_DRAWCALL_PARTICLES);
+    gfx_draw(cmdqueue, gfxPrimitiveType::POINT_LIST, 0, cnt, GFX_DRAWCALL_PARTICLES);
 
     gfx_ringbuffer_reset(&g_blb.rbuff);
 

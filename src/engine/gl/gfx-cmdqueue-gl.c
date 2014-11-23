@@ -47,9 +47,9 @@ struct gfx_cmdqueue_s
 /*************************************************************************************************
  * inlines
  */
-INLINE uint get_indextype_size(enum gfx_index_type type)
+INLINE uint get_indextype_size(enum gfxIndexType type)
 {
-	return (type == GFX_INDEX_UINT16) ? sizeof(uint16) : sizeof(uint);
+	return (type == gfxIndexType::UINT16) ? sizeof(uint16) : sizeof(uint);
 }
 
 /*************************************************************************************************
@@ -287,7 +287,7 @@ void output_setrasterstate(gfx_cmdqueue cmdqueue, const struct gfx_rasterizer_de
 	}
 
 	if (desc->cull != r.cull)	{
-		if (desc->cull != GFX_CULL_NONE)	{
+		if (desc->cull != gfxCullMode::NONE)	{
 			glEnable(GL_CULL_FACE);
 			glCullFace((GLenum)desc->cull);
 		}   else    {
@@ -408,7 +408,7 @@ void gfx_buffer_unmap(gfx_cmdqueue cmdqueue, gfx_buffer buffer)
 	glUnmapBuffer(target);
 }
 
-void gfx_draw(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type, uint vert_idx,
+void gfx_draw(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type, uint vert_idx,
 		uint vert_cnt, uint draw_id)
 {
 	glDrawArrays((GLenum)type, (GLint)vert_idx, (GLsizei)vert_cnt);
@@ -419,8 +419,8 @@ void gfx_draw(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type, uint vert_idx
 	cmdqueue->stats.draw_group_cnt[draw_id] ++;
 }
 
-void gfx_draw_indexed(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
-		uint ib_idx, uint idx_cnt, enum gfx_index_type ib_type, uint draw_id)
+void gfx_draw_indexed(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
+		uint ib_idx, uint idx_cnt, enum gfxIndexType ib_type, uint draw_id)
 {
 	glDrawElements((GLenum)type, idx_cnt, (GLenum)ib_type,
 			BUFFER_OFFSET(ib_idx*get_indextype_size(ib_type)));
@@ -431,7 +431,7 @@ void gfx_draw_indexed(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
 	cmdqueue->stats.draw_group_cnt[draw_id] ++;
 }
 
-void gfx_draw_instance(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
+void gfx_draw_instance(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
 		uint vert_idx, uint vert_cnt, uint instance_cnt, uint draw_id)
 {
 	glDrawArraysInstanced((GLenum)type, (GLint)vert_idx, (GLsizei)vert_cnt, instance_cnt);
@@ -442,8 +442,8 @@ void gfx_draw_instance(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
 	cmdqueue->stats.draw_group_cnt[draw_id] ++;
 }
 
-void gfx_draw_indexedinstance(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
-		uint ib_idx, uint idx_cnt, enum gfx_index_type ib_type, uint instance_cnt,
+void gfx_draw_indexedinstance(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
+		uint ib_idx, uint idx_cnt, enum gfxIndexType ib_type, uint instance_cnt,
 		uint draw_id)
 {
 	glDrawElementsInstanced((GLenum)type, idx_cnt, (GLenum)ib_type,
@@ -564,14 +564,14 @@ void gfx_cmdqueue_resetsrvs(gfx_cmdqueue cmdqueue)
 void gfx_output_clearrendertarget(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
     const float color[4], float depth, uint8 stencil, uint flags)
 {
-    if (BIT_CHECK(flags, GFX_CLEAR_DEPTH) || BIT_CHECK(flags, GFX_CLEAR_STENCIL))
+    if (BIT_CHECK(flags, gfxClearFlag::DEPTH) || BIT_CHECK(flags, gfxClearFlag::STENCIL))
     {
         glClearDepth(depth);
         glClearStencil(stencil);
         cmdqueue->stats.cleards_cnt ++;
     }
 
-    if (BIT_CHECK(flags, GFX_CLEAR_COLOR))  {
+    if (BIT_CHECK(flags, gfxClearFlag::COLOR))  {
         glClearColor(color[0], color[1], color[2], color[3]);
         cmdqueue->stats.clearrt_cnt ++;
     }

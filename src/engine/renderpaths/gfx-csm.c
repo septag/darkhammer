@@ -258,7 +258,7 @@ void gfx_csm_render(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
     gfx_output_setviewport(cmdqueue, 0, 0, CSM_SHADOW_SIZE, CSM_SHADOW_SIZE);
     gfx_output_setrasterstate(cmdqueue, g_csm->rs_bias);
     gfx_output_setdepthstencilstate(cmdqueue, g_csm->ds_depth, 0);
-    gfx_output_clearrendertarget(cmdqueue, g_csm->shadow_rt, NULL, 1.0f, 0, GFX_CLEAR_DEPTH);
+    gfx_output_clearrendertarget(cmdqueue, g_csm->shadow_rt, NULL, 1.0f, 0, gfxClearFlag::DEPTH);
 
     struct gfx_cblock* cb_frame = g_csm->cb_frame;
     struct gfx_cblock* cb_frame_gs = g_csm->cb_frame_gs;
@@ -419,7 +419,7 @@ void csm_drawbatchnode(gfx_cmdqueue cmdqueue, struct gfx_batch_node* bnode,
 
     /* draw */
     if (bnode->sub_idx == INVALID_INDEX)    {
-        gfx_draw_indexedinstance(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, 0, geo->tri_cnt*3,
+        gfx_draw_indexedinstance(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, 0, geo->tri_cnt*3,
             geo->ib_type, bnode->instance_cnt, GFX_DRAWCALL_SUNSHADOW);
     }   else    {
         uint mtl_id = mesh->submeshes[bnode->sub_idx].mtl_id;
@@ -430,7 +430,7 @@ void csm_drawbatchnode(gfx_cmdqueue cmdqueue, struct gfx_batch_node* bnode,
         if (is_doublesided)
             gfx_output_setrasterstate(cmdqueue, g_csm->rs_bias_doublesided);
 
-        gfx_draw_indexedinstance(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, subset->ib_idx,
+        gfx_draw_indexedinstance(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, subset->ib_idx,
             subset->idx_cnt, geo->ib_type, bnode->instance_cnt, GFX_DRAWCALL_SUNSHADOW);
 
         /* switch back */
@@ -454,10 +454,10 @@ result_t csm_create_shadowrt(uint width, uint height)
 	appGfxDeviceVersion hwver = gfx_get_hwver();
 	if (hwver == appGfxDeviceVersion::D3D10_0 || hwver == appGfxDeviceVersion::GL3_3 || hwver == appGfxDeviceVersion::GL3_2)
 	{
-		g_csm->shadow_tex = gfx_create_texturert_cube(width, height, GFX_FORMAT_DEPTH32);
+		g_csm->shadow_tex = gfx_create_texturert_cube(width, height, gfxFormat::DEPTH32);
 	}	else	{
 		g_csm->shadow_tex = gfx_create_texturert_arr(width, height, CSM_CASCADE_CNT,
-            GFX_FORMAT_DEPTH32);
+            gfxFormat::DEPTH32);
 	}
 
 	if (g_csm->shadow_tex == NULL)
@@ -481,7 +481,7 @@ void csm_destroy_shadowrt()
 result_t csm_create_prevrt(uint width, uint height)
 {
     for (uint i = 0; i < CSM_CASCADE_CNT; i++)    {
-	    g_csm->prev_tex[i] = gfx_create_texturert(width, height, GFX_FORMAT_RGBA_UNORM, FALSE);
+	    g_csm->prev_tex[i] = gfx_create_texturert(width, height, gfxFormat::RGBA_UNORM, FALSE);
 	    if (g_csm->prev_tex[i] == NULL)
 		    return RET_FAIL;
     }
@@ -599,11 +599,11 @@ result_t csm_create_states()
     struct gfx_rasterizer_desc rdesc;
     memcpy(&rdesc, gfx_get_defaultraster(), sizeof(rdesc));
 
-    rdesc.cull = GFX_CULL_FRONT;
+    rdesc.cull = gfxCullMode::FRONT;
     if ((g_csm->rs_bias = gfx_create_rasterstate(&rdesc)) == NULL)
         return RET_FAIL;
 
-    rdesc.cull = GFX_CULL_NONE;
+    rdesc.cull = gfxCullMode::NONE;
     if ((g_csm->rs_bias_doublesided = gfx_create_rasterstate(&rdesc)) == NULL)
         return RET_FAIL;
 
@@ -619,9 +619,9 @@ result_t csm_create_states()
     /* samplers */
     struct gfx_sampler_desc sdesc;
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-    sdesc.filter_min = GFX_FILTER_LINEAR;
-    sdesc.filter_mag = GFX_FILTER_LINEAR;
-    sdesc.filter_mip = GFX_FILTER_UNKNOWN;
+    sdesc.filter_min = gfxFilterMode::LINEAR;
+    sdesc.filter_mag = gfxFilterMode::LINEAR;
+    sdesc.filter_mip = gfxFilterMode::UNKNOWN;
     g_csm->sampl_linear = gfx_create_sampler(&sdesc);
     if (g_csm->sampl_linear == NULL)
         return RET_FAIL;

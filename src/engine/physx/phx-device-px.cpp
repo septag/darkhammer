@@ -1236,9 +1236,9 @@ struct phx_geo_gpu* phx_creategeo(const struct vec3f* verts, uint vert_cnt,
     geo->tri_cnt = tri_cnt;
     geo->vert_cnt = vert_cnt;
 
-    geo->vb_pos = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_STATIC,
+    geo->vb_pos = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::STATIC,
         sizeof(struct vec3f)*vert_cnt, verts, thread_id);
-    geo->ib = gfx_create_buffer(GFX_BUFFER_INDEX, GFX_MEMHINT_STATIC,
+    geo->ib = gfx_create_buffer(gfxBufferType::INDEX, gfxMemHint::STATIC,
         sizeof(uint16)*tri_cnt*3, indexes, thread_id);
     if (geo->vb_pos == NULL || geo->ib == NULL)  {
         phx_destroygeo(geo);
@@ -1254,7 +1254,7 @@ struct phx_geo_gpu* phx_creategeo(const struct vec3f* verts, uint vert_cnt,
     };
 
     geo->il = gfx_create_inputlayout(vbuffs, GFX_INPUTVB_GETCNT(vbuffs),
-        inputs, GFX_INPUT_GETCNT(inputs), geo->ib, GFX_INDEX_UINT16, thread_id);
+        inputs, GFX_INPUT_GETCNT(inputs), geo->ib, gfxIndexType::UINT16, thread_id);
 
     return geo;
 }
@@ -1455,7 +1455,7 @@ void phx_draw_rigid(phx_obj obj, const struct color* clr)
                 struct phx_geo_gpu* geo = (struct phx_geo_gpu*)((PxShape*)child->api_obj)->userData;
                 mat3_mul(&mfinal, phx_tomat3(&mfinal, ((PxShape*)child->api_obj)->getLocalPose()),
                     &world);
-                gfx_canvas_georaw(geo->il, &mfinal, clr, geo->tri_cnt, GFX_INDEX_UINT16);
+                gfx_canvas_georaw(geo->il, &mfinal, clr, geo->tri_cnt, gfxIndexType::UINT16);
             }
             break;
 

@@ -249,7 +249,7 @@ APP_API void input_mouse_unlockkey(inMouseKey key);
  */
 APP_API void input_mouse_resetlocks();
 
-/* internal */
+// Internal
 result_t input_init();
 void input_release();
 

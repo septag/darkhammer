@@ -341,7 +341,7 @@ class appEvents
 public:
     virtual void on_create() {}
     virtual void on_destroy() {}
-    virtual void on_resize(int width, int height)   {}
+    virtual void on_resize(uint width, uint height)   {}
     virtual void on_activate(bool active)   {}
     virtual void on_keypress(char charcode, uint vkeycodes) {}
     virtual void on_mousedown(int x, int y, appMouseKey key) {}
@@ -351,7 +351,6 @@ public:
 };
 
 APP_API void app_window_setevents(appEvents *events);
-
 #endif
 
 #endif /* __APP_H__ */

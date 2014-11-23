@@ -380,7 +380,7 @@ result_t gfx_deferred_init(uint width, uint height)
 
     /* post-fx */
     g_deferred->downsample = gfx_pfx_downsamplewdepth_create(width/2, height/2,
-        GFX_FORMAT_R16G16_FLOAT, 0);
+        gfxFormat::R16G16_FLOAT, 0);
     if (g_deferred->downsample == NULL) {
         err_print(__FILE__, __LINE__, "gfx-deferred init failed: could not create downsample");
         return RET_FAIL;
@@ -559,7 +559,7 @@ void gfx_deferred_rendergbuffer(gfx_cmdqueue cmdqueue, const struct gfx_view_par
     gfx_cmdqueue_resetsrvs(cmdqueue);
     gfx_output_setrendertarget(cmdqueue, g_deferred->gbuff);
     gfx_output_clearrendertarget(cmdqueue, g_deferred->gbuff, NULL, 1.0f, 0,
-        GFX_CLEAR_DEPTH | GFX_CLEAR_STENCIL);
+        gfxClearFlag::DEPTH | gfxClearFlag::STENCIL);
     /* write value 1 to stencil, if drawn */
     gfx_output_setdepthstencilstate(cmdqueue, g_deferred->ds_gbuff, 1);
     gfx_output_setviewport(cmdqueue, 0, 0, params->width, params->height);
@@ -912,7 +912,7 @@ void deferred_drawbatchnode(gfx_cmdqueue cmdqueue, struct gfx_batch_node* bnode,
     }
 
     /* draw */
-    gfx_draw_indexedinstance(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, subset->ib_idx, subset->idx_cnt,
+    gfx_draw_indexedinstance(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, subset->ib_idx, subset->idx_cnt,
         geo->ib_type, bnode->instance_cnt, GFX_DRAWCALL_GBUFFER);
 }
 
@@ -920,14 +920,14 @@ result_t deferred_creategbuffrt(uint width, uint height)
 {
     /* textures */
     g_deferred->gbuff_tex[DEFERRED_GBUFFER_ALBEDO] =
-        gfx_create_texturert(width, height, GFX_FORMAT_RGBA_UNORM, FALSE);
+        gfx_create_texturert(width, height, gfxFormat::RGBA_UNORM, FALSE);
     g_deferred->gbuff_tex[DEFERRED_GBUFFER_NORMAL] =
-        gfx_create_texturert(width, height, GFX_FORMAT_R16G16_FLOAT, FALSE);
+        gfx_create_texturert(width, height, gfxFormat::R16G16_FLOAT, FALSE);
     g_deferred->gbuff_tex[DEFERRED_GBUFFER_MTL] =
-        gfx_create_texturert(width, height, GFX_FORMAT_R16G16_UINT, FALSE);
+        gfx_create_texturert(width, height, gfxFormat::R16G16_UINT, FALSE);
     g_deferred->gbuff_tex[DEFERRED_GBUFFER_EXTRA] =
-        gfx_create_texturert(width, height, GFX_FORMAT_R16G16_FLOAT, FALSE);
-    g_deferred->gbuff_depthtex = gfx_create_texturert(width, height, GFX_FORMAT_DEPTH24_STENCIL8,
+        gfx_create_texturert(width, height, gfxFormat::R16G16_FLOAT, FALSE);
+    g_deferred->gbuff_depthtex = gfx_create_texturert(width, height, gfxFormat::DEPTH24_STENCIL8,
         FALSE);
 
     if (g_deferred->gbuff_tex[0] == NULL ||
@@ -978,18 +978,18 @@ result_t deferred_createstates()
     memcpy(&dsdesc, gfx_get_defaultdepthstencil(), sizeof(dsdesc));
     dsdesc.depth_enable = TRUE;
     dsdesc.depth_write = TRUE;
-    dsdesc.depth_func = GFX_CMP_LESS;
+    dsdesc.depth_func = gfxCmpFunc::LESS;
     dsdesc.stencil_enable = /*TRUE*/FALSE;
-    dsdesc.stencil_frontface_desc.cmp_func = GFX_CMP_ALWAYS;
-    dsdesc.stencil_frontface_desc.pass_op = GFX_STENCILOP_REPLACE;
+    dsdesc.stencil_frontface_desc.cmp_func = gfxCmpFunc::ALWAYS;
+    dsdesc.stencil_frontface_desc.pass_op = gfxStencilOp::REPLACE;
     g_deferred->ds_gbuff = gfx_create_depthstencilstate(&dsdesc);
     if (g_deferred->ds_gbuff == NULL)
         return RET_FAIL;
 
     memcpy(&dsdesc, gfx_get_defaultdepthstencil(), sizeof(dsdesc));
     dsdesc.stencil_enable = /*TRUE*/FALSE;
-    dsdesc.stencil_frontface_desc.cmp_func = GFX_CMP_EQUAL;
-    dsdesc.stencil_frontface_desc.pass_op = GFX_STENCILOP_KEEP;
+    dsdesc.stencil_frontface_desc.cmp_func = gfxCmpFunc::EQUAL;
+    dsdesc.stencil_frontface_desc.pass_op = gfxStencilOp::KEEP;
     g_deferred->ds_nodepth_stest = gfx_create_depthstencilstate(&dsdesc);
     if (g_deferred->ds_nodepth_stest == NULL)
         return RET_FAIL;
@@ -997,12 +997,12 @@ result_t deferred_createstates()
     /* samplers */
     struct gfx_sampler_desc sdesc;
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-    sdesc.filter_mip = GFX_FILTER_UNKNOWN;
-    sdesc.filter_min = GFX_FILTER_NEAREST;
-    sdesc.filter_mag = GFX_FILTER_NEAREST;
-    sdesc.address_u = GFX_ADDRESS_CLAMP;
-    sdesc.address_v = GFX_ADDRESS_CLAMP;
-    sdesc.address_w = GFX_ADDRESS_CLAMP;
+    sdesc.filter_mip = gfxFilterMode::UNKNOWN;
+    sdesc.filter_min = gfxFilterMode::NEAREST;
+    sdesc.filter_mag = gfxFilterMode::NEAREST;
+    sdesc.address_u = gfxAddressMode::CLAMP;
+    sdesc.address_v = gfxAddressMode::CLAMP;
+    sdesc.address_w = gfxAddressMode::CLAMP;
     g_deferred->sampl_point = gfx_create_sampler(&sdesc);
     if (g_deferred->sampl_point == NULL)
         return RET_FAIL;
@@ -1011,9 +1011,9 @@ result_t deferred_createstates()
     struct gfx_blend_desc bdesc;
     memcpy(&bdesc, gfx_get_defaultblend(), sizeof(bdesc));
     bdesc.enable = TRUE;
-    bdesc.color_op = GFX_BLENDOP_ADD;
-    bdesc.dest_blend = GFX_BLEND_ONE;
-    bdesc.src_blend = GFX_BLEND_ONE;
+    bdesc.color_op = gfxBlendOp::ADD;
+    bdesc.dest_blend = gfxBlendMode::ONE;
+    bdesc.src_blend = gfxBlendMode::ONE;
     g_deferred->blend_add = gfx_create_blendstate(&bdesc);
     if (g_deferred->blend_add == NULL)
         return RET_FAIL;
@@ -1045,7 +1045,7 @@ void deferred_destroystates()
 
 result_t deferred_createprevbuffrt(uint width, uint height)
 {
-    g_deferred->prev_tex = gfx_create_texturert(width, height, GFX_FORMAT_RGBA_UNORM, FALSE);
+    g_deferred->prev_tex = gfx_create_texturert(width, height, gfxFormat::RGBA_UNORM, FALSE);
     if (g_deferred->prev_tex == NULL)
         return RET_FAIL;
 
@@ -1342,7 +1342,7 @@ void deferred_unload_light_shaders()
 
 result_t deferred_createlitrt(uint width, uint height)
 {
-    g_deferred->lit_tex = gfx_create_texturert(width, height, GFX_FORMAT_R11G11B10_FLOAT, FALSE);
+    g_deferred->lit_tex = gfx_create_texturert(width, height, gfxFormat::R11G11B10_FLOAT, FALSE);
     if (g_deferred->lit_tex == NULL)
         return RET_FAIL;
 
@@ -1435,7 +1435,7 @@ void deferred_renderlocallights(gfx_cmdqueue cmdqueue, const struct gfx_view_par
             sizeof(struct deferred_shader_tile) * (max_i-i));
         gfx_shader_updatecblock(cmdqueue, g_deferred->cb_light);
 
-        gfx_draw_instance(cmdqueue, GFX_PRIMITIVE_TRIANGLESTRIP, 0, 4, max_i - i,
+        gfx_draw_instance(cmdqueue, gfxPrimitiveType::TRIANGLE_STRIP, 0, 4, max_i - i,
             GFX_DRAWCALL_LIGHTING);
 
         i += DEFERRED_LIGHTS_TILES_MAX;
@@ -1461,7 +1461,7 @@ void deferred_renderlights(gfx_cmdqueue cmdqueue, const struct gfx_view_params* 
     gfx_cmdqueue_resetsrvs(cmdqueue);
     gfx_output_setrendertarget(cmdqueue, g_deferred->lit_rt);
     gfx_output_clearrendertarget(cmdqueue, g_deferred->lit_rt, clear_color.f, 1.0f, 0,
-        GFX_CLEAR_COLOR);
+        gfxClearFlag::COLOR);
     gfx_output_setviewport(cmdqueue, 0, 0, g_deferred->width, g_deferred->height);
 
     /* push materials to gpu */
@@ -2082,7 +2082,7 @@ result_t deferred_createtilequad()
 #endif
 
 
-    g_deferred->tile_buff = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_STATIC,
+    g_deferred->tile_buff = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::STATIC,
         sizeof(struct deferred_tile_vertex)*4, verts, 0);
     if (g_deferred->tile_buff == NULL)
         return RET_FAIL;
@@ -2097,7 +2097,7 @@ result_t deferred_createtilequad()
     };
 
     g_deferred->tile_il = gfx_create_inputlayout(vbuffs, GFX_INPUTVB_GETCNT(vbuffs),
-        inputs, GFX_INPUT_GETCNT(inputs), NULL, GFX_INDEX_UNKNOWN, 0);
+        inputs, GFX_INPUT_GETCNT(inputs), NULL, gfxIndexType::UNKNOWN, 0);
     if (g_deferred->tile_il == NULL)
         return RET_FAIL;
     return RET_OK;

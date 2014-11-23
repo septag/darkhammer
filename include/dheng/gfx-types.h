@@ -199,26 +199,26 @@ struct gfx_shader_define
 struct gfx_blend_desc
 {
     int enable;
-    enum gfx_blend_mode src_blend;
-    enum gfx_blend_mode dest_blend;
-    enum gfx_blend_op color_op;
+    enum gfxBlendMode src_blend;
+    enum gfxBlendMode dest_blend;
+    enum gfxBlendOp color_op;
     uint8 write_mask;	/* enum gfx_color_write combination */
 };
 
 
 struct gfx_stencilop_desc
 {
-    enum gfx_stencil_op fail_op;
-    enum gfx_stencil_op depthfail_op;
-    enum gfx_stencil_op pass_op;
-    enum gfx_cmp_func cmp_func;
+    enum gfxStencilOp fail_op;
+    enum gfxStencilOp depthfail_op;
+    enum gfxStencilOp pass_op;
+    enum gfxCmpFunc cmp_func;
 };
 
 struct gfx_depthstencil_desc
 {
     int depth_enable;
     int depth_write;
-    enum gfx_cmp_func depth_func;
+    enum gfxCmpFunc depth_func;
 
     int stencil_enable;
     uint stencil_mask;
@@ -244,7 +244,7 @@ struct gfx_device_info
 struct gfx_input_element
 {
 	enum gfx_input_element_id id;
-	enum gfx_input_element_fmt fmt;	/* format of single component */
+	enum gfxInputElemFormat fmt;	/* format of single component */
 	int component_cnt;	/* number of components in element */
 	int stride;	/* can be 0 if it's packed */
 };
@@ -281,14 +281,14 @@ struct gfx_box
 
 struct gfx_sampler_desc
 {
-    enum gfx_filter_mode filter_min;
-    enum gfx_filter_mode filter_mag;
-    enum gfx_filter_mode filter_mip;
-    enum gfx_address_mode address_u;
-    enum gfx_address_mode address_v;
-    enum gfx_address_mode address_w;
+    enum gfxFilterMode filter_min;
+    enum gfxFilterMode filter_mag;
+    enum gfxFilterMode filter_mip;
+    enum gfxAddressMode address_u;
+    enum gfxAddressMode address_v;
+    enum gfxAddressMode address_w;
     uint aniso_max;
-    enum gfx_cmp_func cmp_func;
+    enum gfxCmpFunc cmp_func;
     float border_color[4];
     int lod_min;
     int lod_max;
@@ -296,8 +296,8 @@ struct gfx_sampler_desc
 
 struct gfx_rasterizer_desc
 {
-    enum gfx_fill_mode fill;
-    enum gfx_cull_mode cull;
+    enum gfxFillMode fill;
+    enum gfxCullMode cull;
     float depth_bias;
     float slopescaled_depthbias;
     int scissor_test;
@@ -385,11 +385,11 @@ struct gfx_obj_desc
 
         /* textures */
         struct  {
-        	enum gfx_texture_type type;
+        	enum gfxTextureType type;
             uint width;
             uint height;
             uint depth;	/* .. same as array count (if not=1 then we have array/3d tex) */
-            enum gfx_format fmt;
+            enum gfxFormat fmt;
             int has_alpha;
             void* d3d_srv;
             void* d3d_rtv;
@@ -402,7 +402,7 @@ struct gfx_obj_desc
 
         /* buffers */
         struct	{
-        	enum gfx_buffer_type type;
+        	enum gfxBufferType type;
             void* d3d_srv;  /* d3d tbuffers */
             uint gl_tbuff; /* gl tbuffer texture */
             uint alignment;   /* buffer mapping alignment */
@@ -415,7 +415,7 @@ struct gfx_obj_desc
             uint strides[GFX_INPUTELEMENT_ID_CNT];
             uint vbuff_cnt;
         	void* ibuff;	/* type = gfx_obj */
-            enum gfx_index_type idxfmt;
+            enum gfxIndexType idxfmt;
         } il;
 
         /* render targets */

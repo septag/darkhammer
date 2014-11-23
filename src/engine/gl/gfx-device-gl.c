@@ -76,22 +76,22 @@ struct gfx_dev_delayed_item
 
     union   {
         struct {
-            enum gfx_buffer_type type;
-            enum gfx_mem_hint memhint;
+            enum gfxBufferType type;
+            enum gfxMemHint memhint;
             uint size;
             void* data;
         } buff;
 
         struct {
-            enum gfx_texture_type type;
+            enum gfxTextureType type;
             uint width;
             uint height;
             uint depth;
-            enum gfx_format fmt;
+            enum gfxFormat fmt;
             uint mip_cnt;
             uint array_size;
             uint total_size;
-            enum gfx_mem_hint memhint;
+            enum gfxMemHint memhint;
             void* data;
             struct gfx_subresource_data* subress;
         } tex;
@@ -102,7 +102,7 @@ struct gfx_dev_delayed_item
             struct gfx_input_vbuff_desc* vbuffs;
             struct gfx_input_element_binding* inputs;
             gfx_buffer idxbuffer;
-            enum gfx_index_type itype;
+            enum gfxIndexType itype;
             void* data;
         } il;
     } params;
@@ -141,22 +141,22 @@ void APIENTRY gfx_debug_callback(GLenum source, GLenum type, GLuint id, GLenum s
 		GLsizei length, const GLchar* message, GLvoid* userParam);
 void shader_make_defines(char* define_code,
 		const struct gfx_shader_define* defines, uint define_cnt);
-int texture_is_compressed(enum gfx_format fmt);
-GLenum texture_get_glformat(enum gfx_format fmt, OUT GLenum* type, OUT GLenum* internal_fmt);
-int texture_has_alpha(enum gfx_format fmt);
+int texture_is_compressed(enum gfxFormat fmt);
+GLenum texture_get_glformat(enum gfxFormat fmt, OUT GLenum* type, OUT GLenum* internal_fmt);
+int texture_has_alpha(enum gfxFormat fmt);
 
-GLuint gfx_create_buffer_gl(enum gfx_buffer_type type, enum gfx_mem_hint memhint,
+GLuint gfx_create_buffer_gl(enum gfxBufferType type, enum gfxMemHint memhint,
                             uint size, const void* data);
-GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height, uint depth,
-                             enum gfx_format fmt, uint mip_cnt, uint array_size, uint total_size,
-                             const struct gfx_subresource_data* data, enum gfx_mem_hint memhint);
+GLuint gfx_create_texture_gl(enum gfxTextureType type, uint width, uint height, uint depth,
+                             enum gfxFormat fmt, uint mip_cnt, uint array_size, uint total_size,
+                             const struct gfx_subresource_data* data, enum gfxMemHint memhint);
 
-gfx_texture gfx_delayed_createtexture(enum gfx_texture_type type, uint width, uint height,
-                                      uint depth, enum gfx_format fmt, uint mip_cnt,
+gfx_texture gfx_delayed_createtexture(enum gfxTextureType type, uint width, uint height,
+                                      uint depth, enum gfxFormat fmt, uint mip_cnt,
                                       uint array_size, uint total_size,
                                       const struct gfx_subresource_data* data,
-                                      enum gfx_mem_hint memhint, uint thread_id);
-gfx_buffer gfx_delayed_createbuffer(enum gfx_buffer_type type, enum gfx_mem_hint memhint,
+                                      enum gfxMemHint memhint, uint thread_id);
+gfx_buffer gfx_delayed_createbuffer(enum gfxBufferType type, enum gfxMemHint memhint,
                                     uint size, const void* data, uint thread_id);
 void gfx_delayed_releaseitem(struct gfx_dev_delayed_item* citem);
 struct gfx_dev_delayed_signal* gfx_delayed_getsignal(uint thread_id);
@@ -194,20 +194,20 @@ INLINE void shader_output_error(GLuint shader)
 	err_printf(__FILE__, __LINE__, "glsl-compiler failed: %s", err_info);
 }
 
-INLINE GLenum sampler_choose_minfiter(enum gfx_filter_mode min_filter,
-    enum gfx_filter_mode mip_filter)
+INLINE GLenum sampler_choose_minfiter(enum gfxFilterMode min_filter,
+    enum gfxFilterMode mip_filter)
 {
-	if (min_filter == GFX_FILTER_LINEAR && mip_filter == GFX_FILTER_LINEAR)
+	if (min_filter == gfxFilterMode::LINEAR && mip_filter == gfxFilterMode::LINEAR)
 		return GL_LINEAR_MIPMAP_LINEAR;
-	else if (min_filter == GFX_FILTER_LINEAR && mip_filter == GFX_FILTER_NEAREST)
+	else if (min_filter == gfxFilterMode::LINEAR && mip_filter == gfxFilterMode::NEAREST)
 		return GL_LINEAR_MIPMAP_NEAREST;
-	else if (min_filter == GFX_FILTER_NEAREST && mip_filter == GFX_FILTER_NEAREST)
+	else if (min_filter == gfxFilterMode::NEAREST && mip_filter == gfxFilterMode::NEAREST)
 		return GL_NEAREST_MIPMAP_NEAREST;
-	else if (min_filter == GFX_FILTER_NEAREST && mip_filter == GFX_FILTER_LINEAR)
+	else if (min_filter == gfxFilterMode::NEAREST && mip_filter == gfxFilterMode::LINEAR)
 		return GL_NEAREST_MIPMAP_LINEAR;
-	else if (min_filter == GFX_FILTER_LINEAR && mip_filter == GFX_FILTER_UNKNOWN)
+	else if (min_filter == gfxFilterMode::LINEAR && mip_filter == gfxFilterMode::UNKNOWN)
 		return GL_LINEAR;
-	else if (min_filter == GFX_FILTER_NEAREST && mip_filter == GFX_FILTER_UNKNOWN)
+	else if (min_filter == gfxFilterMode::NEAREST && mip_filter == gfxFilterMode::UNKNOWN)
 		return GL_NEAREST;
 	else
 		return GL_NEAREST;
@@ -216,17 +216,17 @@ INLINE GLenum sampler_choose_minfiter(enum gfx_filter_mode min_filter,
 INLINE const struct gfx_input_element* get_elem(enum gfx_input_element_id id)
 {
 	static const struct gfx_input_element elems[] = {
-			{GFX_INPUTELEMENT_ID_POSITION, GFX_INPUTELEMENT_FMT_FLOAT, 4, sizeof(struct vec4f)},
-			{GFX_INPUTELEMENT_ID_NORMAL, GFX_INPUTELEMENT_FMT_FLOAT, 3, sizeof(struct vec4f)},
-            {GFX_INPUTELEMENT_ID_TEXCOORD0, GFX_INPUTELEMENT_FMT_FLOAT, 2, sizeof(struct vec2f)},
-			{GFX_INPUTELEMENT_ID_TANGENT, GFX_INPUTELEMENT_FMT_FLOAT, 3, sizeof(struct vec4f)},
-			{GFX_INPUTELEMENT_ID_BINORMAL, GFX_INPUTELEMENT_FMT_FLOAT, 3, sizeof(struct vec4f)},
-            {GFX_INPUTELEMENT_ID_BLENDINDEX, GFX_INPUTELEMENT_FMT_INT, 4, sizeof(struct vec4i)},
-            {GFX_INPUTELEMENT_ID_BLENDWEIGHT, GFX_INPUTELEMENT_FMT_FLOAT, 4, sizeof(struct vec4f)},
-			{GFX_INPUTELEMENT_ID_TEXCOORD1, GFX_INPUTELEMENT_FMT_FLOAT, 2, sizeof(struct vec2f)},
-			{GFX_INPUTELEMENT_ID_TEXCOORD2, GFX_INPUTELEMENT_FMT_FLOAT, 4, sizeof(struct vec4f)},
-			{GFX_INPUTELEMENT_ID_TEXCOORD3, GFX_INPUTELEMENT_FMT_FLOAT, 4, sizeof(struct vec4f)},
-			{GFX_INPUTELEMENT_ID_COLOR, GFX_INPUTELEMENT_FMT_FLOAT, 4, sizeof(struct color)}
+			{GFX_INPUTELEMENT_ID_POSITION, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+			{GFX_INPUTELEMENT_ID_NORMAL, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
+            {GFX_INPUTELEMENT_ID_TEXCOORD0, gfxInputElemFormat::FLOAT, 2, sizeof(struct vec2f)},
+			{GFX_INPUTELEMENT_ID_TANGENT, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
+			{GFX_INPUTELEMENT_ID_BINORMAL, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
+            {GFX_INPUTELEMENT_ID_BLENDINDEX, gfxInputElemFormat::INT, 4, sizeof(struct vec4i)},
+            {GFX_INPUTELEMENT_ID_BLENDWEIGHT, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+			{GFX_INPUTELEMENT_ID_TEXCOORD1, gfxInputElemFormat::FLOAT, 2, sizeof(struct vec2f)},
+			{GFX_INPUTELEMENT_ID_TEXCOORD2, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+			{GFX_INPUTELEMENT_ID_TEXCOORD3, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+			{GFX_INPUTELEMENT_ID_COLOR, gfxInputElemFormat::FLOAT, 4, sizeof(struct color)}
 	};
 	static const uint elem_cnt = sizeof(elems)/sizeof(struct gfx_input_element);
 
@@ -351,7 +351,7 @@ void gfx_releasedev()
 
 gfx_inputlayout gfx_delayed_createinputlayout(const struct gfx_input_vbuff_desc* vbuffs,
     uint vbuff_cnt, const struct gfx_input_element_binding* inputs, uint input_cnt,
-    OPTIONAL gfx_buffer idxbuffer, OPTIONAL enum gfx_index_type itype, uint thread_id)
+    OPTIONAL gfx_buffer idxbuffer, OPTIONAL enum gfxIndexType itype, uint thread_id)
 {
     struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)
         ALLOC(sizeof(struct gfx_dev_delayed_item), MID_GFX);
@@ -406,7 +406,7 @@ gfx_inputlayout gfx_delayed_createinputlayout(const struct gfx_input_vbuff_desc*
 
 GLuint gfx_create_inputlayout_gl(const struct gfx_input_vbuff_desc* vbuffs,
     uint vbuff_cnt, const struct gfx_input_element_binding* inputs,
-    uint input_cnt, gfx_buffer idxbuffer, enum gfx_index_type itype)
+    uint input_cnt, gfx_buffer idxbuffer, enum gfxIndexType itype)
 {
     glGetError();
 
@@ -426,7 +426,7 @@ GLuint gfx_create_inputlayout_gl(const struct gfx_input_vbuff_desc* vbuffs,
         GLuint vert_att_idx = (uint)elem_id;
 
         glEnableVertexAttribArray(vert_att_idx);
-        if (elem->fmt == GFX_INPUTELEMENT_FMT_FLOAT)    {
+        if (elem->fmt == gfxInputElemFormat::FLOAT)    {
             glVertexAttribPointer(vert_att_idx, elem->component_cnt,
                 (GLenum)elem->fmt,
                 GL_FALSE, (GLsizei)vbuffs[vb_idx].stride,
@@ -454,7 +454,7 @@ GLuint gfx_create_inputlayout_gl(const struct gfx_input_vbuff_desc* vbuffs,
 gfx_inputlayout gfx_create_inputlayout(const struct gfx_input_vbuff_desc* vbuffs, uint vbuff_cnt,
                                        const struct gfx_input_element_binding* inputs,
                                        uint input_cnt, OPTIONAL gfx_buffer idxbuffer,
-                                       OPTIONAL enum gfx_index_type itype, uint thread_id)
+                                       OPTIONAL enum gfxIndexType itype, uint thread_id)
 {
     if (thread_id != 0) {
         return gfx_delayed_createinputlayout(vbuffs, vbuff_cnt, inputs, input_cnt, idxbuffer, itype,
@@ -955,7 +955,7 @@ void gfx_delayed_releaseitem(struct gfx_dev_delayed_item* citem)
     FREE(citem);
 }
 
-gfx_buffer gfx_create_buffer(enum gfx_buffer_type type, enum gfx_mem_hint memhint,
+gfx_buffer gfx_create_buffer(enum gfxBufferType type, enum gfxMemHint memhint,
 		uint size, const void* data, uint thread_id)
 {
     if (thread_id != 0)
@@ -967,7 +967,7 @@ gfx_buffer gfx_create_buffer(enum gfx_buffer_type type, enum gfx_mem_hint memhin
 
     /* create tbuffer texture for SHADERTEXTURE types */
     GLuint tbuff = 0;
-    if (type == GFX_BUFFER_SHADERTEXTURE)   {
+    if (type == gfxBufferType::SHADER_TEXTURE)   {
         glGenTextures(1, &tbuff);
         glBindTexture(GL_TEXTURE_BUFFER, tbuff);
         glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, buff_id);
@@ -990,7 +990,7 @@ gfx_buffer gfx_create_buffer(enum gfx_buffer_type type, enum gfx_mem_hint memhin
 }
 
 /* runs in loader thread */
-gfx_buffer gfx_delayed_createbuffer(enum gfx_buffer_type type, enum gfx_mem_hint memhint,
+gfx_buffer gfx_delayed_createbuffer(enum gfxBufferType type, enum gfxMemHint memhint,
                                     uint size, const void* data, uint thread_id)
 {
     struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)
@@ -1028,7 +1028,7 @@ gfx_buffer gfx_delayed_createbuffer(enum gfx_buffer_type type, enum gfx_mem_hint
     return obj;
 }
 
-GLuint gfx_create_buffer_gl(enum gfx_buffer_type type, enum gfx_mem_hint memhint,
+GLuint gfx_create_buffer_gl(enum gfxBufferType type, enum gfxMemHint memhint,
                             uint size, const void* data)
 {
     glGetError();
@@ -1065,14 +1065,14 @@ void gfx_destroy_buffer(gfx_buffer buff)
 const struct gfx_sampler_desc* gfx_get_defaultsampler()
 {
 	const static struct gfx_sampler_desc desc = {
-			GFX_FILTER_LINEAR,
-			GFX_FILTER_LINEAR,
-			GFX_FILTER_NEAREST,
-			GFX_ADDRESS_WRAP,
-			GFX_ADDRESS_WRAP,
-			GFX_ADDRESS_WRAP,
+			gfxFilterMode::LINEAR,
+			gfxFilterMode::LINEAR,
+			gfxFilterMode::NEAREST,
+			gfxAddressMode::WRAP,
+			gfxAddressMode::WRAP,
+			gfxAddressMode::WRAP,
 			1,
-			GFX_CMP_OFF,
+			gfxCmpFunc::OFF,
 			{0.0f, 0.0f, 0.0f, 0.0f},
 			-1000,
 			1000
@@ -1092,7 +1092,7 @@ gfx_sampler gfx_create_sampler(const struct gfx_sampler_desc* desc)
 	glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, (GLint)desc->address_u);
 	glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, (GLint)desc->address_v);
 	glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_R, (GLint)desc->address_w);
-	if (desc->cmp_func != GFX_CMP_OFF)	{
+	if (desc->cmp_func != gfxCmpFunc::OFF)	{
 		glSamplerParameteri(sampler_id, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 		glSamplerParameteri(sampler_id, GL_TEXTURE_COMPARE_FUNC, (GLint)desc->cmp_func);
 	}	else	{
@@ -1120,9 +1120,9 @@ void gfx_destroy_sampler(gfx_sampler sampler)
 }
 
 
-gfx_texture gfx_create_texture(enum gfx_texture_type type, uint width, uint height, uint depth,
-		enum gfx_format fmt, uint mip_cnt, uint array_size, uint total_size,
-		const struct gfx_subresource_data* data, enum gfx_mem_hint memhint, uint thread_id)
+gfx_texture gfx_create_texture(enum gfxTextureType type, uint width, uint height, uint depth,
+		enum gfxFormat fmt, uint mip_cnt, uint array_size, uint total_size,
+		const struct gfx_subresource_data* data, enum gfxMemHint memhint, uint thread_id)
 {
 	ASSERT(array_size == 1);	/* not implemented yet */
 
@@ -1159,11 +1159,11 @@ gfx_texture gfx_create_texture(enum gfx_texture_type type, uint width, uint heig
 	return obj;
 }
 
-gfx_texture gfx_delayed_createtexture(enum gfx_texture_type type, uint width, uint height,
-                                      uint depth, enum gfx_format fmt, uint mip_cnt,
+gfx_texture gfx_delayed_createtexture(enum gfxTextureType type, uint width, uint height,
+                                      uint depth, enum gfxFormat fmt, uint mip_cnt,
                                       uint array_size, uint total_size,
                                       const struct gfx_subresource_data* data,
-                                      enum gfx_mem_hint memhint, uint thread_id)
+                                      enum gfxMemHint memhint, uint thread_id)
 {
     struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)
     ALLOC(sizeof(struct gfx_dev_delayed_item), MID_GFX);
@@ -1262,7 +1262,7 @@ struct gfx_dev_delayed_signal* gfx_delayed_getsignal(uint thread_id)
 }
 
 
-gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt,
+gfx_texture gfx_create_texturert(uint width, uint height, enum gfxFormat fmt,
     int has_mipmap)
 {
 	GLenum gl_fmt;
@@ -1290,7 +1290,7 @@ gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt,
 	}
 
 	gfx_texture obj = create_obj((uptr_t)tex_id, GFX_OBJ_TEXTURE);
-	obj->desc.tex.type = GFX_TEXTURE_2D;
+	obj->desc.tex.type = gfxTextureType::TEX_2D;
 	obj->desc.tex.fmt = fmt;
 	obj->desc.tex.width = width;
 	obj->desc.tex.height = height;
@@ -1307,9 +1307,9 @@ gfx_texture gfx_create_texturert(uint width, uint height, enum gfx_format fmt,
 }
 
 
-GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height, uint depth,
-                             enum gfx_format fmt, uint mip_cnt, uint array_size, uint total_size,
-                             const struct gfx_subresource_data* data, enum gfx_mem_hint memhint)
+GLuint gfx_create_texture_gl(enum gfxTextureType type, uint width, uint height, uint depth,
+                             enum gfxFormat fmt, uint mip_cnt, uint array_size, uint total_size,
+                             const struct gfx_subresource_data* data, enum gfxMemHint memhint)
 {
     glGetError();
 
@@ -1333,7 +1333,7 @@ GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height
         gl_fmt = texture_get_glformat(fmt, &gl_type, &gl_internal);
 
     switch (type)   {
-    case GFX_TEXTURE_1D:
+    case gfxTextureType::TEX_1D:
         if (is_compressed)  {
             for (i = 0; i < mip_cnt; i++)   {
                 glCompressedTexImage1D((GLenum)type, (GLint)i, (GLenum)fmt, (GLsizei)w, 0,
@@ -1347,7 +1347,7 @@ GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height
                 w = maxui(1, w >> 1);
             }
         }
-    case GFX_TEXTURE_2D:
+    case gfxTextureType::TEX_2D:
         if (is_compressed)  {
             for (i = 0; i < mip_cnt; i++)   {
                 glCompressedTexImage2D((GLenum)type, (GLint)i, (GLenum)fmt, (GLsizei)w,
@@ -1364,7 +1364,7 @@ GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height
             }
         }
         break;
-    case GFX_TEXTURE_3D:
+    case gfxTextureType::TEX_3D:
         if (is_compressed)  {
             for (i = 0; i < mip_cnt; i++)   {
                 glCompressedTexImage3D((GLenum)type, (GLint)i, (GLenum)fmt, (GLsizei)w, (GLsizei)h,
@@ -1381,7 +1381,7 @@ GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height
             }
         }
         break;
-    case GFX_TEXTURE_CUBE:
+    case gfxTextureType::TEX_CUBE:
         if (is_compressed)  {
             for (c = 0; c < 6; c++)     {
                 w = width;
@@ -1425,7 +1425,7 @@ GLuint gfx_create_texture_gl(enum gfx_texture_type type, uint width, uint height
 }
 
 gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
-		enum gfx_format fmt)
+		enum gfxFormat fmt)
 {
 	ASSERT(arr_cnt > 1);
 
@@ -1447,7 +1447,7 @@ gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
 	}
 
 	gfx_texture obj = create_obj((uptr_t)tex_id, GFX_OBJ_TEXTURE);
-	obj->desc.tex.type = GFX_TEXTURE_2D_ARRAY;
+	obj->desc.tex.type = gfxTextureType::TEX_2D_ARRAY;
 	obj->desc.tex.fmt = fmt;
 	obj->desc.tex.width = width;
 	obj->desc.tex.height = height;
@@ -1463,7 +1463,7 @@ gfx_texture gfx_create_texturert_arr(uint width, uint height, uint arr_cnt,
 	return obj;
 }
 
-gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format fmt)
+gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfxFormat fmt)
 {
 	GLenum gl_fmt;
 	GLenum gl_type;
@@ -1489,7 +1489,7 @@ gfx_texture gfx_create_texturert_cube(uint width, uint height, enum gfx_format f
 	}
 
 	gfx_texture obj = create_obj((uptr_t)tex_id, GFX_OBJ_TEXTURE);
-	obj->desc.tex.type = GFX_TEXTURE_CUBE;
+	obj->desc.tex.type = gfxTextureType::TEX_CUBE;
 	obj->desc.tex.fmt = fmt;
 	obj->desc.tex.width = width;
 	obj->desc.tex.height = height;
@@ -1557,17 +1557,17 @@ gfx_rendertarget gfx_create_rendertarget(gfx_texture* rt_textures, uint rt_cnt,
 
 	/* depth - render target */
 	if (ds_texture != NULL)	{
-		enum gfx_format dsfmt = ds_texture->desc.tex.fmt;
-		GLenum attachment = (dsfmt == GFX_FORMAT_DEPTH24_STENCIL8) ? GL_DEPTH_STENCIL_ATTACHMENT :
+		enum gfxFormat dsfmt = ds_texture->desc.tex.fmt;
+		GLenum attachment = (dsfmt == gfxFormat::DEPTH24_STENCIL8) ? GL_DEPTH_STENCIL_ATTACHMENT :
 				GL_DEPTH_ATTACHMENT;
 
 		switch (ds_texture->desc.tex.type)	{
-		case GFX_TEXTURE_2D:
+		case gfxTextureType::TEX_2D:
 			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D,
 					(GLuint)ds_texture->api_obj, 0);
 			break;
-		case GFX_TEXTURE_CUBE:
-        case GFX_TEXTURE_2D_ARRAY:
+		case gfxTextureType::TEX_CUBE:
+        case gfxTextureType::TEX_2D_ARRAY:
 			glFramebufferTexture(GL_DRAW_FRAMEBUFFER, attachment, (GLuint)ds_texture->api_obj, 0);
 			break;
         default:
@@ -1602,175 +1602,175 @@ void gfx_destroy_rendertarget(gfx_rendertarget rt)
 	destroy_obj(rt);
 }
 
-int texture_is_compressed(enum gfx_format fmt)
+int texture_is_compressed(enum gfxFormat fmt)
 {
 	switch (fmt)	{
-	case GFX_FORMAT_BC1:
-	case GFX_FORMAT_BC1_SRGB:
-	case GFX_FORMAT_BC2:
-	case GFX_FORMAT_BC2_SRGB:
-	case GFX_FORMAT_BC3:
-	case GFX_FORMAT_BC3_SRGB:
-	case GFX_FORMAT_BC4:
-	case GFX_FORMAT_BC4_SNORM:
-	case GFX_FORMAT_BC5:
-	case GFX_FORMAT_BC5_SNORM:
+	case gfxFormat::BC1:
+	case gfxFormat::BC1_SRGB:
+	case gfxFormat::BC2:
+	case gfxFormat::BC2_SRGB:
+	case gfxFormat::BC3:
+	case gfxFormat::BC3_SRGB:
+	case gfxFormat::BC4:
+	case gfxFormat::BC4_SNORM:
+	case gfxFormat::BC5:
+	case gfxFormat::BC5_SNORM:
 		return TRUE;
 	default:
 		return FALSE;
 	}
 }
 
-int texture_has_alpha(enum gfx_format fmt)
+int texture_has_alpha(enum gfxFormat fmt)
 {
-    return (fmt == GFX_FORMAT_BC2 ||
-            fmt == GFX_FORMAT_BC3 ||
-            fmt == GFX_FORMAT_BC2_SRGB ||
-            fmt == GFX_FORMAT_BC3_SRGB ||
-            fmt == GFX_FORMAT_RGBA_UNORM ||
-            fmt == GFX_FORMAT_R32G32B32A32_FLOAT ||
-            fmt == GFX_FORMAT_R32G32B32A32_UINT ||
-            fmt == GFX_FORMAT_R10G10B10A2_UNORM);
+    return (fmt == gfxFormat::BC2 ||
+            fmt == gfxFormat::BC3 ||
+            fmt == gfxFormat::BC2_SRGB ||
+            fmt == gfxFormat::BC3_SRGB ||
+            fmt == gfxFormat::RGBA_UNORM ||
+            fmt == gfxFormat::R32G32B32A32_FLOAT ||
+            fmt == gfxFormat::R32G32B32A32_UINT ||
+            fmt == gfxFormat::R10G10B10A2_UNORM);
 }
 
 
-GLenum texture_get_glformat(enum gfx_format fmt, OUT GLenum* type, OUT GLenum* internal_fmt)
+GLenum texture_get_glformat(enum gfxFormat fmt, OUT GLenum* type, OUT GLenum* internal_fmt)
 {
     *internal_fmt = fmt;
 	switch (fmt)	{
-	case GFX_FORMAT_RGBA_UNORM:
+	case gfxFormat::RGBA_UNORM:
         *type = GL_UNSIGNED_BYTE;
         return GL_RGBA;
-	case GFX_FORMAT_RGBA_UNORM_SRGB:
+	case gfxFormat::RGBA_UNORM_SRGB:
 		*type = GL_UNSIGNED_BYTE;
         *internal_fmt = GL_SRGB_ALPHA;
 		return GL_RGBA;
 	case GFX_FORMAT_RGB_UNORM:
 		*type = GL_UNSIGNED_BYTE;
 		return GL_RGB;
-	case GFX_FORMAT_R32G32B32A32_FLOAT:
+	case gfxFormat::R32G32B32A32_FLOAT:
 		*type = GL_FLOAT;
 		return GL_RGBA;
-	case GFX_FORMAT_R32G32B32A32_UINT:
+	case gfxFormat::R32G32B32A32_UINT:
 		*type = GL_UNSIGNED_INT;
 		return GL_RGBA_INTEGER;
-	case GFX_FORMAT_R32G32B32A32_SINT:
+	case gfxFormat::R32G32B32A32_SINT:
 		*type = GL_INT;
 		return GL_RGBA_INTEGER;
-	case GFX_FORMAT_R32G32B32_FLOAT:
+	case gfxFormat::R32G32B32_FLOAT:
 		*type = GL_FLOAT;
 		return GL_RGB;
-	case GFX_FORMAT_R32G32B32_UINT:
+	case gfxFormat::R32G32B32_UINT:
 		*type = GL_UNSIGNED_INT;
 		return GL_RGB_INTEGER;
-	case GFX_FORMAT_R32G32B32_SINT:
+	case gfxFormat::R32G32B32_SINT:
 		*type = GL_INT;
 		return GL_RGB_INTEGER;
-	case GFX_FORMAT_R16G16B16A16_FLOAT:
+	case gfxFormat::R16G16B16A16_FLOAT:
 		*type = GL_FLOAT;
 		return GL_RGBA;
-	case GFX_FORMAT_R16G16B16A16_UNORM:
+	case gfxFormat::R16G16B16A16_UNORM:
         *type = GL_UNSIGNED_SHORT;
         return GL_RGBA;
-	case GFX_FORMAT_R16G16B16A16_UINT:
+	case gfxFormat::R16G16B16A16_UINT:
 		*type = GL_UNSIGNED_SHORT;
 		return GL_RGBA_INTEGER;
-	case GFX_FORMAT_R16G16B16A16_SINT:
+	case gfxFormat::R16G16B16A16_SINT:
         *type = GL_SHORT;
         return GL_RGBA_INTEGER;
-	case GFX_FORMAT_R16G16B16A16_SNORM:
+	case gfxFormat::R16G16B16A16_SNORM:
 		*type = GL_SHORT;
 		return GL_RGBA;
-	case GFX_FORMAT_R32G32_FLOAT:
+	case gfxFormat::R32G32_FLOAT:
 		*type = GL_FLOAT;
 		return GL_RG;
-	case GFX_FORMAT_R32G32_UINT:
+	case gfxFormat::R32G32_UINT:
 		*type = GL_UNSIGNED_INT;
 		return GL_RG_INTEGER;
-	case GFX_FORMAT_R32G32_SINT:
+	case gfxFormat::R32G32_SINT:
 		*type = GL_INT;
 		return GL_RG_INTEGER;
-	case GFX_FORMAT_R10G10B10A2_UNORM:
+	case gfxFormat::R10G10B10A2_UNORM:
         *type = GL_UNSIGNED_INT_10_10_10_2;
         return GL_RGBA;
-	case GFX_FORMAT_R10G10B10A2_UINT:
+	case gfxFormat::R10G10B10A2_UINT:
 		*type = GL_UNSIGNED_INT_10_10_10_2;
 		return GL_RGBA_INTEGER;
-	case GFX_FORMAT_R11G11B10_FLOAT:
+	case gfxFormat::R11G11B10_FLOAT:
 		*type = GL_FLOAT;
 		return GL_RGB;
-	case GFX_FORMAT_R16G16_FLOAT:
+	case gfxFormat::R16G16_FLOAT:
 		*type = GL_FLOAT;
 		return GL_RG;
-	case GFX_FORMAT_R16G16_UNORM:
+	case gfxFormat::R16G16_UNORM:
         *type = GL_UNSIGNED_SHORT;
         return GL_RG;
-	case GFX_FORMAT_R16G16_UINT:
+	case gfxFormat::R16G16_UINT:
 		*type = GL_UNSIGNED_SHORT;
 		return GL_RG_INTEGER;
-	case GFX_FORMAT_R16G16_SNORM:
+	case gfxFormat::R16G16_SNORM:
         *type = GL_SHORT;
         return GL_RG_INTEGER;
-	case GFX_FORMAT_R16G16_SINT:
+	case gfxFormat::R16G16_SINT:
 		*type = GL_SHORT;
 		return GL_RG_INTEGER;
-	case GFX_FORMAT_R32_FLOAT:
+	case gfxFormat::R32_FLOAT:
 		*type = GL_FLOAT;
 		return GL_RED;
-	case GFX_FORMAT_R32_UINT:
+	case gfxFormat::R32_UINT:
 		*type = GL_UNSIGNED_INT;
 		return GL_RED_INTEGER;
-	case GFX_FORMAT_R32_SINT:
+	case gfxFormat::R32_SINT:
 		*type = GL_INT;
 		return GL_RED_INTEGER;
-	case GFX_FORMAT_R8G8_UNORM:
+	case gfxFormat::R8G8_UNORM:
         *type = GL_UNSIGNED_BYTE;
         return GL_RG;
-	case GFX_FORMAT_R8G8_UINT:
+	case gfxFormat::R8G8_UINT:
 		*type = GL_UNSIGNED_BYTE;
 		return GL_RG_INTEGER;
-	case GFX_FORMAT_R8G8_SNORM:
+	case gfxFormat::R8G8_SNORM:
         *type = GL_BYTE;
         return GL_RG;
-	case GFX_FORMAT_R8G8_SINT:
+	case gfxFormat::R8G8_SINT:
 		*type = GL_BYTE;
 		return GL_RG_INTEGER;
-	case GFX_FORMAT_R16_FLOAT:
+	case gfxFormat::R16_FLOAT:
 		*type = GL_FLOAT;
 		return GL_RED;
-	case GFX_FORMAT_R16_UNORM:
+	case gfxFormat::R16_UNORM:
         *type = GL_UNSIGNED_SHORT;
         return GL_RED;
-	case GFX_FORMAT_R16_UINT:
+	case gfxFormat::R16_UINT:
 		*type = GL_UNSIGNED_SHORT;
 		return GL_RED_INTEGER;
-	case GFX_FORMAT_R16_SNORM:
+	case gfxFormat::R16_SNORM:
         *type = GL_SHORT;
         return GL_RED;
-	case GFX_FORMAT_R16_SINT:
+	case gfxFormat::R16_SINT:
 		*type = GL_SHORT;
 		return GL_RED_INTEGER;
-	case GFX_FORMAT_R8_UNORM:
+	case gfxFormat::R8_UNORM:
         *type = GL_UNSIGNED_BYTE;
         return GL_RED;
-	case GFX_FORMAT_R8_UINT:
+	case gfxFormat::R8_UINT:
 		*type = GL_UNSIGNED_BYTE;
 		return GL_RED_INTEGER;
-	case GFX_FORMAT_R8_SNORM:
+	case gfxFormat::R8_SNORM:
         *type = GL_BYTE;
         return GL_RED;
-	case GFX_FORMAT_R8_SINT:
+	case gfxFormat::R8_SINT:
 		*type = GL_BYTE;
 		return GL_RED_INTEGER;
-    case GFX_FORMAT_DEPTH24_STENCIL8:
+    case gfxFormat::DEPTH24_STENCIL8:
         *type = GL_UNSIGNED_INT_24_8;
         *internal_fmt = GL_DEPTH24_STENCIL8;
         return GL_DEPTH_STENCIL;
-    case GFX_FORMAT_DEPTH32:
+    case gfxFormat::DEPTH32:
         *type = GL_UNSIGNED_INT;
         *internal_fmt = GL_DEPTH_COMPONENT;
         return GL_DEPTH_COMPONENT;
-    case GFX_FORMAT_DEPTH16:
+    case gfxFormat::DEPTH16:
         *type = GL_UNSIGNED_SHORT;
         *internal_fmt = GL_DEPTH_COMPONENT;
         return GL_DEPTH_COMPONENT;
@@ -1820,9 +1820,9 @@ const struct gfx_blend_desc* gfx_get_defaultblend()
 {
 	static const struct gfx_blend_desc desc = {
 			FALSE,
-			GFX_BLEND_ONE,
-			GFX_BLEND_ZERO,
-			GFX_BLENDOP_ADD,
+			gfxBlendMode::ONE,
+			gfxBlendMode::ZERO,
+			gfxBlendOp::ADD,
 			GFX_COLORWRITE_ALL
 	};
 
@@ -1832,8 +1832,8 @@ const struct gfx_blend_desc* gfx_get_defaultblend()
 const struct gfx_rasterizer_desc* gfx_get_defaultraster()
 {
 	static const struct gfx_rasterizer_desc desc = {
-			GFX_FILL_SOLID,
-			GFX_CULL_BACK,
+			gfxFillMode::SOLID,
+			gfxCullMode::BACK,
 			0.0f,
 			0.0f,
 			FALSE,
@@ -1847,20 +1847,20 @@ const struct gfx_depthstencil_desc* gfx_get_defaultdepthstencil()
 	static const struct gfx_depthstencil_desc desc = {
 			FALSE,
 			FALSE,
-			GFX_CMP_LESS,
+			gfxCmpFunc::LESS,
 			FALSE,
 			0xffffffff,
 			{
-					GFX_STENCILOP_KEEP,
-					GFX_STENCILOP_KEEP,
-					GFX_STENCILOP_KEEP,
-					GFX_CMP_ALWAYS
+					gfxStencilOp::KEEP,
+					gfxStencilOp::KEEP,
+					gfxStencilOp::KEEP,
+					gfxCmpFunc::ALWAYS
 			},
 			{
-					GFX_STENCILOP_KEEP,
-					GFX_STENCILOP_KEEP,
-					GFX_STENCILOP_KEEP,
-					GFX_CMP_ALWAYS
+					gfxStencilOp::KEEP,
+					gfxStencilOp::KEEP,
+					gfxStencilOp::KEEP,
+					gfxCmpFunc::ALWAYS
 			}
 	};
 

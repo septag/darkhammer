@@ -199,7 +199,7 @@ void gfx_fwd_drawbatchnode(gfx_cmdqueue cmdqueue, struct gfx_batch_node* bnode,
     gfx_shader_updatecblock(cmdqueue, g_fwd->cb_xforms);
 
 	/* draw */
-    gfx_draw_indexedinstance(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, subset->ib_idx, subset->idx_cnt,
+    gfx_draw_indexedinstance(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, subset->ib_idx, subset->idx_cnt,
     		geo->ib_type, bnode->instance_cnt, GFX_DRAWCALL_FWD);
 }
 

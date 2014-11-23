@@ -75,14 +75,14 @@ void gfx_output_clearrendertarget(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
     const float color[4], float depth, uint8 stencil, uint flags);
 
 /* draw */
-void gfx_draw(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type, uint vert_idx,
+void gfx_draw(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type, uint vert_idx,
 		uint vert_cnt, uint draw_id);
-void gfx_draw_indexed(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
-		uint ib_idx, uint idx_cnt, enum gfx_index_type ib_type, uint draw_id);
-void gfx_draw_instance(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
+void gfx_draw_indexed(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
+		uint ib_idx, uint idx_cnt, enum gfxIndexType ib_type, uint draw_id);
+void gfx_draw_instance(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
 		uint vert_idx, uint vert_cnt, uint instance_cnt, uint draw_id);
-void gfx_draw_indexedinstance(gfx_cmdqueue cmdqueue, enum gfx_primitive_type type,
-		uint ib_idx, uint idx_cnt, enum gfx_index_type ib_type, uint instance_cnt,
+void gfx_draw_indexedinstance(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
+		uint ib_idx, uint idx_cnt, enum gfxIndexType ib_type, uint instance_cnt,
 		uint draw_id);
 
 /* sync */

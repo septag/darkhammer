@@ -42,22 +42,23 @@
 #define DEFAULT_DISPLAY_FORMAT DXGI_FORMAT_R8G8B8A8_UNORM
 
 #if !defined(RELEASE)
-#define RELEASE(x)  if ((x) != nullptr)  {   (x)->Release();    (x) = nullptr;   }
+  #define RELEASE(x)  if ((x) != nullptr)  {   (x)->Release();    (x) = nullptr;   }
 #endif
+
+using namespace dh;
 
 // Types
 struct SwapChain
 {
     bool fullscreen;
-
-    IDXGISwapChain* sc;
-    ID3D11Texture2D* backbuff;
-    ID3D11RenderTargetView* rtv;
-    ID3D11Texture2D* depthbuff;
-    ID3D11DepthStencilView* dsv;
+    IDXGISwapChain *sc;
+    ID3D11Texture2D *backbuff;
+    ID3D11RenderTargetView *rtv;
+    ID3D11Texture2D *depthbuff;
+    ID3D11DepthStencilView *dsv;
 };
 
-struct View3D
+struct WindowD3D
 {
     char name[32];
     HWND hwnd;  // Window Handle
@@ -71,8 +72,9 @@ struct View3D
     bool vsync;
     bool dev_only;
     uint refresh_rate;
+    appEvents *events;
 
-    // Callback
+    // Callbacks
     pfn_app_create create_fn;
     pfn_app_destroy destroy_fn;
     pfn_app_resize resize_fn;
@@ -93,7 +95,7 @@ struct View3D
 };
 
 // Globals
-static struct View3D* g_app = nullptr;
+static struct WindowD3D* g_app = nullptr;
 
 /*************************************************************************************************/
 static LRESULT CALLBACK msg_callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
@@ -158,7 +160,6 @@ static LRESULT CALLBACK msg_callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
     case WM_RBUTTONDOWN:
         if (g_app->mousedown_fn)  
             g_app->mousedown_fn(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), appMouseKey::RIGHT);
-        }
         break;
     case WM_RBUTTONUP:
         if (g_app->mousedown_fn)
@@ -184,6 +185,238 @@ static LRESULT CALLBACK msg_callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
     return 0;
 }
 
+static result_t init_dxgi(const appInitParams *params, OUT IDXGIFactory **pfactory,
+    OUT IDXGIAdapter **padapter, OUT ID3D11Device **pdev,
+    OUT ID3D11DeviceContext **pcontext, OUT appGfxDeviceVersion *pver)
+{
+    HRESULT dxhr;
+    uint dev_flags = 0;
+    D3D_FEATURE_LEVEL levels[3];
+    uint levels_cnt;
+    D3D_FEATURE_LEVEL ft_level;
+    IDXGIFactory *factory;
+    IDXGIAdapter *adapter;
+    ID3D11Device *dev;
+    ID3D11DeviceContext *ctx = nullptr;
+    appGfxDeviceVersion gfxver;
+
+    log_print(LOG_INFO, "  Init DXGI (D3D11) ...");
+
+    dxhr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+    if (FAILED(dxhr))   {
+        err_print(__FILE__, __LINE__, "Gfx-device init failed: Could not create dx factory");
+        return RET_FAIL;
+    }
+
+    // DXGI Factory
+    dxhr = factory->EnumAdapters(params->gfx.adapter_id, &adapter);
+    if (dxhr == DXGI_ERROR_NOT_FOUND)   {
+        factory->Release();
+        err_print(__FILE__, __LINE__, "Gfx-device init failed: Specified dxgi_adapter-id not found");
+        return RET_FAIL;
+    }
+
+    // Flags
+    if (BIT_CHECK(params->gfx.flags, (uint)appGfxFlags::DEBUG))
+        BIT_ADD(dev_flags, D3D11_CREATE_DEVICE_DEBUG);
+
+    // Feature Levels for Direct3D device initialization
+    if (params->gfx.hwver == appGfxDeviceVersion::UNKNOWN)   {
+        levels[0] = D3D_FEATURE_LEVEL_11_0;
+        levels[1] = D3D_FEATURE_LEVEL_10_1;
+        levels[2] = D3D_FEATURE_LEVEL_10_0;
+        levels_cnt = 3;
+    }
+    else    {
+        switch (params->gfx.hwver)   {
+        case appGfxDeviceVersion::D3D10_0:
+            levels[0] = D3D_FEATURE_LEVEL_10_0;
+            break;
+        case appGfxDeviceVersion::D3D10_1:
+            levels[0] = D3D_FEATURE_LEVEL_10_1;
+            break;
+        case appGfxDeviceVersion::D3D11_0:
+        case appGfxDeviceVersion::D3D11_1:
+            levels[0] = D3D_FEATURE_LEVEL_11_0;
+            break;
+        }
+        levels_cnt = 1;
+    }
+
+    // Create device
+    dxhr = D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, dev_flags,
+        levels, levels_cnt, D3D11_SDK_VERSION, &dev, &ft_level, &ctx);
+    if (FAILED(dxhr))   {
+        err_print(__FILE__, __LINE__, "app init failed: could not create d3d device");
+        return RET_FAIL;
+    }
+
+    switch (ft_level)   {
+    case D3D_FEATURE_LEVEL_10_0:    gfxver = appGfxDeviceVersion::D3D10_0;    break;
+    case D3D_FEATURE_LEVEL_10_1:    gfxver = appGfxDeviceVersion::D3D10_1;    break;
+    case D3D_FEATURE_LEVEL_11_0:    gfxver = appGfxDeviceVersion::D3D11_0;    break;
+    case D3D_FEATURE_LEVEL_11_1:    gfxver = appGfxDeviceVersion::D3D11_1;    break;
+    default:                        gfxver = appGfxDeviceVersion::UNKNOWN;    break;
+    }
+
+#if 0
+    // Elevate the API to d3d11.1 
+    // Fetch context (currently not working because I don't have win8 dev system) */
+    ID3D11Device *dev1;
+    dxhr = dev->QueryInterface(__uuidof(ID3D11Device), (void**)&dev1);
+    if (FAILED(dxhr))   {
+        err_print(__FILE__, __LINE__, "app init failed: could not create d3d11.1 device");
+        return RET_FAIL;
+    }
+    dev->Release();
+
+    ID3D11DeviceContext *ctx1;
+    dev1->GetImmediateContext1(&ctx1);
+    ctx->Release();
+#endif
+
+    // Assign output values 
+    *pfactory = factory;
+    *padapter = adapter;
+    *pdev = dev;
+    *pcontext = ctx;
+    *pver = gfxver;
+
+    return RET_OK;
+}
+
+static void release_dxgi()
+{
+    ASSERT(g_app);
+
+    WindowD3D *app = g_app;
+
+    RELEASE(app->main_ctx);
+    RELEASE(app->dev);
+    RELEASE(app->dxgi_adapter);
+    RELEASE(app->dxgi_factory);
+}
+
+static result_t init_swapchain(SwapChain *sc, HWND hwnd, uint width, uint height, 
+                               uint refresh_rate, bool fullscreen, bool vsync)
+{
+    ASSERT(g_app);
+
+    HRESULT dxhr;
+    IDXGISwapChain *swapchain;
+    ID3D11Texture2D *backbuffer;
+    ID3D11RenderTargetView *rtv;
+    ID3D11Texture2D *depthstencil = nullptr;
+    ID3D11DepthStencilView *dsv = nullptr;
+    WindowD3D *app = g_app;
+
+    DXGI_SWAP_CHAIN_DESC d3d_desc;
+    memset(&d3d_desc, 0x00, sizeof(d3d_desc));
+
+    if (width == 0 || height == 0)  {
+        RECT wrc;
+        ::GetClientRect(hwnd, &wrc);
+        width = wrc.right - wrc.left;
+        height = wrc.bottom - wrc.top;
+    }
+
+    d3d_desc.BufferDesc.Width = width;
+    d3d_desc.BufferDesc.Height = height;
+    d3d_desc.BufferDesc.RefreshRate.Numerator = refresh_rate;
+    d3d_desc.BufferDesc.RefreshRate.Denominator = 1;
+    d3d_desc.BufferDesc.Format = DEFAULT_DISPLAY_FORMAT;
+    d3d_desc.SampleDesc.Count = 1;
+    d3d_desc.SampleDesc.Quality = 0;
+    d3d_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    d3d_desc.BufferCount = BACKBUFFER_COUNT;
+    d3d_desc.Windowed = fullscreen ? FALSE : TRUE;
+    d3d_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+    d3d_desc.Flags = fullscreen ? DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH : 0;
+    d3d_desc.OutputWindow = hwnd;
+
+    dxhr = app->dxgi_factory->CreateSwapChain(app->dev, &d3d_desc, &swapchain);
+    if (FAILED(dxhr))   {
+        err_print(__FILE__, __LINE__, "swapchain creation failed");
+        return RET_FAIL;
+    }
+
+    // Get BackBuffer
+    if (FAILED(swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backbuffer)))    {
+        swapchain->Release();
+        return RET_FAIL;
+    }
+
+    if (FAILED(app->dev->CreateRenderTargetView(backbuffer, nullptr, &rtv)))  {
+        backbuffer->Release();
+        swapchain->Release();
+        return RET_FAIL;
+    }
+
+    // Depth/Stencil
+    D3D11_TEXTURE2D_DESC ds_desc;
+    memset(&ds_desc, 0x00, sizeof(ds_desc));
+    ds_desc.ArraySize = 1;
+    ds_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    ds_desc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+    ds_desc.MipLevels = 1;
+    ds_desc.SampleDesc.Count = 1;
+    ds_desc.Width = width;
+    ds_desc.Height = height;
+
+    if (FAILED(app->dev->CreateTexture2D(&ds_desc, nullptr, &depthstencil)))  {
+        backbuffer->Release();
+        swapchain->Release();
+        return RET_FAIL;
+    }
+
+    D3D11_DEPTH_STENCIL_VIEW_DESC ds_view;
+    memset(&ds_view, 0x00, sizeof(ds_view));
+    ds_view.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    ds_view.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    if (FAILED(app->dev->CreateDepthStencilView(depthstencil, &ds_view, &dsv)))    {
+        depthstencil->Release();
+        backbuffer->Release();
+        swapchain->Release();
+        return RET_FAIL;
+    }
+
+    sc->sc = swapchain;
+    sc->backbuff = backbuffer;
+    sc->depthbuff = depthstencil;
+    sc->dsv = dsv;
+    sc->rtv = rtv;
+    sc->fullscreen = fullscreen;
+
+    return RET_OK;
+}
+
+static void release_swapchain(SwapChain *sc)
+{
+    if (sc->fullscreen)
+        sc->sc->SetFullscreenState(FALSE, nullptr);
+
+    RELEASE(sc->rtv);
+    RELEASE(sc->dsv);
+    RELEASE(sc->backbuff);
+    RELEASE(sc->depthbuff);
+    RELEASE(sc->sc);
+}
+
+static void calc_screenpos(uint width, uint height, uint* px, uint* py)
+{
+    /* Returns the position where window will be at the center of the screen */
+    HWND desktop_wnd = GetDesktopWindow();
+    if (desktop_wnd != nullptr && IsWindow(desktop_wnd))        {
+        RECT rc;
+        GetWindowRect(desktop_wnd, &rc);
+        LONG bg_width = rc.right - rc.left;
+        LONG bg_height = rc.bottom - rc.top;
+
+        *px = rc.left + (bg_width / 2) - (width / 2);
+        *py = rc.top + (bg_height / 2) - (height / 2);
+    }
+}
+
 result_t app_init(const char *name, const appInitParams *params)
 {
     if (g_app)  {
@@ -195,10 +428,10 @@ result_t app_init(const char *name, const appInitParams *params)
 
     log_print(LOG_TEXT, "Init Direct3D app ...");
     
-    // Create View3D
-    View3D *app = mem_new<View3D>();
+    // Create WindowD3D
+    WindowD3D *app = mem_new<WindowD3D>();
     ASSERT(app);
-    memset(app, 0x00, sizeof(struct View3D));
+    memset(app, 0x00, sizeof(struct WindowD3D));
 
     g_app = app;
     str_safecpy(app->name, sizeof(app->name), name);
@@ -228,7 +461,7 @@ result_t app_init(const char *name, const appInitParams *params)
     wndcls.lpszClassName = app->name;
     wndcls.hIconSm = nullptr;
     if (!RegisterClassEx(&wndcls))  {
-        err_print(__FILE__, __LINE__, "win-app init failed");
+        err_print(__FILE__, __LINE__, "App init failed");
         return RET_FAIL;
     }
 
@@ -254,7 +487,7 @@ result_t app_init(const char *name, const appInitParams *params)
     }
 
     // DXGI
-    r = app_init_dxgi(params, &app->dxgi_factory, &app->dxgi_adapter, &app->dev, &app->main_ctx,
+    r = init_dxgi(params, &app->dxgi_factory, &app->dxgi_adapter, &app->dev, &app->main_ctx,
         &app->d3dver);
     if (IS_FAIL(r)) {
         err_print(__FILE__, __LINE__, "App init failed: init DXGI failed");
@@ -268,7 +501,7 @@ result_t app_init(const char *name, const appInitParams *params)
     app->refresh_rate = params->gfx.refresh_rate;
 
     /* create default swapchain */
-    r = app_init_swapchain(&app->schain, app->hwnd, width, height, params->gfx.refresh_rate,
+    r = init_swapchain(&app->schain, app->hwnd, width, height, params->gfx.refresh_rate,
         BIT_CHECK(params->gfx.flags, (uint)appGfxFlags::FULLSCREEN),
         BIT_CHECK(params->gfx.flags, (uint)appGfxFlags::VSYNC));
     if (IS_FAIL(r)) {
@@ -276,7 +509,7 @@ result_t app_init(const char *name, const appInitParams *params)
         return RET_FAIL;
     }
 
-    SwapChain* sc = &app->schain;
+    SwapChain *sc = &app->schain;
     app->main_ctx->OMSetRenderTargets(1, &sc->rtv, sc->dsv);
     app->vsync = BIT_CHECK(params->gfx.flags, (uint)appGfxFlags::VSYNC);
 
@@ -299,9 +532,9 @@ result_t app_d3d_initdev(wnd_t hwnd, const char *name, const appInitParams *para
     log_print(LOG_TEXT, "Init Direct3D Device ...");
 
     // Application
-    View3D* app = mem_new<View3D>();
+    WindowD3D* app = mem_new<WindowD3D>();
     ASSERT(app);
-    memset(app, 0x00, sizeof(View3D));
+    memset(app, 0x00, sizeof(WindowD3D));
 
     g_app = app;
     app->dev_only = true;
@@ -320,7 +553,7 @@ result_t app_d3d_initdev(wnd_t hwnd, const char *name, const appInitParams *para
     RECT wndrc = {0, 0, width, height};
 
     // DXGI
-    r = app_init_dxgi(params, &app->dxgi_factory, &app->dxgi_adapter, &app->dev, &app->main_ctx,
+    r = init_dxgi(params, &app->dxgi_factory, &app->dxgi_adapter, &app->dev, &app->main_ctx,
         &app->d3dver);
     if (IS_FAIL(r)) {
         err_print(__FILE__, __LINE__, "App init failed: init DXGI failed");
@@ -334,7 +567,7 @@ result_t app_d3d_initdev(wnd_t hwnd, const char *name, const appInitParams *para
     app->refresh_rate = params->gfx.refresh_rate;
 
     // SwapChain
-    r = app_init_swapchain(&app->schain, hwnd, width, height, params->gfx.refresh_rate,
+    r = init_swapchain(&app->schain, hwnd, width, height, params->gfx.refresh_rate,
         BIT_CHECK(params->gfx.flags, (uint)appGfxFlags::FULLSCREEN),
         BIT_CHECK(params->gfx.flags, (uint)appGfxFlags::VSYNC));
     if (IS_FAIL(r)) {
@@ -350,32 +583,17 @@ result_t app_d3d_initdev(wnd_t hwnd, const char *name, const appInitParams *para
     return RET_OK;
 }
 
-void calc_screenpos(uint width, uint height, uint* px, uint* py)
-{
-    /* Returns the position where window will be at the center of the screen */
-    HWND desktop_wnd = GetDesktopWindow();
-    if (desktop_wnd != nullptr && IsWindow(desktop_wnd))        {
-        RECT rc;
-        GetWindowRect(desktop_wnd, &rc);
-        LONG bg_width = rc.right - rc.left;
-        LONG bg_height = rc.bottom - rc.top;
-
-        *px = rc.left + (bg_width/2) - (width/2);
-        *py = rc.top + (bg_height/2) - (height/2);
-    }
-}
-
 void app_release()
 {
     if (!g_app)
         return;
 
-    View3D* app = g_app;
+    WindowD3D* app = g_app;
 
     input_release();
 
-    app_release_swapchain(&app->schain);
-    app_release_dxgi();
+    release_swapchain(&app->schain);
+    release_dxgi();
 
     if (app->hwnd && IsWindow(app->hwnd)) {
         DestroyWindow(app->hwnd);
@@ -390,7 +608,7 @@ void app_window_run()
 {
     ASSERT(g_app);
     
-    View3D* app = g_app;
+    WindowD3D* app = g_app;
 
     MSG msg;
     bool quit = false;
@@ -426,7 +644,7 @@ void app_window_readjust(uint client_width, uint client_height)
 {
     ASSERT(g_app);
 
-    View3D *app = g_app;
+    WindowD3D *app = g_app;
 
     RECT wnd_rect = {0, 0,
         (client_width!=0) ? client_width : app->width,
@@ -435,7 +653,7 @@ void app_window_readjust(uint client_width, uint client_height)
 
     AdjustWindowRect(&wnd_rect, WS_OVERLAPPEDWINDOW, FALSE);
     calc_screenpos(wnd_rect.right-wnd_rect.left, wnd_rect.bottom-wnd_rect.top, &xpos, &ypos);
-    SetWindowPos(((View3D*)app)->hwnd, nullptr, xpos, ypos,
+    SetWindowPos(((WindowD3D*)app)->hwnd, nullptr, xpos, ypos,
         wnd_rect.right - wnd_rect.left, wnd_rect.bottom - wnd_rect.top, 0);
 
     app->width = client_width;
@@ -515,231 +733,15 @@ void app_window_setmousemovefn(pfn_app_mousemove fn)
     g_app->mousemove_fn = fn;
 }
 
-result_t app_init_dxgi(const appInitParams *params, OUT IDXGIFactory **pfactory, 
-                       OUT IDXGIAdapter **padapter, OUT ID3D11Device **pdev, 
-                       OUT ID3D11DeviceContext **pcontext, OUT appGfxDeviceVersion *pver)
-{
-    HRESULT dxhr;
-    uint dev_flags = 0;
-    D3D_FEATURE_LEVEL levels[3];
-    uint levels_cnt;
-    D3D_FEATURE_LEVEL ft_level;
-    IDXGIFactory *factory;
-    IDXGIAdapter *adapter;
-    ID3D11Device *dev;
-    ID3D11DeviceContext *ctx = nullptr;
-    appGfxDeviceVersion gfxver;
-
-    log_print(LOG_INFO, "  Init DXGI (D3D11) ...");
-
-    dxhr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
-    if (FAILED(dxhr))   {
-        err_print(__FILE__, __LINE__, "Gfx-device init failed: Could not create dx factory");
-        return RET_FAIL;
-    }
-
-    // DXGI Factory
-    dxhr = factory->EnumAdapters(params->gfx.adapter_id, &adapter);
-    if (dxhr == DXGI_ERROR_NOT_FOUND)   {
-        factory->Release();
-        err_print(__FILE__, __LINE__, "Gfx-device init failed: Specified dxgi_adapter-id not found");
-        return RET_FAIL;
-    }
-
-    // Flags
-    if (BIT_CHECK(params->gfx.flags, (uint)appGfxFlags::DEBUG))
-        BIT_ADD(dev_flags, D3D11_CREATE_DEVICE_DEBUG);
-
-    // Feature Levels for Direct3D device initialization
-    if (params->gfx.hwver == appGfxDeviceVersion::UNKNOWN)   {
-        levels[0] = D3D_FEATURE_LEVEL_11_0;
-        levels[1] = D3D_FEATURE_LEVEL_10_1;
-        levels[2] = D3D_FEATURE_LEVEL_10_0;
-        levels_cnt = 3;
-    }   else    {
-        switch (params->gfx.hwver)   {
-        case appGfxDeviceVersion::D3D10_0:
-            levels[0] = D3D_FEATURE_LEVEL_10_0;
-            break;
-        case appGfxDeviceVersion::D3D10_1:
-            levels[0] = D3D_FEATURE_LEVEL_10_1;
-            break;
-        case appGfxDeviceVersion::D3D11_0:
-        case appGfxDeviceVersion::D3D11_1:
-            levels[0] = D3D_FEATURE_LEVEL_11_0;
-            break;
-        }
-        levels_cnt = 1;
-    }
-
-    // Create device
-    dxhr = D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, dev_flags,
-        levels, levels_cnt, D3D11_SDK_VERSION, &dev, &ft_level, &ctx);
-    if (FAILED(dxhr))   {
-        err_print(__FILE__, __LINE__, "app init failed: could not create d3d device");
-        return RET_FAIL;
-    }
-
-    switch (ft_level)   {
-    case D3D_FEATURE_LEVEL_10_0:    gfxver = appGfxDeviceVersion::D3D10_0;    break;
-    case D3D_FEATURE_LEVEL_10_1:    gfxver = appGfxDeviceVersion::D3D10_1;    break;
-    case D3D_FEATURE_LEVEL_11_0:    gfxver = appGfxDeviceVersion::D3D11_0;    break;
-    case D3D_FEATURE_LEVEL_11_1:    gfxver = appGfxDeviceVersion::D3D11_1;    break;
-    default:                        gfxver = appGfxDeviceVersion::UNKNOWN;    break;
-    }
-
-#if 0
-    /* elevate the API to d3d11.1 */
-    /* fetch context (currently not working because I don't have win8 dev system) */
-    ID3D11Device* dev1;
-    dxhr = dev->QueryInterface(__uuidof(ID3D11Device), (void**)&dev1);
-    if (FAILED(dxhr))   {
-        err_print(__FILE__, __LINE__, "app init failed: could not create d3d11.1 device");
-        return RET_FAIL;
-    }
-    dev->Release();
-
-    ID3D11DeviceContext* ctx1;
-    dev1->GetImmediateContext1(&ctx1);
-    ctx->Release();
-#endif
-
-    /* assign output values */
-    *pfactory = factory;
-    *padapter = adapter;
-    *pdev = dev;
-    *pcontext = ctx;
-    *pver = gfxver;
-
-    return RET_OK;
-}
-
-void app_release_dxgi()
-{
-    ASSERT(g_app);
-
-    struct View3D *app = g_app;
-
-    RELEASE(app->main_ctx);
-    RELEASE(app->dev);
-    RELEASE(app->dxgi_adapter);
-    RELEASE(app->dxgi_factory);
-}
-
-result_t app_init_swapchain(SwapChain *sc, HWND hwnd, uint width, uint height, uint refresh_rate, 
-                            bool fullscreen, bool vsync)
-{
-    ASSERT(g_app);
-
-    HRESULT dxhr;
-    IDXGISwapChain *swapchain;
-    ID3D11Texture2D *backbuffer;
-    ID3D11RenderTargetView *rtv;
-    ID3D11Texture2D *depthstencil = nullptr;
-    ID3D11DepthStencilView *dsv = nullptr;
-    struct View3D *app = g_app;
-
-    DXGI_SWAP_CHAIN_DESC d3d_desc;
-    memset(&d3d_desc, 0x00, sizeof(d3d_desc));
-
-    if (width == 0 || height == 0)  {
-        RECT wrc;
-        ::GetClientRect(hwnd, &wrc);
-        width = wrc.right - wrc.left;
-        height = wrc.bottom - wrc.top;
-    }
-
-    d3d_desc.BufferDesc.Width = width;
-    d3d_desc.BufferDesc.Height = height;
-    d3d_desc.BufferDesc.RefreshRate.Numerator = refresh_rate;
-    d3d_desc.BufferDesc.RefreshRate.Denominator = 1;
-    d3d_desc.BufferDesc.Format = DEFAULT_DISPLAY_FORMAT;
-    d3d_desc.SampleDesc.Count = 1;
-    d3d_desc.SampleDesc.Quality = 0;
-    d3d_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    d3d_desc.BufferCount = BACKBUFFER_COUNT;
-    d3d_desc.Windowed = fullscreen ? FALSE : TRUE;
-    d3d_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-    d3d_desc.Flags = fullscreen ? DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH : 0;
-    d3d_desc.OutputWindow = hwnd;
-
-    dxhr = app->dxgi_factory->CreateSwapChain(app->dev, &d3d_desc, &swapchain);
-    if (FAILED(dxhr))   {
-        err_print(__FILE__, __LINE__, "swapchain creation failed");
-        return nullptr;
-    }
-
-    // Get BackBuffer
-    if (FAILED(swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backbuffer)))    {
-        swapchain->Release();
-        return RET_FAIL;
-    }
-
-    if (FAILED(app->dev->CreateRenderTargetView(backbuffer, nullptr, &rtv)))  {
-        backbuffer->Release();
-        swapchain->Release();
-        return RET_FAIL;
-    }
-
-    // Depth/Stencil
-    D3D11_TEXTURE2D_DESC ds_desc;
-    memset(&ds_desc, 0x00, sizeof(ds_desc));
-    ds_desc.ArraySize = 1;
-    ds_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    ds_desc.Format = DXGI_FORMAT_R24G8_TYPELESS;
-    ds_desc.MipLevels = 1;
-    ds_desc.SampleDesc.Count = 1;
-    ds_desc.Width = width;
-    ds_desc.Height = height;
-
-    if (FAILED(app->dev->CreateTexture2D(&ds_desc, nullptr, &depthstencil)))  {
-        backbuffer->Release();
-        swapchain->Release();
-        return RET_FAIL;
-    }
-
-    D3D11_DEPTH_STENCIL_VIEW_DESC ds_view;
-    memset(&ds_view, 0x00, sizeof(ds_view));
-    ds_view.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    ds_view.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    if (FAILED(app->dev->CreateDepthStencilView(depthstencil, &ds_view, &dsv)))    {
-        depthstencil->Release();
-        backbuffer->Release();
-        swapchain->Release();
-        return RET_FAIL;
-    }
-
-    sc->sc = swapchain;
-    sc->backbuff = backbuffer;
-    sc->depthbuff = depthstencil;
-    sc->dsv = dsv;
-    sc->rtv = rtv;
-    sc->fullscreen = fullscreen;
-
-    return RET_OK;
-}
-
-void app_release_swapchain(SwapChain *sc)
-{
-    if (sc->fullscreen)
-        sc->sc->SetFullscreenState(FALSE, nullptr);
-
-    RELEASE(sc->rtv);
-    RELEASE(sc->dsv);
-    RELEASE(sc->backbuff);
-    RELEASE(sc->depthbuff);
-    RELEASE(sc->sc);
-}
-
 result_t app_window_resize(uint width, uint height)
 {
     ASSERT(g_app);
-    struct View3D *app = g_app;
+    WindowD3D *app = g_app;
 
     if (!app->init)
         return RET_FAIL;
 
-    /* re-create */
+    // Destroy Swapchain objects, to Fetch new ones
     SwapChain* rsc = &app->schain;
     RELEASE(rsc->dsv);
     RELEASE(rsc->depthbuff);
@@ -748,18 +750,18 @@ result_t app_window_resize(uint width, uint height)
 
     rsc->sc->ResizeBuffers(BACKBUFFER_COUNT, width, height, DEFAULT_DISPLAY_FORMAT, 0);
 
-    /* get BackBuffer and Create RenderTargetView from it */
+    // ReFetch Bckbuffer and RTV
     if (FAILED(rsc->sc->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&rsc->backbuff)))  {
-        log_print(LOG_WARNING, "resizing swapchain failed");
+        log_print(LOG_WARNING, "Resizing SwapChain failed");
         return RET_FAIL;
     }
 
     if (FAILED(app->dev->CreateRenderTargetView(rsc->backbuff, nullptr, &rsc->rtv)))  {
-        log_print(LOG_WARNING, "resizing swapchain failed");
+        log_print(LOG_WARNING, "Resizing SwapChain failed");
         return RET_FAIL;
     }
 
-    /* depthstencil */
+    // Create DepthStencil
     D3D11_TEXTURE2D_DESC ds_desc;
     memset(&ds_desc, 0x00, sizeof(ds_desc));
     ds_desc.ArraySize = 1;
@@ -771,7 +773,7 @@ result_t app_window_resize(uint width, uint height)
     ds_desc.Height = height;
 
     if (FAILED(app->dev->CreateTexture2D(&ds_desc, nullptr, &rsc->depthbuff)))  {
-        log_print(LOG_WARNING, "resizing swapchain failed");
+        log_print(LOG_WARNING, "Resizing SwapChain failed");
         return RET_FAIL;
     }
 
@@ -780,7 +782,7 @@ result_t app_window_resize(uint width, uint height)
     ds_view.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
     ds_view.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     if (FAILED(app->dev->CreateDepthStencilView(rsc->depthbuff, &ds_view, &rsc->dsv)))    {
-        log_print(LOG_WARNING, "resizing swapchain failed");
+        log_print(LOG_WARNING, "Resizing SwapChain failed");
         return RET_FAIL;
     }
 
@@ -792,19 +794,20 @@ result_t app_window_resize(uint width, uint height)
 void app_window_swapbuffers()
 {
     ASSERT(g_app);
-    struct View3D* app = g_app;
+    
+    WindowD3D* app = g_app;
     ASSERT(app->schain.sc);
     app->schain.sc->Present(app->vsync ? 1 : 0, 0);
 }
 
-void app_d3d_getswapchain_buffers(OUT ID3D11Texture2D** pbackbuff, OUT ID3D11Texture2D** pdepthbuff)
+void app_d3d_getswapchain_buffers(ID3D11Texture2D **pbackbuff, ID3D11Texture2D **pdepthbuff)
 {
     ASSERT(g_app);
     *pbackbuff = g_app->schain.backbuff;
     *pdepthbuff = g_app->schain.depthbuff;
 }
 
-void app_d3d_getswapchain_views(OUT ID3D11RenderTargetView** prtv, OUT ID3D11DepthStencilView** pdsv)
+void app_d3d_getswapchain_views(ID3D11RenderTargetView **prtv, ID3D11DepthStencilView **pdsv)
 {
     ASSERT(g_app);
     *prtv = g_app->schain.rtv;
@@ -826,14 +829,14 @@ ID3D11DeviceContext* app_d3d_getcontext()
 void app_window_show()
 {
     ASSERT(g_app);
-    if (g_app->hwnd != nullptr && IsWindow(g_app->hwnd))
+    if (g_app->hwnd && IsWindow(g_app->hwnd))
         ShowWindow(g_app->hwnd, SW_SHOW);
 }
 
 void app_window_hide()
 {
     ASSERT(g_app);
-    if (g_app->hwnd != nullptr && IsWindow(g_app->hwnd))
+    if (g_app->hwnd && IsWindow(g_app->hwnd))
         ShowWindow(g_app->hwnd, SW_HIDE);
 }
 
@@ -849,63 +852,62 @@ int app_window_isactive()
 
 char* app_display_querymodes()
 {
-    IDXGIFactory* factory;
+    IDXGIFactory *factory;
     if (FAILED(CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory)))
         return nullptr;
 
-    IDXGIAdapter* adapter;
+    IDXGIAdapter *adapter;
     uint adapter_id = 0;
     DXGI_ADAPTER_DESC desc;
     char gpu_desc[128];
     size_t outsz;
 
-    /* start json data (adapter array) */
-    json_t jroot = json_create_arr();
+    // Create array for start
+    JNode jroot = JNode::create_array();
 
-    /* read adapters */
+    // Enumerate adapters and add them to array
     while (factory->EnumAdapters(adapter_id, &adapter) != DXGI_ERROR_NOT_FOUND)  {
         adapter->GetDesc(&desc);
         str_widetomb(gpu_desc, desc.Description, sizeof(gpu_desc));
 
-        json_t jadapter = json_create_obj();
-        json_additem_toarr(jroot, jadapter);
+        JNode jadapter = JNode::create_obj();
+        jroot.add_array_item(jadapter);
 
-        json_additem_toobj(jadapter, "name", json_create_str(gpu_desc));
-        json_additem_toobj(jadapter, "id", json_create_num((fl64)adapter_id));
+        jadapter.add_obj("name", JNode(gpu_desc));
+        jadapter.add_obj("id", JNode(adapter_id));
 
-        /* enumerate monitors */
-        json_t joutputs = json_create_arr();
-        json_additem_toobj(jadapter, "outputs", joutputs);
+        // Enumerate outputs (displays)
+        JNode joutputs = JNode::create_array();
+        jadapter.add_obj("displays", joutputs);
 
-        IDXGIOutput* output;
+        IDXGIOutput *output;
         uint output_id = 0;
 
         while (adapter->EnumOutputs(output_id, &output) != DXGI_ERROR_NOT_FOUND)    {
-            json_t joutput = json_create_obj();
-            json_additem_toarr(joutputs, joutput);
+            JNode joutput = JNode::create_obj();
+            joutputs.add_array_item(joutput);
 
-            json_additem_toobj(joutput, "id", json_create_num((fl64)output_id));
+            joutput.add_obj("id", JNode(output_id));
 
-            /* enumerate modes */
-            json_t jmodes = json_create_arr();
-            json_additem_toobj(joutput, "monitors", jmodes);
+            // Enumerate modes
+            JNode jmodes = JNode::create_array();
+            joutput.add_obj("modes", jmodes);
 
             uint mode_cnt;
             HRESULT hr = output->GetDisplayModeList(DEFAULT_DISPLAY_FORMAT, 0, &mode_cnt, nullptr);
             if (SUCCEEDED(hr))  {
-                DXGI_MODE_DESC* modes = (DXGI_MODE_DESC*)ALLOC(sizeof(DXGI_MODE_DESC) * mode_cnt, 0);
+                DXGI_MODE_DESC* modes = (DXGI_MODE_DESC*)ALLOC(sizeof(DXGI_MODE_DESC)*mode_cnt, 0);
                 ASSERT(modes);
                 output->GetDisplayModeList(DEFAULT_DISPLAY_FORMAT, 0, &mode_cnt, modes);
                 for (uint i = 0; i < mode_cnt; i++)   {
                     if (modes[i].RefreshRate.Denominator != 1)
                         continue;
 
-                    json_t jmode = json_create_obj();
-                    json_additem_toobj(jmode, "width", json_create_num((fl64)modes[i].Width));
-                    json_additem_toobj(jmode, "height", json_create_num((fl64)modes[i].Height));
-                    json_additem_toobj(jmode, "refresh-rate",
-                        json_create_num((fl64)modes[i].RefreshRate.Numerator));
-                    json_additem_toarr(jmodes, jmode);
+                    JNode jmode = JNode::create_obj();
+                    jmode.add_obj("width", JNode(modes[i].Width));
+                    jmode.add_obj("height", JNode(modes[i].Height));
+                    jmode.add_obj("refresh-rate", JNode(modes[i].RefreshRate.Numerator));
+                    jmodes.add_array_item(jmode);
                 }
                 FREE(modes);
             }
@@ -920,7 +922,7 @@ char* app_display_querymodes()
     factory->Release();
 
     char* r = json_savetobuffer(jroot, &outsz, FALSE);
-    json_destroy(jroot);
+    jroot.destroy();
 
     return r;
 }
@@ -937,7 +939,7 @@ wnd_t app_window_gethandle()
 #if defined(_WIN_)
     return g_app->hwnd;
 #else
-    #error "not implemented for other d3d platforms"
+    #error "Not implemented for other d3d platforms"
 #endif
 }
 
@@ -957,6 +959,67 @@ appGfxDeviceVersion app_d3d_getver()
 {
     ASSERT(g_app);
     return g_app->d3dver;
+}
+
+// Callbacks for event class
+void event_callback_create()
+{
+    if (g_app && g_app->events)
+        g_app->events->on_create();
+}
+
+void event_callback_destroy()
+{
+    if (g_app && g_app->events)
+        g_app->events->on_destroy();
+}
+
+void event_callback_resize(uint width, uint height)
+{
+    if (g_app && g_app->events)
+        g_app->events->on_resize(width, height);
+}
+
+void event_callback_active(bool active)
+{
+    if (g_app && g_app->events)
+        g_app->events->on_activate(active);
+}
+
+void event_callback_keypress(char charcode, uint vkeycode)
+{
+    if (g_app && g_app->events)
+        g_app->events->on_keypress(charcode, vkeycode);
+}
+
+void event_callback_mousedown(int x, int y, appMouseKey key)
+{
+    if (g_app && g_app->events)
+        g_app->events->on_mousedown(x, y, key);
+}
+
+void event_callback_mouseup(int x, int y, appMouseKey key)
+{
+    if (g_app && g_app->events)
+        g_app->events->on_mouseup(x, y, key);
+}
+
+void event_callback_mousemove(int x, int y)
+{
+    if (g_app && g_app->mousemove_fn)
+        g_app->events->on_mousemove(x, y);
+}
+
+void event_callback_update()
+{
+    if (g_app && g_app->events)
+        g_app->events->on_update();
+}
+
+void app_window_setevents(appEvents *events)
+{
+    if (g_app)
+        g_app->events = events;
 }
 
 #endif /* _WIN_ && _D3D_ */

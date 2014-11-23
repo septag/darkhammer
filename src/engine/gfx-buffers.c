@@ -37,12 +37,12 @@ void gfx_ringbuffer_init(struct gfx_ringbuffer* rbuff, gfx_buffer buff, uint seg
 void* gfx_ringbuffer_map(gfx_cmdqueue cmdqueue, struct gfx_ringbuffer* rbuff,
 		OUT uint* offset, OUT uint* size)
 {
-	enum gfx_map_mode mode;
+	enum gfxMapMode mode;
 	int sync = TRUE;
 	if (rbuff->offset == 0)	{
-		mode = GFX_MAP_WRITE_DISCARD;
+		mode = gfxMapMode::WRITE_DISCARD;
 	}	else	{
-		mode = GFX_MAP_WRITE_DISCARDRANGE;
+		mode = gfxMapMode::WRITE_DISCARDRANGE;
 #if defined(_GL_)
         sync = FALSE;
 #endif
@@ -104,7 +104,7 @@ void* gfx_contbuffer_map(gfx_cmdqueue cmdqueue, struct gfx_contbuffer* cbuff,
 
 	void* p = gfx_buffer_map(cmdqueue, cbuff->buff,
 			cbuff->offset, size,
-			(cbuff->offset != 0 && !cbuff->reset) ? GFX_MAP_WRITE_DISCARDRANGE : GFX_MAP_WRITE_DISCARD,
+			(cbuff->offset != 0 && !cbuff->reset) ? gfxMapMode::WRITE_DISCARDRANGE : gfxMapMode::WRITE_DISCARD,
             sync);
 
 	*offset = cbuff->offset;
@@ -121,7 +121,7 @@ void gfx_contbuffer_unmap(gfx_cmdqueue cmdqueue, struct gfx_contbuffer* cbuff)
 /*************************************************************************************************/
 struct gfx_sharedbuffer* gfx_sharedbuffer_create(uint size)
 {
-    gfx_buffer buff = gfx_create_buffer(GFX_BUFFER_CONSTANT, GFX_MEMHINT_DYNAMIC, size, NULL, 0);
+    gfx_buffer buff = gfx_create_buffer(gfxBufferType::CONSTANT, gfxMemHint::DYNAMIC, size, NULL, 0);
     if (buff == NULL)   {
         err_print(__FILE__, __LINE__, "gfx: creating uniform buffer failed");
         return NULL;
@@ -165,10 +165,10 @@ sharedbuffer_pos_t gfx_sharedbuffer_write(struct gfx_sharedbuffer* ubuff, gfx_cm
     int sync;
 
     if (offset > 0) {
-        map_mode = GFX_MAP_WRITE_DISCARDRANGE;
+        map_mode = gfxMapMode::WRITE_DISCARDRANGE;
         sync = FALSE;
     }   else    {
-        map_mode = GFX_MAP_WRITE_DISCARD;
+        map_mode = gfxMapMode::WRITE_DISCARD;
         sync = TRUE;
     }
 

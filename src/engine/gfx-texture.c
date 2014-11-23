@@ -36,12 +36,12 @@
  */
 gfx_texture dds_create_texture(struct allocator* tmp_alloc, uint first_mipidx, int srgb,
 		struct dds_header* header, uint8* bits, uint size, uint thread_id);
-enum gfx_format dds_get_format(const struct dds_pixel_fmt* pf);
+enum gfxFormat dds_get_format(const struct dds_pixel_fmt* pf);
 int dds_is_argb(const struct dds_pixel_fmt* pf);
-void dds_get_surfaceinfo(uint width, uint height, enum gfx_format fmt,
+void dds_get_surfaceinfo(uint width, uint height, enum gfxFormat fmt,
 		OUT uint* size, OUT uint* rowsize, OUT uint* rowcnt);
-uint gfx_texture_getbpp(enum gfx_format fmt);
-enum gfx_format dds_conv_tosrgb(enum gfx_format fmt);
+uint gfx_texture_getbpp(enum gfxFormat fmt);
+enum gfxFormat dds_conv_tosrgb(enum gfxFormat fmt);
 
 /*************************************************************************************************/
 gfx_texture gfx_texture_loaddds(const char* dds_filepath, uint first_mipidx,
@@ -118,33 +118,33 @@ gfx_texture dds_create_texture(struct allocator* tmp_alloc, uint first_mipidx, i
 	uint first_mip = minui(first_mipidx, mip_cnt-1);
 	uint target_mip_cnt = mip_cnt - first_mipidx;
 	const uint cubemap_all = DDS_CUBEMAP_ALLFACES;
-	enum gfx_texture_type type;
+	enum gfxTextureType type;
 
 	/* Which type of texture ? */
 	if (BIT_CHECK(header->flags, DDS_FLAG_WIDTH) && !BIT_CHECK(header->flags, DDS_FLAG_HEIGHT))	{
 		/* has width, no height: tex1d */
-		type = GFX_TEXTURE_1D;
+		type = gfxTextureType::TEX_1D;
 	}    else if (BIT_CHECK(header->caps1, DDS_CAPS_COMPLEX) &&
 				  BIT_CHECK(header->flags, DDS_FLAG_DEPTH) &&
 				  BIT_CHECK(header->caps2, DDS_CAPS2_VOLUME))
 	{
-		type = GFX_TEXTURE_3D;
+		type = gfxTextureType::TEX_3D;
 	}    else    {
 		/* determine cubemap, and set 6 surface arrays for texture */
 		if (BIT_CHECK(header->caps1, DDS_CAPS_COMPLEX) && BIT_CHECK(header->caps2, cubemap_all))  {
-			type = GFX_TEXTURE_CUBE;
+			type = gfxTextureType::TEX_CUBE;
 		}	else	{
-			type = GFX_TEXTURE_2D;
+			type = gfxTextureType::TEX_2D;
 		}
 	}
 
 	/* Which format and bpp ? */
-	enum gfx_format surface_fmt = dds_get_format(&header->ddspf);
-	if (surface_fmt == GFX_FORMAT_UNKNOWN)        {
+	enum gfxFormat surface_fmt = dds_get_format(&header->ddspf);
+	if (surface_fmt == gfxFormat::UNKNOWN)        {
 		/* check if we have d3d9 formats, like ARGB */
 		if (dds_is_argb(&header->ddspf))    {
 			/* swizzle to match engine's textures */
-			surface_fmt = GFX_FORMAT_RGBA_UNORM;
+			surface_fmt = gfxFormat::RGBA_UNORM;
 			for (uint i = 0; i < size; i += 4)    {
 				uint8 tmpb = bits[i];
 				bits[i] = bits[i+2];
@@ -154,11 +154,11 @@ gfx_texture dds_create_texture(struct allocator* tmp_alloc, uint first_mipidx, i
 	}
 
 	/* unsupported format */
-	if (surface_fmt == GFX_FORMAT_UNKNOWN)
+	if (surface_fmt == gfxFormat::UNKNOWN)
 		return NULL;
 
 	/* Create Texture objects and it's mips */
-	uint array_size = (type == GFX_TEXTURE_CUBE) ? 6 : 1;
+	uint array_size = (type == gfxTextureType::TEX_CUBE) ? 6 : 1;
 	uint subres_cnt = target_mip_cnt * array_size;
 	struct gfx_subresource_data* data = (struct gfx_subresource_data*)A_ALLOC(tmp_alloc,
 		sizeof(struct gfx_subresource_data)*subres_cnt, MID_GFX);
@@ -211,13 +211,13 @@ gfx_texture dds_create_texture(struct allocator* tmp_alloc, uint first_mipidx, i
 			1,
             actual_size,
 			data,
-            GFX_MEMHINT_STATIC, thread_id);
+            gfxMemHint::STATIC, thread_id);
 
 	A_FREE(tmp_alloc, data);
 	return tex;
 }
 
-enum gfx_format dds_get_format(const struct dds_pixel_fmt* pf)
+enum gfxFormat dds_get_format(const struct dds_pixel_fmt* pf)
 {
     if (BIT_CHECK(pf->flags, DDS_RGB))    {
         switch (pf->rgb_bitcnt)    {
@@ -233,15 +233,15 @@ enum gfx_format dds_get_format(const struct dds_pixel_fmt* pf)
              * here because they were defined for DXGI 1.0 but were not required for D3D10/10.1
              */
             if (ISBITMASK(0x000000ff,0x0000ff00,0x00ff0000,0xff000000))
-                return GFX_FORMAT_RGBA_UNORM;
+                return gfxFormat::RGBA_UNORM;
             if (ISBITMASK(0x000000ff,0x0000ff00,0x00ff0000,0x00000000))
-                return GFX_FORMAT_RGBA_UNORM; /* No GFX_FORMAT_X8B8G8R8 in DXGI */
+                return gfxFormat::RGBA_UNORM; /* No GFX_FORMAT_X8B8G8R8 in DXGI */
             if (ISBITMASK(0x000003ff,0x000ffc00,0x3ff00000,0xc0000000))
-                return GFX_FORMAT_R10G10B10A2_UNORM;
+                return gfxFormat::R10G10B10A2_UNORM;
             if (ISBITMASK(0x0000ffff,0xffff0000,0x00000000,0x00000000))
-                return GFX_FORMAT_R16G16_UNORM;
+                return gfxFormat::R16G16_UNORM;
             if (ISBITMASK(0xffffffff,0x00000000,0x00000000,0x00000000))
-                return GFX_FORMAT_R32_FLOAT; /* D3DX writes this out as a FourCC of 114 */
+                return gfxFormat::R32_FLOAT; /* D3DX writes this out as a FourCC of 114 */
             break;
 
         case 24:
@@ -255,35 +255,35 @@ enum gfx_format dds_get_format(const struct dds_pixel_fmt* pf)
     }    else if (BIT_CHECK(pf->flags, DDS_LUMINANCE))    {
         if (8 == pf->rgb_bitcnt)   {
             if (ISBITMASK(0x000000ff,0x00000000,0x00000000,0x00000000))
-                return GFX_FORMAT_R8_UNORM; /* D3DX10/11 writes this out as DX10 extension */
+                return gfxFormat::R8_UNORM; /* D3DX10/11 writes this out as DX10 extension */
         }
         if (16 == pf->rgb_bitcnt)     {
             if (ISBITMASK(0x0000ffff,0x00000000,0x00000000,0x00000000))
-                return GFX_FORMAT_R16_UNORM; /* D3DX10/11 writes this out as DX10 extension (not supported) */
+                return gfxFormat::R16_UNORM; /* D3DX10/11 writes this out as DX10 extension (not supported) */
             if (ISBITMASK(0x000000ff,0x00000000,0x00000000,0x0000ff00))
-                return GFX_FORMAT_R8G8_UNORM; /* D3DX10/11 writes this out as DX10 extension (not suppoerted) */
+                return gfxFormat::R8G8_UNORM; /* D3DX10/11 writes this out as DX10 extension (not suppoerted) */
         }
     }	else if (BIT_CHECK(pf->flags, DDS_FOURCC))    {
-        if (MAKEFOURCC('D', 'X', 'T', '1') == pf->fourcc)   return GFX_FORMAT_BC1;
-        if (MAKEFOURCC('D', 'X', 'T', '3') == pf->fourcc)   return GFX_FORMAT_BC2;
-        if (MAKEFOURCC('D', 'X', 'T', '5') == pf->fourcc)   return GFX_FORMAT_BC3;
-        if (MAKEFOURCC('A', 'T', 'I', '1') == pf->fourcc)   return GFX_FORMAT_BC4;
-        if (MAKEFOURCC('A', 'T', 'I', '2') == pf->fourcc)   return GFX_FORMAT_BC5;
+        if (MAKEFOURCC('D', 'X', 'T', '1') == pf->fourcc)   return gfxFormat::BC1;
+        if (MAKEFOURCC('D', 'X', 'T', '3') == pf->fourcc)   return gfxFormat::BC2;
+        if (MAKEFOURCC('D', 'X', 'T', '5') == pf->fourcc)   return gfxFormat::BC3;
+        if (MAKEFOURCC('A', 'T', 'I', '1') == pf->fourcc)   return gfxFormat::BC4;
+        if (MAKEFOURCC('A', 'T', 'I', '2') == pf->fourcc)   return gfxFormat::BC5;
 
         /* Check for D3DFORMAT enums being set here */
         switch (pf->fourcc)     {
-        case DDS_FMT_A16B16G16R16:  return GFX_FORMAT_R16G16B16A16_UNORM;
-        case DDS_FMT_Q16W16V16U16:  return GFX_FORMAT_R16G16B16A16_SNORM;
-        case DDS_FMT_R16F:          return GFX_FORMAT_R16_FLOAT;
-        case DDS_FMT_G16R16F:       return GFX_FORMAT_R16G16_FLOAT;
-        case DDS_FMT_A16B16G16R16F: return GFX_FORMAT_R16G16B16A16_FLOAT;
-        case DDS_FMT_R32F:          return GFX_FORMAT_R32_FLOAT;
-        case DDS_FMT_G32R32F:       return GFX_FORMAT_R32G32_FLOAT;
-        case DDS_FMT_A32B32G32R32F: return GFX_FORMAT_R32G32B32A32_FLOAT;
+        case DDS_FMT_A16B16G16R16:  return gfxFormat::R16G16B16A16_UNORM;
+        case DDS_FMT_Q16W16V16U16:  return gfxFormat::R16G16B16A16_SNORM;
+        case DDS_FMT_R16F:          return gfxFormat::R16_FLOAT;
+        case DDS_FMT_G16R16F:       return gfxFormat::R16G16_FLOAT;
+        case DDS_FMT_A16B16G16R16F: return gfxFormat::R16G16B16A16_FLOAT;
+        case DDS_FMT_R32F:          return gfxFormat::R32_FLOAT;
+        case DDS_FMT_G32R32F:       return gfxFormat::R32G32_FLOAT;
+        case DDS_FMT_A32B32G32R32F: return gfxFormat::R32G32B32A32_FLOAT;
         }
     }
 
-    return GFX_FORMAT_UNKNOWN;
+    return gfxFormat::UNKNOWN;
 }
 
 
@@ -298,7 +298,7 @@ int dds_is_argb(const struct dds_pixel_fmt* pf)
     return FALSE;
 }
 
-void dds_get_surfaceinfo(uint width, uint height, enum gfx_format fmt,
+void dds_get_surfaceinfo(uint width, uint height, enum gfxFormat fmt,
 		OUT uint* size, OUT uint* rowsize, OUT uint* rowcnt)
 {
     uint bytes_cnt = 0;
@@ -309,19 +309,19 @@ void dds_get_surfaceinfo(uint width, uint height, enum gfx_format fmt,
     int bytes_per_block = 16;
     switch (fmt)
     {
-    case GFX_FORMAT_BC1:
-    case GFX_FORMAT_BC1_SRGB:
-    case GFX_FORMAT_BC4:
-    case GFX_FORMAT_BC4_SNORM:
+    case gfxFormat::BC1:
+    case gfxFormat::BC1_SRGB:
+    case gfxFormat::BC4:
+    case gfxFormat::BC4_SNORM:
         bytes_per_block = 8;
         break;
 
-    case GFX_FORMAT_BC2:
-    case GFX_FORMAT_BC2_SRGB:
-    case GFX_FORMAT_BC3:
-    case GFX_FORMAT_BC3_SRGB:
-    case GFX_FORMAT_BC5:
-    case GFX_FORMAT_BC5_SNORM:
+    case gfxFormat::BC2:
+    case gfxFormat::BC2_SRGB:
+    case gfxFormat::BC3:
+    case gfxFormat::BC3_SRGB:
+    case gfxFormat::BC5:
+    case gfxFormat::BC5_SNORM:
     /*
     case GFX_FORMAT_BC6H_TYPELESS:
     case GFX_FORMAT_BC6H_UF16:
@@ -356,77 +356,77 @@ void dds_get_surfaceinfo(uint width, uint height, enum gfx_format fmt,
     *rowcnt = row_cnt;
 }
 
-uint gfx_texture_getbpp(enum gfx_format fmt)
+uint gfx_texture_getbpp(enum gfxFormat fmt)
 {
     switch (fmt)
     {
-    case GFX_FORMAT_R32G32B32A32_FLOAT:
-    case GFX_FORMAT_R32G32B32A32_UINT:
-    case GFX_FORMAT_R32G32B32A32_SINT:
+    case gfxFormat::R32G32B32A32_FLOAT:
+    case gfxFormat::R32G32B32A32_UINT:
+    case gfxFormat::R32G32B32A32_SINT:
         return 128;
 
-    case GFX_FORMAT_R32G32B32_FLOAT:
-    case GFX_FORMAT_R32G32B32_UINT:
-    case GFX_FORMAT_R32G32B32_SINT:
+    case gfxFormat::R32G32B32_FLOAT:
+    case gfxFormat::R32G32B32_UINT:
+    case gfxFormat::R32G32B32_SINT:
         return 96;
 
-    case GFX_FORMAT_R16G16B16A16_FLOAT:
-    case GFX_FORMAT_R16G16B16A16_UNORM:
-    case GFX_FORMAT_R16G16B16A16_UINT:
-    case GFX_FORMAT_R16G16B16A16_SNORM:
-    case GFX_FORMAT_R16G16B16A16_SINT:
-    case GFX_FORMAT_R32G32_FLOAT:
-    case GFX_FORMAT_R32G32_UINT:
-    case GFX_FORMAT_R32G32_SINT:
+    case gfxFormat::R16G16B16A16_FLOAT:
+    case gfxFormat::R16G16B16A16_UNORM:
+    case gfxFormat::R16G16B16A16_UINT:
+    case gfxFormat::R16G16B16A16_SNORM:
+    case gfxFormat::R16G16B16A16_SINT:
+    case gfxFormat::R32G32_FLOAT:
+    case gfxFormat::R32G32_UINT:
+    case gfxFormat::R32G32_SINT:
         return 64;
 
-    case GFX_FORMAT_R10G10B10A2_UNORM:
-    case GFX_FORMAT_R10G10B10A2_UINT:
-    case GFX_FORMAT_R11G11B10_FLOAT:
-    case GFX_FORMAT_RGBA_UNORM:
-    case GFX_FORMAT_RGBA_UNORM_SRGB:
-    case GFX_FORMAT_R16G16_FLOAT:
-    case GFX_FORMAT_R16G16_UNORM:
-    case GFX_FORMAT_R16G16_UINT:
-    case GFX_FORMAT_R16G16_SNORM:
-    case GFX_FORMAT_R16G16_SINT:
-    case GFX_FORMAT_R32_FLOAT:
-    case GFX_FORMAT_R32_UINT:
-    case GFX_FORMAT_R32_SINT:
-    case GFX_FORMAT_DEPTH24_STENCIL8:
-    case GFX_FORMAT_DEPTH32:
+    case gfxFormat::R10G10B10A2_UNORM:
+    case gfxFormat::R10G10B10A2_UINT:
+    case gfxFormat::R11G11B10_FLOAT:
+    case gfxFormat::RGBA_UNORM:
+    case gfxFormat::RGBA_UNORM_SRGB:
+    case gfxFormat::R16G16_FLOAT:
+    case gfxFormat::R16G16_UNORM:
+    case gfxFormat::R16G16_UINT:
+    case gfxFormat::R16G16_SNORM:
+    case gfxFormat::R16G16_SINT:
+    case gfxFormat::R32_FLOAT:
+    case gfxFormat::R32_UINT:
+    case gfxFormat::R32_SINT:
+    case gfxFormat::DEPTH24_STENCIL8:
+    case gfxFormat::DEPTH32:
         return 32;
 
-    case GFX_FORMAT_R8G8_UNORM:
-    case GFX_FORMAT_R8G8_UINT:
-    case GFX_FORMAT_R8G8_SNORM:
-    case GFX_FORMAT_R8G8_SINT:
-    case GFX_FORMAT_R16_FLOAT:
-    case GFX_FORMAT_R16_UNORM:
-    case GFX_FORMAT_R16_UINT:
-    case GFX_FORMAT_R16_SNORM:
-    case GFX_FORMAT_R16_SINT:
-    case GFX_FORMAT_DEPTH16:
+    case gfxFormat::R8G8_UNORM:
+    case gfxFormat::R8G8_UINT:
+    case gfxFormat::R8G8_SNORM:
+    case gfxFormat::R8G8_SINT:
+    case gfxFormat::R16_FLOAT:
+    case gfxFormat::R16_UNORM:
+    case gfxFormat::R16_UINT:
+    case gfxFormat::R16_SNORM:
+    case gfxFormat::R16_SINT:
+    case gfxFormat::DEPTH16:
         return 16;
 
-    case GFX_FORMAT_R8_UNORM:
-    case GFX_FORMAT_R8_UINT:
-    case GFX_FORMAT_R8_SNORM:
-    case GFX_FORMAT_R8_SINT:
+    case gfxFormat::R8_UNORM:
+    case gfxFormat::R8_UINT:
+    case gfxFormat::R8_SNORM:
+    case gfxFormat::R8_SINT:
         return 8;
 
-    case GFX_FORMAT_BC1:
-    case GFX_FORMAT_BC1_SRGB:
+    case gfxFormat::BC1:
+    case gfxFormat::BC1_SRGB:
         return 4;
 
-    case GFX_FORMAT_BC2:
-    case GFX_FORMAT_BC2_SRGB:
-    case GFX_FORMAT_BC3:
-    case GFX_FORMAT_BC3_SRGB:
-    case GFX_FORMAT_BC4:
-    case GFX_FORMAT_BC4_SNORM:
-    case GFX_FORMAT_BC5:
-    case GFX_FORMAT_BC5_SNORM:
+    case gfxFormat::BC2:
+    case gfxFormat::BC2_SRGB:
+    case gfxFormat::BC3:
+    case gfxFormat::BC3_SRGB:
+    case gfxFormat::BC4:
+    case gfxFormat::BC4_SNORM:
+    case gfxFormat::BC5:
+    case gfxFormat::BC5_SNORM:
     /*
     case GFX_FORMAT_BC6H_TYPELESS:
     case GFX_FORMAT_BC6H_UF16:
@@ -442,13 +442,13 @@ uint gfx_texture_getbpp(enum gfx_format fmt)
     }
 }
 
-enum gfx_format dds_conv_tosrgb(enum gfx_format fmt)
+enum gfxFormat dds_conv_tosrgb(enum gfxFormat fmt)
 {
     switch (fmt)        {
-    case GFX_FORMAT_BC1:      	return GFX_FORMAT_BC1_SRGB;
-    case GFX_FORMAT_BC2:      	return GFX_FORMAT_BC2_SRGB;
-    case GFX_FORMAT_BC3:      	return GFX_FORMAT_BC3_SRGB;
-    case GFX_FORMAT_RGBA_UNORM: return GFX_FORMAT_RGBA_UNORM_SRGB;
+    case gfxFormat::BC1:      	return gfxFormat::BC1_SRGB;
+    case gfxFormat::BC2:      	return gfxFormat::BC2_SRGB;
+    case gfxFormat::BC3:      	return gfxFormat::BC3_SRGB;
+    case gfxFormat::RGBA_UNORM: return gfxFormat::RGBA_UNORM_SRGB;
     default:                    return fmt;
     }
 }

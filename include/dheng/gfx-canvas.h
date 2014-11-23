@@ -348,7 +348,7 @@ ENGINE_API void gfx_canvas_arrow2d(const struct vec2i* p0, const struct vec2i* p
                                    uint line_width, float width);
 ENGINE_API void gfx_canvas_geo(const struct gfx_model_geo* geo, const struct mat3f* world);
 ENGINE_API void gfx_canvas_georaw(gfx_inputlayout il, const struct mat3f* world, const struct color* clr,
-    uint tri_cnt, enum gfx_index_type ib_type);
+    uint tri_cnt, enum gfxIndexType ib_type);
 ENGINE_API void gfx_canvas_cam(const struct camera* cam, const struct vec4f* activecam_pos,
 		const struct mat4f* viewproj, int show_info);
 ENGINE_API void gfx_canvas_worldbounds(const struct vec3f* minpt, const struct vec3f* maxpt,

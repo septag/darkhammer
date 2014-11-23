@@ -759,37 +759,37 @@ gfx_sampler gfx_create_sampler_fromtexfilter(appGfxTextureFilter filter)
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
     switch (filter) {
     case appGfxTextureFilter::TRILINEAR:
-        sdesc.filter_mag = GFX_FILTER_LINEAR;
-        sdesc.filter_min = GFX_FILTER_LINEAR;
-        sdesc.filter_mip = GFX_FILTER_LINEAR;
+        sdesc.filter_mag = gfxFilterMode::LINEAR;
+        sdesc.filter_min = gfxFilterMode::LINEAR;
+        sdesc.filter_mip = gfxFilterMode::LINEAR;
         break;
     case appGfxTextureFilter::BILINEAR:
-        sdesc.filter_mag = GFX_FILTER_LINEAR;
-        sdesc.filter_min = GFX_FILTER_LINEAR;
-        sdesc.filter_mip = GFX_FILTER_NEAREST;
+        sdesc.filter_mag = gfxFilterMode::LINEAR;
+        sdesc.filter_min = gfxFilterMode::LINEAR;
+        sdesc.filter_mip = gfxFilterMode::NEAREST;
         break;
     case appGfxTextureFilter::ANISO2X:
-        sdesc.filter_mag = GFX_FILTER_LINEAR;
-        sdesc.filter_min = GFX_FILTER_LINEAR;
-        sdesc.filter_mip = GFX_FILTER_LINEAR;
+        sdesc.filter_mag = gfxFilterMode::LINEAR;
+        sdesc.filter_min = gfxFilterMode::LINEAR;
+        sdesc.filter_mip = gfxFilterMode::LINEAR;
         sdesc.aniso_max = 2;
         break;
     case appGfxTextureFilter::ANISO4X:
-        sdesc.filter_mag = GFX_FILTER_LINEAR;
-        sdesc.filter_min = GFX_FILTER_LINEAR;
-        sdesc.filter_mip = GFX_FILTER_LINEAR;
+        sdesc.filter_mag = gfxFilterMode::LINEAR;
+        sdesc.filter_min = gfxFilterMode::LINEAR;
+        sdesc.filter_mip = gfxFilterMode::LINEAR;
         sdesc.aniso_max = 4;
         break;
     case appGfxTextureFilter::ANISO8X:
-        sdesc.filter_mag = GFX_FILTER_LINEAR;
-        sdesc.filter_min = GFX_FILTER_LINEAR;
-        sdesc.filter_mip = GFX_FILTER_LINEAR;
+        sdesc.filter_mag = gfxFilterMode::LINEAR;
+        sdesc.filter_min = gfxFilterMode::LINEAR;
+        sdesc.filter_mip = gfxFilterMode::LINEAR;
         sdesc.aniso_max = 8;
         break;
     case appGfxTextureFilter::ANISO16X:
-        sdesc.filter_mag = GFX_FILTER_LINEAR;
-        sdesc.filter_min = GFX_FILTER_LINEAR;
-        sdesc.filter_mip = GFX_FILTER_LINEAR;
+        sdesc.filter_mag = gfxFilterMode::LINEAR;
+        sdesc.filter_min = gfxFilterMode::LINEAR;
+        sdesc.filter_mip = gfxFilterMode::LINEAR;
         sdesc.aniso_max = 16;
         break;
     }
@@ -1230,7 +1230,7 @@ result_t gfx_create_fullscreenquad()
     };
 #endif
 
-    g_gfx.fs_vbuff = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_STATIC,
+    g_gfx.fs_vbuff = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::STATIC,
         sizeof(struct gfx_fs_vertex)*4, verts, 0);
     if (g_gfx.fs_vbuff == NULL)
         return RET_FAIL;
@@ -1245,7 +1245,7 @@ result_t gfx_create_fullscreenquad()
     };
 
     g_gfx.fs_il = gfx_create_inputlayout(vbuffs, GFX_INPUTVB_GETCNT(vbuffs),
-        inputs, GFX_INPUT_GETCNT(inputs), NULL, GFX_INDEX_UNKNOWN, 0);
+        inputs, GFX_INPUT_GETCNT(inputs), NULL, gfxIndexType::UNKNOWN, 0);
     if (g_gfx.fs_il == NULL)
         return RET_FAIL;
 
@@ -1264,7 +1264,7 @@ void gfx_destroy_fullscreenquad()
 void gfx_draw_fullscreenquad()
 {
     gfx_input_setlayout(g_gfx.cmdqueue, g_gfx.fs_il);
-    gfx_draw(g_gfx.cmdqueue, GFX_PRIMITIVE_TRIANGLESTRIP, 0, 4, GFX_DRAWCALL_POSTFX);
+    gfx_draw(g_gfx.cmdqueue, gfxPrimitiveType::TRIANGLE_STRIP, 0, 4, GFX_DRAWCALL_POSTFX);
 }
 
 result_t gfx_console_showcullinfo(uint argc, const char** argv, void* param)
@@ -1346,18 +1346,18 @@ result_t gfx_composite_init()
     /* states */
     struct gfx_sampler_desc sdesc;
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-    sdesc.address_u = GFX_ADDRESS_CLAMP;
-    sdesc.address_v = GFX_ADDRESS_CLAMP;
-    sdesc.filter_min = GFX_FILTER_NEAREST;
-    sdesc.filter_mag = GFX_FILTER_NEAREST;
-    sdesc.filter_mip = GFX_FILTER_UNKNOWN;
+    sdesc.address_u = gfxAddressMode::CLAMP;
+    sdesc.address_v = gfxAddressMode::CLAMP;
+    sdesc.filter_min = gfxFilterMode::NEAREST;
+    sdesc.filter_mag = gfxFilterMode::NEAREST;
+    sdesc.filter_mip = gfxFilterMode::UNKNOWN;
     g_gfx.sampl_point = gfx_create_sampler(&sdesc);
     if (g_gfx.sampl_point == NULL)
         return RET_FAIL;
 
-    sdesc.filter_min = GFX_FILTER_LINEAR;
-    sdesc.filter_mag = GFX_FILTER_LINEAR;
-    sdesc.filter_mip = GFX_FILTER_UNKNOWN;
+    sdesc.filter_min = gfxFilterMode::LINEAR;
+    sdesc.filter_mag = gfxFilterMode::LINEAR;
+    sdesc.filter_mip = gfxFilterMode::UNKNOWN;
     g_gfx.sampl_lin = gfx_create_sampler(&sdesc);
     if (g_gfx.sampl_lin == NULL)
         return RET_FAIL;
@@ -1366,7 +1366,7 @@ result_t gfx_composite_init()
     memcpy(&dsdesc, gfx_get_defaultdepthstencil(), sizeof(dsdesc));
     dsdesc.depth_enable = TRUE;
     dsdesc.depth_write = TRUE;
-    dsdesc.depth_func = GFX_CMP_ALWAYS;
+    dsdesc.depth_func = gfxCmpFunc::ALWAYS;
     g_gfx.ds_always = gfx_create_depthstencilstate(&dsdesc);
     if (g_gfx.ds_always == NULL)
         return RET_FAIL;
@@ -1486,8 +1486,8 @@ void gfx_render_blank(gfx_cmdqueue cmdqueue, int width, int height)
 
     gfx_output_setrendertarget(cmdqueue, NULL);
     gfx_output_setviewport(g_gfx.cmdqueue, 0, 0, width, height);
-    gfx_output_clearrendertarget(cmdqueue, NULL, fill.f, 1.0f, 0, GFX_CLEAR_COLOR |
-        GFX_CLEAR_DEPTH | GFX_CLEAR_STENCIL);
+    gfx_output_clearrendertarget(cmdqueue, NULL, fill.f, 1.0f, 0, gfxClearFlag::COLOR |
+        gfxClearFlag::DEPTH | gfxClearFlag::STENCIL);
 }
 
 void gfx_render_grid(gfx_cmdqueue cmdqueue, const struct gfx_view_params* params)

@@ -378,7 +378,7 @@ result_t canvas_create_buffers()
 
     /* vertex/index buffers */
     g_cvs.buffers2d.vb_pos_clr_coord =
-        gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_DYNAMIC,
+        gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::DYNAMIC,
         sizeof(struct canvas_vertex2d)*QUAD_COUNT*4, NULL, 0);
     if (g_cvs.buffers2d.vb_pos_clr_coord == NULL)
         return RET_FAIL;
@@ -399,7 +399,7 @@ result_t canvas_create_buffers()
         indexes[idx+5] = v + 2;
     }
 
-    g_cvs.buffers2d.ib = gfx_create_buffer(GFX_BUFFER_INDEX, GFX_MEMHINT_STATIC,
+    g_cvs.buffers2d.ib = gfx_create_buffer(gfxBufferType::INDEX, gfxMemHint::STATIC,
     		sizeof(uint16)*QUAD_COUNT*6, indexes, 0);
     FREE(indexes);
     if (g_cvs.buffers2d.ib == NULL)
@@ -413,7 +413,7 @@ result_t canvas_create_buffers()
     g_cvs.buffers2d.il = gfx_create_inputlayout(
         vbuffs_il, GFX_INPUTVB_GETCNT(vbuffs_il),
         canvas_shader2d_il, GFX_INPUT_GETCNT(canvas_shader2d_il),
-        g_cvs.buffers2d.ib, GFX_INDEX_UINT16, 0);
+        g_cvs.buffers2d.ib, gfxIndexType::UINT16, 0);
     if (g_cvs.buffers2d.il == NULL)
     	return RET_FAIL;
 
@@ -433,7 +433,7 @@ result_t canvas_create_shapes()
     s->prism_buff = canvas_create_prism();
     s->capsule_buff = canvas_create_capsule(4*3, 3*3, &s->capsule_halfidx, &s->capsule_cylidx,
         &s->capsule_cylcnt);
-    s->generic_buff = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_DYNAMIC,
+    s->generic_buff = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::DYNAMIC,
         sizeof(struct canvas_vertex3d)*1000, NULL, 0);
 
     if (s->solid_spheres_buff[2] == NULL ||
@@ -455,55 +455,55 @@ result_t canvas_create_shapes()
         {sizeof(struct canvas_vertex3d), s->solid_spheres_buff[0]}
     };
     s->solid_spheres[0] = gfx_create_inputlayout(vbuffs0, GFX_INPUTVB_GETCNT(vbuffs0),
-        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, GFX_INDEX_UNKNOWN, 0);
+        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, gfxIndexType::UNKNOWN, 0);
 
     const struct gfx_input_vbuff_desc vbuffs1[] = {
         {sizeof(struct canvas_vertex3d), s->solid_spheres_buff[1]}
     };
     s->solid_spheres[1] = gfx_create_inputlayout(vbuffs1, GFX_INPUTVB_GETCNT(vbuffs1),
-        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, GFX_INDEX_UNKNOWN, 0);
+        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, gfxIndexType::UNKNOWN, 0);
 
     const struct gfx_input_vbuff_desc vbuffs2[] = {
         {sizeof(struct canvas_vertex3d), s->solid_spheres_buff[2]}
     };
     s->solid_spheres[2] = gfx_create_inputlayout(vbuffs2, GFX_INPUTVB_GETCNT(vbuffs2),
-        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, GFX_INDEX_UNKNOWN, 0);
+        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, gfxIndexType::UNKNOWN, 0);
 
     const struct gfx_input_vbuff_desc vbuffs3[] = {
         {sizeof(struct canvas_vertex3d), s->bound_aabb_buff}
     };
     s->bound_aabb = gfx_create_inputlayout(vbuffs3, GFX_INPUTVB_GETCNT(vbuffs3),
-        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, GFX_INDEX_UNKNOWN, 0);
+        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, gfxIndexType::UNKNOWN, 0);
 
     const struct gfx_input_vbuff_desc vbuffs4[] = {
         {sizeof(struct canvas_vertex3d), s->bound_sphere_buff}
     };
     s->bound_sphere = gfx_create_inputlayout(vbuffs4, GFX_INPUTVB_GETCNT(vbuffs4),
-        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, GFX_INDEX_UNKNOWN, 0);
+        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, gfxIndexType::UNKNOWN, 0);
 
     const struct gfx_input_vbuff_desc vbuffs5[] = {
         {sizeof(struct canvas_vertex3d), s->solid_aabb_buff}
     };
     s->solid_aabb = gfx_create_inputlayout(vbuffs5, GFX_INPUTVB_GETCNT(vbuffs5),
-        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, GFX_INDEX_UNKNOWN, 0);
+        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, gfxIndexType::UNKNOWN, 0);
 
     const struct gfx_input_vbuff_desc vbuffs6[] = {
         {sizeof(struct canvas_vertex3d), s->prism_buff}
     };
     s->prism = gfx_create_inputlayout(vbuffs6, GFX_INPUTVB_GETCNT(vbuffs6),
-        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, GFX_INDEX_UNKNOWN, 0);
+        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, gfxIndexType::UNKNOWN, 0);
 
     const struct gfx_input_vbuff_desc vbuffs7[] = {
         {sizeof(struct canvas_vertex3d), s->capsule_buff}
     };
     s->capsule = gfx_create_inputlayout(vbuffs7, GFX_INPUTVB_GETCNT(vbuffs7),
-        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, GFX_INDEX_UNKNOWN, 0);
+        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, gfxIndexType::UNKNOWN, 0);
 
     const struct gfx_input_vbuff_desc vbuffs8[] = {
         {sizeof(struct canvas_vertex3d), s->generic_buff}
     };
     s->generic = gfx_create_inputlayout(vbuffs8, GFX_INPUTVB_GETCNT(vbuffs8),
-        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, GFX_INDEX_UNKNOWN, 0);
+        canvas_shader3d_il, GFX_INPUT_GETCNT(canvas_shader3d_il), NULL, gfxIndexType::UNKNOWN, 0);
 
     if (s->solid_spheres[2] == NULL ||
         s->solid_spheres[1] == NULL ||
@@ -525,7 +525,7 @@ result_t canvas_create_states()
 {
 	struct gfx_sampler_desc sdesc;
 	memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-	sdesc.filter_mip = GFX_FILTER_UNKNOWN;
+	sdesc.filter_mip = gfxFilterMode::UNKNOWN;
 	g_cvs.sampler2d = gfx_create_sampler(&sdesc);
 	if (g_cvs.sampler2d == NULL)
 		return RET_FAIL;
@@ -536,8 +536,8 @@ result_t canvas_create_states()
     struct gfx_blend_desc blend_desc;
     memcpy(&blend_desc, gfx_get_defaultblend(), sizeof(blend_desc));
     blend_desc.enable = TRUE;
-    blend_desc.src_blend = GFX_BLEND_SRC_ALPHA;
-    blend_desc.dest_blend = GFX_BLEND_INV_SRC_ALPHA;
+    blend_desc.src_blend = gfxBlendMode::SRC_ALPHA;
+    blend_desc.dest_blend = gfxBlendMode::INV_SRC_ALPHA;
     s->blend_alpha = gfx_create_blendstate(&blend_desc);
 
     /* depth enable state (always is Zwrite = FALSE) */
@@ -561,15 +561,15 @@ result_t canvas_create_states()
      * rasterizer states have default (CULL_FRONT) because the shapes are built for CW winding
      * */
     memcpy(&rs_desc, gfx_get_defaultraster(), sizeof(rs_desc));
-    rs_desc.fill = GFX_FILL_WIREFRAME;
+    rs_desc.fill = gfxFillMode::WIREFRAME;
     s->rs_wire = gfx_create_rasterstate(&rs_desc);
-    rs_desc.cull = GFX_CULL_NONE;
+    rs_desc.cull = gfxCullMode::NONE;
     s->rs_wire_nocull = gfx_create_rasterstate(&rs_desc);
 
-    rs_desc.cull = GFX_CULL_FRONT;
-    rs_desc.fill = GFX_FILL_SOLID;
+    rs_desc.cull = gfxCullMode::FRONT;
+    rs_desc.fill = gfxFillMode::SOLID;
     s->rs_solid = gfx_create_rasterstate(&rs_desc);
-    rs_desc.cull = GFX_CULL_NONE;
+    rs_desc.cull = gfxCullMode::NONE;
     s->rs_solid_nocull = gfx_create_rasterstate(&rs_desc);
 
     if (s->blend_alpha == NULL ||
@@ -585,11 +585,11 @@ result_t canvas_create_states()
     }
 
     memcpy(&sdesc, gfx_get_defaultsampler(), sizeof(sdesc));
-    sdesc.address_u = GFX_ADDRESS_WRAP;
-    sdesc.address_v = GFX_ADDRESS_WRAP;
-    sdesc.filter_min = GFX_FILTER_LINEAR;
-    sdesc.filter_mag = GFX_FILTER_LINEAR;
-    sdesc.filter_mip = GFX_FILTER_LINEAR;
+    sdesc.address_u = gfxAddressMode::WRAP;
+    sdesc.address_v = gfxAddressMode::WRAP;
+    sdesc.filter_min = gfxFilterMode::LINEAR;
+    sdesc.filter_mag = gfxFilterMode::LINEAR;
+    sdesc.filter_mip = gfxFilterMode::LINEAR;
     s->sampl_lin = gfx_create_sampler(&sdesc);
 
     return RET_OK;
@@ -960,8 +960,8 @@ void gfx_canvas_render2d(gfx_cmdqueue cmdqueue, gfx_rendertarget rt, float rt_wi
                 if (quad_idx == 0)    {
                     /* we were in the last ring and quad stream is incomplete
                      * draw the last ring in the buffer to reset */
-                	gfx_draw_indexed(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, start_idx*6, quad_cnt*6,
-                			GFX_INDEX_UINT16, GFX_DRAWCALL_2D);
+                	gfx_draw_indexed(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, start_idx*6, quad_cnt*6,
+                			gfxIndexType::UINT16, GFX_DRAWCALL_2D);
                     quad_cnt = 0;
                     start_idx = 0;
                 }
@@ -989,8 +989,8 @@ void gfx_canvas_render2d(gfx_cmdqueue cmdqueue, gfx_rendertarget rt, float rt_wi
 
         /* draw remaining item */
         gfx_ringbuffer_unmap(cmdqueue, &vb, quads_perdraw*quad_sz);
-    	gfx_draw_indexed(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, start_idx*6, quad_cnt*6,
-    			GFX_INDEX_UINT16, GFX_DRAWCALL_2D);
+    	gfx_draw_indexed(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, start_idx*6, quad_cnt*6,
+    			gfxIndexType::UINT16, GFX_DRAWCALL_2D);
 
         quad_cnt = 0;
         start_idx = quad_idx;
@@ -1557,7 +1557,7 @@ gfx_buffer canvas_create_solidsphere(uint horz_seg_cnt, uint vert_seg_cnt)
         }
     }
 
-    gfx_buffer buf = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_STATIC, size, verts, 0);
+    gfx_buffer buf = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::STATIC, size, verts, 0);
     FREE(verts);
 
     return buf;
@@ -1587,7 +1587,7 @@ gfx_buffer canvas_create_boundsphere(uint seg_cnt)
         theta += dt;
     }
 
-    gfx_buffer buf = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_STATIC, size, verts, 0);
+    gfx_buffer buf = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::STATIC, size, verts, 0);
     FREE(verts);
     return buf;
 }
@@ -1630,7 +1630,7 @@ gfx_buffer canvas_create_prism()
     vec3_setf(&verts[16].pos, w, 0.0f, -w);
     vec3_setf(&verts[17].pos, 0.0f, 1.0f, 0.0f);
 
-    gfx_buffer buff = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_STATIC, size, verts, 0);
+    gfx_buffer buff = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::STATIC, size, verts, 0);
     FREE(verts);
 
     return buff;
@@ -1695,7 +1695,7 @@ gfx_buffer canvas_create_solidaabb()
     vec3_setv(&verts[34].pos, &pts[7]);
     vec3_setv(&verts[35].pos, &pts[3]);
 
-    gfx_buffer buf = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_STATIC, size, verts, 0);
+    gfx_buffer buf = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::STATIC, size, verts, 0);
     FREE(verts);
     return buf;
 }
@@ -1735,7 +1735,7 @@ gfx_buffer canvas_create_boundaabb()
     vec3_setv(&verts[20].pos, &pts[7]);   vec3_setv(&verts[21].pos, &pts[6]);
     vec3_setv(&verts[22].pos, &pts[6]);   vec3_setv(&verts[23].pos, &pts[2]);
 
-    gfx_buffer buf = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_STATIC, size, verts, 0);
+    gfx_buffer buf = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::STATIC, size, verts, 0);
     FREE(verts);
     return buf;
 }
@@ -1860,7 +1860,7 @@ gfx_buffer canvas_create_capsule(uint horz_seg_cnt, uint vert_seg_cnt, uint* hal
     }
     *cyl_cnt = idx - (*cyl_idx);
 
-    gfx_buffer buf = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_STATIC, size, verts, 0);
+    gfx_buffer buf = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::STATIC, size, verts, 0);
     FREE(verts);
     return buf;
 }
@@ -1893,7 +1893,7 @@ void gfx_canvas_box(const struct aabb* b, const struct mat3f* world)
     canvas_set_perobject(cmdqueue, &xform, &g_cvs.brush.clr0, NULL);
 
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.solid_aabb);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, 0, vertex_cnt, GFX_DRAWCALL_DEBUG);
+    gfx_draw(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, 0, vertex_cnt, GFX_DRAWCALL_DEBUG);
 }
 
 void gfx_canvas_boundaabb(const struct aabb* b, const struct mat4f* viewproj, int show_info)
@@ -1919,7 +1919,7 @@ void gfx_canvas_boundaabb(const struct aabb* b, const struct mat4f* viewproj, in
 
     canvas_set_perobject(cmdqueue, &xform, &g_cvs.brush.clr0, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.bound_aabb);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_LINELIST, 0, vertex_cnt, GFX_DRAWCALL_DEBUG);
+    gfx_draw(cmdqueue, gfxPrimitiveType::LINE_LIST, 0, vertex_cnt, GFX_DRAWCALL_DEBUG);
 
     /* info on 2d canvas (dimensions, center) */
     if (show_info)    {
@@ -1952,7 +1952,7 @@ void gfx_canvas_prism(float width, float height, const struct mat3f* world)
 
     canvas_set_perobject(cmdqueue, &xform, &g_cvs.brush.clr0, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.prism);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, 0, vertex_cnt, GFX_DRAWCALL_DEBUG);
+    gfx_draw(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, 0, vertex_cnt, GFX_DRAWCALL_DEBUG);
 }
 
 void gfx_canvas_sphere(const struct sphere* s, const struct mat3f* world,
@@ -1972,7 +1972,7 @@ void gfx_canvas_sphere(const struct sphere* s, const struct mat3f* world,
 
     canvas_set_perobject(cmdqueue, &xform, &g_cvs.brush.clr0, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.solid_spheres[level]);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, 0, vertex_cnt, GFX_DRAWCALL_DEBUG);
+    gfx_draw(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, 0, vertex_cnt, GFX_DRAWCALL_DEBUG);
 }
 
 void gfx_canvas_capsule(float radius, float half_height, const struct mat3f* world)
@@ -1989,7 +1989,7 @@ void gfx_canvas_capsule(float radius, float half_height, const struct mat3f* wor
     mat3_set_transf(&xform, -(half_height + radius)*0.5f, 0.0f, 0.0f);
     mat3_mul(&xform, &xform, world);
     canvas_set_perobject(cmdqueue, &xform, &g_cvs.brush.clr0, NULL);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, 0, g_cvs.shapes.capsule_halfidx,
+    gfx_draw(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, 0, g_cvs.shapes.capsule_halfidx,
     		GFX_DRAWCALL_DEBUG);
 
     /* upper half-sphere */
@@ -1998,7 +1998,7 @@ void gfx_canvas_capsule(float radius, float half_height, const struct mat3f* wor
     mat3_set_transf(&xform, (half_height + radius)*0.5f, 0.0f, 0.0f);
     mat3_mul(&xform, &xform, world);
     canvas_set_perobject(cmdqueue, &xform, &g_cvs.brush.clr0, NULL);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, g_cvs.shapes.capsule_halfidx,
+    gfx_draw(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, g_cvs.shapes.capsule_halfidx,
         g_cvs.shapes.capsule_halfidx, GFX_DRAWCALL_DEBUG);
 
     /* cylinder */
@@ -2006,7 +2006,7 @@ void gfx_canvas_capsule(float radius, float half_height, const struct mat3f* wor
     mat3_set_scalef(&xform, half_height, radius, radius);
     mat3_mul(&xform, &xform, world);
     canvas_set_perobject(cmdqueue, &xform, &g_cvs.brush.clr0, NULL);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, g_cvs.shapes.capsule_cylidx,
+    gfx_draw(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, g_cvs.shapes.capsule_cylidx,
     		g_cvs.shapes.capsule_cylcnt, GFX_DRAWCALL_DEBUG);
 }
 
@@ -2034,7 +2034,7 @@ void gfx_canvas_boundsphere(const struct sphere* s, const struct mat4f* viewproj
 
     canvas_set_perobject(cmdqueue, &xform, &g_cvs.brush.clr0, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.bound_sphere);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_LINELIST, 0, vertex_cnt, GFX_DRAWCALL_DEBUG);
+    gfx_draw(cmdqueue, gfxPrimitiveType::LINE_LIST, 0, vertex_cnt, GFX_DRAWCALL_DEBUG);
 
     /* 2d stuff
      * draw sphere center as a quad
@@ -2149,7 +2149,7 @@ void gfx_canvas_frustum(const struct vec4f frustum_pts[8])
     mat3_set_ident(&ident);
     canvas_set_perobject(cmdqueue, &ident, &g_cvs.line_color, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.generic);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_LINELIST, offset/sizeof(struct canvas_vertex3d),
+    gfx_draw(cmdqueue, gfxPrimitiveType::LINE_LIST, offset/sizeof(struct canvas_vertex3d),
     		vertex_cnt, GFX_DRAWCALL_DEBUG);
 }
 
@@ -2266,7 +2266,7 @@ void gfx_canvas_arrow3d(const struct vec4f* p0, const struct vec4f* p1,
     mat3_set_ident(&ident);
     canvas_set_perobject(cmdqueue, &ident, &g_cvs.line_color, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.generic);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_LINELIST, offset/sizeof(struct canvas_vertex3d),
+    gfx_draw(cmdqueue, gfxPrimitiveType::LINE_LIST, offset/sizeof(struct canvas_vertex3d),
     		vertex_cnt, GFX_DRAWCALL_DEBUG);
 }
 
@@ -2411,7 +2411,7 @@ void gfx_canvas_grid(float spacing, float depth_max, const struct camera* cam)
     gfx_contbuffer_unmap(cmdqueue, &g_cvs.contbuffer);
     canvas_set_perobject(cmdqueue, &ident, &g_cvs.line_color, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.generic);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_LINELIST, offset/sizeof(struct canvas_vertex3d),
+    gfx_draw(cmdqueue, gfxPrimitiveType::LINE_LIST, offset/sizeof(struct canvas_vertex3d),
     		vertex_cnt, GFX_DRAWCALL_DEBUG);
 }
 
@@ -2440,7 +2440,7 @@ void gfx_canvas_line3d(const struct vec4f* p0, const struct vec4f* p1)
     gfx_contbuffer_unmap(cmdqueue, &g_cvs.contbuffer);
     canvas_set_perobject(cmdqueue, &ident, &g_cvs.line_color, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.generic);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_LINELIST, offset/sizeof(struct canvas_vertex3d),
+    gfx_draw(cmdqueue, gfxPrimitiveType::LINE_LIST, offset/sizeof(struct canvas_vertex3d),
     		vertex_cnt, GFX_DRAWCALL_DEBUG);
 }
 
@@ -2549,7 +2549,7 @@ void gfx_canvas_light_spot(const struct mat3f* xform, float atten[4])
     /* draw */
     canvas_set_perobject(cmdqueue, xform, &g_cvs.brush.clr0, NULL);
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.generic);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_LINELIST, offset/sizeof(struct canvas_vertex3d), vertex_cnt,
+    gfx_draw(cmdqueue, gfxPrimitiveType::LINE_LIST, offset/sizeof(struct canvas_vertex3d), vertex_cnt,
     		GFX_DRAWCALL_DEBUG);
 }
 
@@ -2616,7 +2616,7 @@ void gfx_canvas_worldbounds(const struct vec3f* minpt, const struct vec3f* maxpt
     canvas_set_perobject(cmdqueue, mat3_set_ident(&m), &g_color_yellow,
         rs_get_texture(g_cvs.bounds_tex));
     gfx_input_setlayout(cmdqueue, g_cvs.shapes.generic);
-    gfx_draw(cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, offset/sizeof(struct canvas_vertex3d), 24,
+    gfx_draw(cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, offset/sizeof(struct canvas_vertex3d), 24,
         GFX_DRAWCALL_DEBUG);
 
     canvas_3d_switchnormal();
@@ -2626,16 +2626,16 @@ void gfx_canvas_geo(const struct gfx_model_geo* geo, const struct mat3f* world)
 {
 	canvas_set_perobject(g_cvs.cmdqueue, world, &g_cvs.brush.clr0, NULL);
     gfx_input_setlayout(g_cvs.cmdqueue, geo->inputlayout);
-    gfx_draw_indexed(g_cvs.cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, 0, geo->tri_cnt*3, geo->ib_type,
+    gfx_draw_indexed(g_cvs.cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, 0, geo->tri_cnt*3, geo->ib_type,
     		GFX_DRAWCALL_DEBUG);
 }
 
 void gfx_canvas_georaw(gfx_inputlayout il, const struct mat3f* world, const struct color* clr,
-    uint tri_cnt, enum gfx_index_type ib_type)
+    uint tri_cnt, enum gfxIndexType ib_type)
 {
     canvas_set_perobject(g_cvs.cmdqueue, world, clr, NULL);
     gfx_input_setlayout(g_cvs.cmdqueue, il);
-    gfx_draw_indexed(g_cvs.cmdqueue, GFX_PRIMITIVE_TRIANGLELIST, 0, tri_cnt*3, ib_type,
+    gfx_draw_indexed(g_cvs.cmdqueue, gfxPrimitiveType::TRIANGLE_LIST, 0, tri_cnt*3, ib_type,
         GFX_DRAWCALL_DEBUG);
 }
 

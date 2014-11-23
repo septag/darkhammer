@@ -348,7 +348,7 @@ int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
 	geo->vert_id_cnt = h3dgeo.vert_id_cnt;
 	geo->tri_cnt = h3dgeo.tri_cnt;
 	geo->subset_cnt = h3dgeo.subset_cnt;
-	geo->ib_type = h3dgeo.ib_isui32 ? GFX_INDEX_UINT32 : GFX_INDEX_UINT16;
+	geo->ib_type = h3dgeo.ib_isui32 ? gfxIndexType::UINT32 : gfxIndexType::UINT16;
 	memcpy(geo->vert_ids, h3dgeo.vert_ids, sizeof(h3dgeo.vert_ids));
 
 	/* subsets */
@@ -366,7 +366,7 @@ int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
 
 	/* indexes */
 	ASSERT(h3dgeo.tri_cnt > 0);
-	uint ibuffer_sz = (geo->ib_type == GFX_INDEX_UINT16) ? sizeof(uint16)*h3dgeo.tri_cnt*3 :
+	uint ibuffer_sz = (geo->ib_type == gfxIndexType::UINT16) ? sizeof(uint16)*h3dgeo.tri_cnt*3 :
 			sizeof(uint)*h3dgeo.tri_cnt*3;
 	void* indexes = A_ALLOC(tmp_alloc, ibuffer_sz, MID_GFX);
 	if (indexes == NULL)
@@ -374,7 +374,7 @@ int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
 
     fio_read(f, indexes, ibuffer_sz, 1);
 
- 	geo->ibuffer = gfx_create_buffer(GFX_BUFFER_INDEX, GFX_MEMHINT_STATIC, ibuffer_sz, indexes,
+ 	geo->ibuffer = gfx_create_buffer(gfxBufferType::INDEX, gfxMemHint::STATIC, ibuffer_sz, indexes,
         thread_id);
 	A_FREE(tmp_alloc, indexes);
 	if (geo->ibuffer == NULL)
@@ -561,7 +561,7 @@ gfx_buffer model_loadvbuffer(file_t f, uint vert_cnt, uint elem_sz, struct alloc
     }
     fio_read(f, buf, elem_sz, vert_cnt);
 
-	gfx_buffer gbuf = gfx_create_buffer(GFX_BUFFER_VERTEX, GFX_MEMHINT_STATIC, size, buf, thread_id);
+	gfx_buffer gbuf = gfx_create_buffer(gfxBufferType::VERTEX, gfxMemHint::STATIC, size, buf, thread_id);
 
     A_FREE(tmp_alloc, buf);
     A_LOAD(tmp_alloc);
@@ -945,11 +945,11 @@ struct gfx_model_mtlgpu* model_load_gpumtl(struct allocator* main_alloc,
     /* if could not find 'cb_mtl' in the shader, try creating it in raw mode (w/o gpu_buffer) */
     if (gmtl->cb == NULL)   {
         static const struct gfx_constant_desc constants[] = {
-            {"c_mtl_ambientclr", 0, GFX_CONSTANT_FLOAT4, 16, 1, 16, 0},
-            {"c_mtl_diffuseclr", 0, GFX_CONSTANT_FLOAT4, 16, 1, 16, 16},
-            {"c_mtl_specularclr", 0, GFX_CONSTANT_FLOAT4, 16, 1, 16, 32},
-            {"c_mtl_emissiveclr", 0, GFX_CONSTANT_FLOAT4, 16, 1, 16, 48},
-            {"c_mtl_props", 0, GFX_CONSTANT_FLOAT4, 16, 1, 16, 64}
+            {"c_mtl_ambientclr", 0, gfxUniformType::FLOAT4, 16, 1, 16, 0},
+            {"c_mtl_diffuseclr", 0, gfxUniformType::FLOAT4, 16, 1, 16, 16},
+            {"c_mtl_specularclr", 0, gfxUniformType::FLOAT4, 16, 1, 16, 32},
+            {"c_mtl_emissiveclr", 0, gfxUniformType::FLOAT4, 16, 1, 16, 48},
+            {"c_mtl_props", 0, gfxUniformType::FLOAT4, 16, 1, 16, 64}
         };
         gmtl->cb = gfx_shader_create_cblockraw(main_alloc, "cb_mtl", constants, 5);
     }
