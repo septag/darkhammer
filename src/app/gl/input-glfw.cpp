@@ -21,7 +21,7 @@
 
 #include "dhapp/input.h"
 
-void input_make_keymap_platform(uint keymap[inKey::COUNT])
+void input_make_keymap_platform(uint keymap[(int)inKey::COUNT])
 {
     keymap[0] = KEY_ESC;
     keymap[1] = KEY_F1;
@@ -152,7 +152,7 @@ int input_mouse_getkey_platform(GLFWwindow *wnd_hdl, inMouseKey mkey)
     return glfwGetMouseButton(wnd_hdl, button) == GLFW_PRESS;
 }
 
-int input_kb_getkey_platform(GLFWwindow *wnd_hdl, const uint keymap[inKey::COUNT], inKey key)
+int input_kb_getkey_platform(GLFWwindow *wnd_hdl, const uint keymap[(int)inKey::COUNT], inKey key)
 {
     int keycode = (int)keymap[(uint)key];
     return glfwGetKey(wnd_hdl, keycode) == GLFW_PRESS;

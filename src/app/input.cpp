@@ -27,7 +27,7 @@ struct InputMgr
 	int mousey;
     int mousex_locked;    // -1 if it's not locked 
     int mousey_locked;    // -1 if it's not locked
-    uint8 kb_locked[inKey::COUNT];
+    uint8 kb_locked[(int)inKey::COUNT];
     uint8 mouse_keylocked[5];
 };
 
@@ -35,6 +35,7 @@ struct InputMgr
 static InputMgr *g_in = nullptr;
 
 #if defined(_GL_)
+  typedef struct GLFWwindow GLFWwindow;
   typedef GLFWwindow* wplatform_t;
 #elif defined(_D3D_)
   #include "dhcore/win.h"
@@ -42,12 +43,11 @@ static InputMgr *g_in = nullptr;
 #endif
 
 // Multiplatform functions that are implemented in their own .c files (see platform/ sources)
-void input_make_keymap_platform(uint keymap[inKey::COUNT]);
+void input_make_keymap_platform(uint keymap[(int)inKey::COUNT]);
 void input_mouse_getpos_platform(wplatform_t wnd_hdl, OUT int* x, OUT int* y);
 void input_mouse_setpos_platform(wplatform_t wnd_hdl, int x, int y);
 int input_mouse_getkey_platform(wplatform_t wnd_hdl, inMouseKey mkey);
-int input_kb_getkey_platform(wplatform_t wnd_hdl, const uint keymap[inKey::COUNT],
-                                inKey key);
+int input_kb_getkey_platform(wplatform_t wnd_hdl, const uint keymap[(int)inKey::COUNT], inKey key);
 wplatform_t app_window_getplatform_w();
 
 //

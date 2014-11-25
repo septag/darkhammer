@@ -34,3 +34,24 @@ void * nv::mem::realloc(void * ptr, size_t size)
 	return ::realloc(ptr, size);
 }
 
+#ifdef __clang__
+void * operator new (size_t size) NEW_THROW
+{
+    return nv::mem::malloc(size);
+}
+
+void operator delete (void *p) throw()
+{
+    nv::mem::free(p);
+}
+
+void * operator new [] (size_t size) NEW_THROW
+{
+    return nv::mem::malloc(size);
+}
+
+void operator delete [] (void * p) throw()
+{
+    nv::mem::free(p);
+}
+#endif

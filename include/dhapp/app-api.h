@@ -23,7 +23,7 @@
     #define APP_API _EXTERN_EXPORT_ __declspec(dllexport)
     #define APP_CPP_API __declspec(dllexport)
   #elif defined(_GNUC_)
-    #define APP_API _EXTERN_EXPORT_ __attribute__((visibility("default)))
+    #define APP_API _EXTERN_EXPORT_ __attribute__((visibility("default")))
     #define APP_CPP_API __attribute__((visibility("default")))
   #endif
 #else

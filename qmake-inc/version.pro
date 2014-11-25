@@ -1,0 +1,2 @@
+VERSION = "0.5.3"
+DEFINES *= _VERSION_=\\\"$$VERSION\\\"

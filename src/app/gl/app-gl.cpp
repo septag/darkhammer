@@ -82,7 +82,7 @@ using namespace dh;
 WindowGL* g_app = nullptr;
 
 /**************************************************************************************************/
-INLINE static void convert_gfxver(appGfxDeviceVersion hwver, OUT int *major, OUT int *minor)
+static void convert_gfxver(appGfxDeviceVersion hwver, OUT int *major, OUT int *minor)
 {
     switch (hwver)	{
     case appGfxDeviceVersion::GL3_2:     *major = 3;     *minor = 2;        break;
