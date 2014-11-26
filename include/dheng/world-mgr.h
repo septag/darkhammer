@@ -20,7 +20,7 @@
 #include "dhcore/variant.h"
 #include "engine-api.h"
 
-struct camera;
+struct Camera;
 struct cmp_obj;
 
 /* callback for changing world vars (can be optionally assigned) */
@@ -38,7 +38,7 @@ ENGINE_API uint wld_find_section(const char* name);
 ENGINE_API uint wld_find_var(uint section_id, const char* name);
 ENGINE_API const struct variant* wld_get_var(uint section_id, uint var_id);
 ENGINE_API void wld_set_var(uint section_id, uint var_id, const struct variant* var);
-ENGINE_API void wld_set_cam(struct camera* cam);
-ENGINE_API struct camera* wld_get_cam();
+ENGINE_API void wld_set_cam(Camera* cam);
+ENGINE_API Camera* wld_get_cam();
 
 #endif /* __WORLDMGR_H__ */

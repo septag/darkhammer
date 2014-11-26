@@ -32,7 +32,7 @@
 #include "gfx-types.h"
 
 /* fwd */
-struct camera;
+struct Camera;
 struct gfx_model_geo;
 
 /* enums/flags */
@@ -349,7 +349,7 @@ ENGINE_API void gfx_canvas_arrow2d(const struct vec2i* p0, const struct vec2i* p
 ENGINE_API void gfx_canvas_geo(const struct gfx_model_geo* geo, const struct mat3f* world);
 ENGINE_API void gfx_canvas_georaw(gfx_inputlayout il, const struct mat3f* world, const struct color* clr,
     uint tri_cnt, enum gfxIndexType ib_type);
-ENGINE_API void gfx_canvas_cam(const struct camera* cam, const struct vec4f* activecam_pos,
+ENGINE_API void gfx_canvas_cam(const Camera* cam, const struct vec4f* activecam_pos,
 		const struct mat4f* viewproj, int show_info);
 ENGINE_API void gfx_canvas_worldbounds(const struct vec3f* minpt, const struct vec3f* maxpt,
     float height);
@@ -359,10 +359,10 @@ ENGINE_API void gfx_canvas_worldbounds(const struct vec3f* minpt, const struct v
  * @param spacing Spacing between grid lines
  * @param depth_max how much grid depth will be shown to user, higher depth value will draw grid 
  * more into the horizon
- * @param cam current viewing camera
+ * @param cam current viewing Camera
  * @ingroup gfx-canvas
  */
-ENGINE_API void gfx_canvas_grid(float spacing, float depth_max, const struct camera* cam);
+ENGINE_API void gfx_canvas_grid(float spacing, float depth_max, const Camera* cam);
 ENGINE_API void gfx_canvas_line3d(const struct vec4f* p0, const struct vec4f* p1);
 ENGINE_API void gfx_canvas_light_pt(const struct vec4f* pos, float atten[2]);
 ENGINE_API void gfx_canvas_light_spot(const struct mat3f* xform, float atten[4]);

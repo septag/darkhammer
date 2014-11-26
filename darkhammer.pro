@@ -10,3 +10,11 @@ SUBDIRS += \
 # Tools
 SUBDIRS += \
     src/h3dimport
+
+# Tutorials
+SUBDIRS += \
+    tutorials
+
+# Tests
+SUBDIRS += \
+    src/game-test

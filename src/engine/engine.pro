@@ -46,7 +46,7 @@ SOURCES += \
     world-mgr.cpp \
     camera.cpp \
     cmp-mgr.cpp \
-    cpm-register-main.cpp \
+    cmp-register-main.cpp \
     debug-hud.cpp \
     engine.cpp \
     phx.cpp \

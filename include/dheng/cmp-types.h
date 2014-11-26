@@ -108,7 +108,7 @@ enum cmp_obj_type
 	CMP_OBJTYPE_PARTICLE = (1<<1), /**< Particle objects, must have "particle" component */
 	CMP_OBJTYPE_LIGHT = (1<<2), /**< Light objects, must have "light" component */
 	CMP_OBJTYPE_DECAL = (1<<3), /**< Decal objects, must have "decal" component */
-	CMP_OBJTYPE_CAMERA = (1<<4), /**< Camera object, must have "camera" component */
+	CMP_OBJTYPE_CAMERA = (1<<4), /**< Camera object, must have "Camera" component */
     CMP_OBJTYPE_TRIGGER = (1<<5), /**< Trigger object, must have "trigger" component */
     CMP_OBJTYPE_ENV = (1<<6) /**< Environmental objects like terrain, sky, ocean, etc.. */
 };

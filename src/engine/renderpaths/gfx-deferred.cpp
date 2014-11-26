@@ -1216,7 +1216,7 @@ void deferred_renderpreview(gfx_cmdqueue cmdqueue, enum gfx_deferred_preview_mod
 #endif
 
     if (mode == GFX_DEFERRED_PREVIEW_DEPTH) {
-        struct camera* cam = wld_get_cam();
+        Camera* cam = wld_get_cam();
         float camprops[] = {cam->fnear, cam->ffar};
         gfx_shader_set2f(shader, SHADER_NAME(c_camprops), camprops);
         gfx_shader_bindconstants(cmdqueue, shader);

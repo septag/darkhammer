@@ -649,7 +649,7 @@ int gfx_occ_testbounds(const struct sphere* s, const struct vec3f* xaxis,
 
     /**
      * calculate object bounding quad
-     * quad is a billboard tangent to the furthest/nearest point of the sphere relative to camera */
+     * quad is a billboard tangent to the furthest/nearest point of the sphere relative to Camera */
     simd_t _p = _mm_set_ps(1.0f, s->z, s->y, s->x);
     simd_t _r = _mm_set1_ps(s->r);
 

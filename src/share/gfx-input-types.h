@@ -20,7 +20,6 @@
  * we call them input-element-id
  * for each element-id we have a vertex-buffer in geometry data
  */
-
 enum gfx_input_element_id
 {
 	GFX_INPUTELEMENT_ID_POSITION = 0,   /* float4: POSITION */

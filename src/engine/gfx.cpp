@@ -455,8 +455,8 @@ void gfx_render()
 
     g_gfx.preview_render = FALSE;
 
-    /* we have no camera, just render blank screen */
-    struct camera* cam = wld_get_cam();
+    /* we have no Camera, just render blank screen */
+    Camera* cam = wld_get_cam();
 
 	/* reset */
     PRF_OPENSAMPLE("render");

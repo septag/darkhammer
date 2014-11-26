@@ -2341,16 +2341,16 @@ void gfx_canvas_arrow2d(const struct vec2i* p0, const struct vec2i* p1, int twow
     }
 }
 
-void gfx_canvas_grid(float spacing, float depth_max, const struct camera* cam)
+void gfx_canvas_grid(float spacing, float depth_max, const Camera* cam)
 {
     gfx_cmdqueue cmdqueue = g_cvs.cmdqueue;
     uint offset;
     struct canvas_vertex3d* verts;
     spacing = clampf(spacing, 1.0f, 20.0f);
 
-    /* project camera frustum_pts corners onto XZ plane
+    /* project Camera frustum_pts corners onto XZ plane
      * and make an AABB from projected frustum_pts
-     * change camera far view */
+     * change Camera far view */
     struct vec4f corners[8];
     struct mat3f proj_xz;
     struct aabb box;    aabb_setzero(&box);
@@ -2639,7 +2639,7 @@ void gfx_canvas_georaw(gfx_inputlayout il, const struct mat3f* world, const stru
         GFX_DRAWCALL_DEBUG);
 }
 
-void gfx_canvas_cam(const struct camera* cam, const struct vec4f* activecam_pos,
+void gfx_canvas_cam(const Camera* cam, const struct vec4f* activecam_pos,
 		const struct mat4f* viewproj, int show_info)
 {
     struct vec4f frustum[8];

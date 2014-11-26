@@ -40,7 +40,7 @@
 /*************************************************************************************************
  * Globals
  */
-struct camera_fps g_cam;
+struct CameraFPS g_cam;
 uint g_scene = 0;
 struct timer* g_timer = NULL;
 struct pak_file g_media_pak;
@@ -138,7 +138,7 @@ void update_camera()
     input_mouse_getpos(&mpos);
 
     if (app_window_isactive() && !hud_console_isactive())   {
-        /* alter camera movement speed */
+        /* alter Camera movement speed */
         if (input_kb_getkey(inKey::LSHIFT, FALSE) || input_kb_getkey(inKey::RSHIFT, FALSE))
             cam_fps_set_movespeed(&g_cam, 0.3f*5.0f);
         else

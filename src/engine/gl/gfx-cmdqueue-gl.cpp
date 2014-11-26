@@ -21,12 +21,12 @@
 
 #include "dhapp/app.h"
 
-#include "gfx-cmdqueue.h"
-#include "mem-ids.h"
-#include "gfx-device.h"
-#include "gfx.h"
-#include "gfx-shader.h"
-#include "engine.h"
+#include "dheng/gfx-cmdqueue.h"
+#include "dheng/mem-ids.h"
+#include "dheng/gfx-device.h"
+#include "dheng/gfx.h"
+#include "dheng/gfx-shader.h"
+#include "dheng/engine.h"
 
 #define BUFFER_OFFSET(offset) ((uint8*)NULL + (offset))
 
@@ -47,7 +47,7 @@ struct gfx_cmdqueue_s
 /*************************************************************************************************
  * inlines
  */
-INLINE uint get_indextype_size(enum gfxIndexType type)
+INLINE uint get_indextype_size(gfxIndexType type)
 {
 	return (type == gfxIndexType::UINT16) ? sizeof(uint16) : sizeof(uint);
 }
@@ -420,7 +420,7 @@ void gfx_draw(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type, uint vert_idx,
 }
 
 void gfx_draw_indexed(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
-		uint ib_idx, uint idx_cnt, enum gfxIndexType ib_type, uint draw_id)
+        uint ib_idx, uint idx_cnt, gfxIndexType ib_type, uint draw_id)
 {
 	glDrawElements((GLenum)type, idx_cnt, (GLenum)ib_type,
 			BUFFER_OFFSET(ib_idx*get_indextype_size(ib_type)));
@@ -443,7 +443,7 @@ void gfx_draw_instance(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
 }
 
 void gfx_draw_indexedinstance(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
-		uint ib_idx, uint idx_cnt, enum gfxIndexType ib_type, uint instance_cnt,
+        uint ib_idx, uint idx_cnt, gfxIndexType ib_type, uint instance_cnt,
 		uint draw_id)
 {
 	glDrawElementsInstanced((GLenum)type, idx_cnt, (GLenum)ib_type,

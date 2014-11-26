@@ -102,7 +102,7 @@ struct scn_mgr
     uint active_scene_id;
 	struct array scenes;	/* item: scn_data* */
 	struct pool_alloc obj_pool;	/* item: cmp_obj */
-    struct camera* active_cam;
+    Camera* active_cam;
     struct array vis_objs;  /* item: cmp_obj* */
     int debug_grid;
     struct array global_objs;   /* item: cmp_obj* */
@@ -172,7 +172,7 @@ struct vec2i* scene_conv_coordpt(struct vec2i* pt, float x, float y,
 struct color* scene_get_densitycolor(struct color* c, const struct linked_list* cell,
     const struct scn_grid* grid);
 
-void scene_grid_debug(struct scn_grid* grid, const struct camera* cam);
+void scene_grid_debug(struct scn_grid* grid, const Camera* cam);
 result_t scene_console_debuggrid(uint argc, const char** argv, void* param);
 result_t scene_console_setcellsize(uint argc, const char** argv, void* param);
 result_t scene_console_campos(uint argc, const char** argv, void* param);
@@ -1257,7 +1257,7 @@ void scene_draw_occluders(struct allocator* alloc, struct cmp_obj** objs, uint o
     float ffar = gfx_occ_getfar();
     vec3_setv(&campos, &params->cam_pos);
 
-    /* recreate cam matrix to change camera range */
+    /* recreate cam matrix to change Camera range */
     struct mat4f proj;
     struct mat4f viewproj;
     cam_calc_perspective(&proj, params->cam->fov, 1.0f, params->cam->fnear, params->cam->ffar);
@@ -1826,7 +1826,7 @@ result_t scene_console_debuggrid(uint argc, const char** argv, void* param)
     return RET_OK;
 }
 
-void scene_grid_debug(struct scn_grid* grid, const struct camera* cam)
+void scene_grid_debug(struct scn_grid* grid, const Camera* cam)
 {
     uint screen_width = gfx_get_params()->width;
     uint screen_height = gfx_get_params()->height;
@@ -1896,7 +1896,7 @@ void scene_grid_debug(struct scn_grid* grid, const struct camera* cam)
         }
     }
 
-    /* draw camera (position/direction) */
+    /* draw Camera (position/direction) */
     struct vec2i arrow_pos;
     struct vec2i arrow_target;
 
@@ -2048,9 +2048,9 @@ result_t scene_console_campos(uint argc, const char** argv, void* param)
 int scene_debug_cam(gfx_cmdqueue cmqueue, int x, int y, int line_stride, void* param)
 {
     char text[128];
-    struct camera* cam = wld_get_cam();
+    Camera* cam = wld_get_cam();
     if (cam != NULL)    {
-        sprintf(text, "camera:pos(%.2f, %.2f, %.2f)", cam->pos.x, cam->pos.y, cam->pos.z);
+        sprintf(text, "Camera:pos(%.2f, %.2f, %.2f)", cam->pos.x, cam->pos.y, cam->pos.z);
         gfx_canvas_text2dpt(text, x, y, 0);
         return (y + line_stride);
     }

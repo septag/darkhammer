@@ -20,17 +20,16 @@
 #include "dhcore/types.h"
 #include "dhcore/vec-math.h"
 
-/* fwd */
-struct camera;
+struct Camera;
 
-/* include mostly enums that their values may be different in each API */
+// API Specific enums
 #if defined(_D3D_)
-#include "d3d/gfx-types-d3d.h"
+  #include "d3d/gfx-types-d3d.h"
 #elif defined(_GL_)
-#include "gl/gfx-types-gl.h"
+  #include "gl/gfx-types-gl.h"
 #endif
 
-#include "gfx-input-types.h"
+#include "share/gfx-input-types.h"
 
 #define GFX_MAX_CBUFFERS 8
 #define GFX_MAX_SAMPLERS 16
@@ -42,9 +41,7 @@ struct camera;
 #define GFX_RT_MAX_TEXTURES	4
 #define GFX_DRAWCALL_GROUP_COUNT 12
 
-/* render passes
- * note that their order is important
- */
+// Render Passes
 #define GFX_RENDERPASS_SUNSHADOW 0 /* sun shadow render-path used for shadow casting objects */
 #define GFX_RENDERPASS_SPOTSHADOW 1
 #define GFX_RENDERPASS_POINTSHADOW 2
@@ -362,11 +359,11 @@ struct ALIGN16 gfx_view_params
     int width;    /**< width of the current render target */
     int height;   /**< height of the current render target */
 
-    struct camera* cam; /**< current view camera @see camera */
-    struct mat3f view; /**< current view matrix (calculated from camera) */
-    struct mat4f proj; /**< current projection matrix (calculated from camera) */
+    Camera* cam; /**< current view Camera @see Camera */
+    struct mat3f view; /**< current view matrix (calculated from Camera) */
+    struct mat4f proj; /**< current projection matrix (calculated from Camera) */
     struct mat4f viewproj; /**< view(x)projection matrix */
-    struct vec4f cam_pos; /**< camera position */
+    struct vec4f cam_pos; /**< Camera position */
     struct vec4f projparams; /**< projection matrix parameters () */
 };
 

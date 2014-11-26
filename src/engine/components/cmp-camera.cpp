@@ -39,7 +39,7 @@ result_t cmp_camera_register(struct allocator* alloc)
 	struct cmp_createparams params;
 	memset(&params, 0x00, sizeof(params));
 
-	params.name = "camera";
+	params.name = "Camera";
 	params.stride = sizeof(struct cmp_camera);
 	params.initial_cnt = 10;
 	params.grow_cnt = 10;
@@ -128,7 +128,7 @@ result_t cmp_camera_modifyactive(struct cmp_obj* obj, struct allocator* alloc,
 
 result_t cmp_camera_create(struct cmp_obj* host_obj, void* data, cmphandle_t hdl)
 {
-	/* default camera */
+	/* default Camera */
 	struct cmp_camera* cam = (struct cmp_camera*)data;
     cam->type = CMP_CAMERA_ROLLPITCH_CONSTRAINED;
     cam->fov = math_torad(60.0f);
@@ -168,7 +168,7 @@ void cmp_camera_update(cmp_t c, float dt, void* params)
 		struct cmp_camera* cam = (struct cmp_camera*)inst->data;
 		struct cmp_xform* xf = (struct cmp_xform*)cmp_getinstancedata(inst->host->xform_cmp);
 
-		/* update camera from transform component */
+		/* update Camera from transform component */
 		quat_frommat3(&cam->c.rot, &xf->ws_mat);
 		mat3_get_trans(&cam->c.pos, &xf->ws_mat);
 

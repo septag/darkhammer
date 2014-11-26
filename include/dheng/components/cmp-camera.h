@@ -41,7 +41,7 @@ struct ALIGN16 cmp_camera
 	int active;
 
 	/* internal */
-	struct camera c;
+	Camera c;
 	uint path_id;
 	struct mat3f view;
 	struct mat4f proj;

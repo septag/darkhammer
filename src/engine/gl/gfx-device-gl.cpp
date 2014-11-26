@@ -28,49 +28,47 @@
 #include "dhcore/array.h"
 #include "dhcore/timer.h"
 
-#include "gfx-device.h"
-#include "mem-ids.h"
-#include "gfx.h"
-#include "gfx-texture.h"
+#include "dheng/gfx-device.h"
+#include "dheng/mem-ids.h"
+#include "dheng/gfx.h"
+#include "dheng/gfx-texture.h"
 
 #ifndef APIENTRY
 #define APIENTRY
 #endif
 
 #ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
-#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+  #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
 #endif
 
-/* amd info */
+// AMD
 #define VBO_FREE_MEMORY_ATI 0x87FB
 #define TEXTURE_FREE_MEMORY_ATI 0x87FC
 #define RENDERBUFFER_FREE_MEMORY_ATI 0x87FD
 #define TOTAL_PHYSICAL_MEMORY_ATI 0x87FE
 
-/* nvidia info */
+// NVIDIA
 #define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX 0x9047
 #define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX 0x9048
 #define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX 0x9049 
 
-/*************************************************************************************************
- * Types
- */
-struct gfx_dev_delayed_signal
+// Types
+struct DelayedSignal
 {
     uint thread_id;
     uint signal_id;
     int waiting;
-    uint pending_cnt; /* pending creates count */
-    uint creates_cnt; /* actual creates count */
+    uint pending_cnt; // Pending creates
+    uint creates_cnt; // Actual creates in progress
     uint err_cnt;
-    GLuint stream_pbo;  /* streaming pbo used for mt-texture loading */
+    GLuint stream_pbo;  // PBO used to multi-threaded texture staging
 };
 
-struct gfx_dev_delayed_item
+struct DelayedItem
 {
     struct gfx_obj_data* obj;
     uint thread_id;
-    struct gfx_dev_delayed_signal* signal;
+    struct DelayedSignal* signal;
     struct linked_list lnode;
     void* mapped;
 
@@ -108,7 +106,7 @@ struct gfx_dev_delayed_item
     } params;
 };
 
-struct gfx_device
+struct GfxDevice
 {
 	appGfxParams params;
 	struct gfx_gpu_memstats memstats;
@@ -118,11 +116,11 @@ struct gfx_device
     uint buffer_uniform_max;
 
     mt_mutex objcreate_mtx; /* for locking objcreates data */
-    struct linked_list* objcreates;   /* data: gfx_dev_delayed_item */
-    struct linked_list* objunmaps;    /* data: gfx_dev_delayed_item, after created and filled,
+    struct linked_list* objcreates;   /* data: DelayedItem */
+    struct linked_list* objunmaps;    /* data: DelayedItem, after created and filled,
                                          will be added to this list */
     mt_event objcreate_event;
-    struct array objcreate_signals; /* item: gfx_dev_delayed_signal */
+    struct array objcreate_signals; /* item: DelayedSignal */
     int release_delayed;
 
     appGfxDeviceVersion ver;
@@ -131,7 +129,7 @@ struct gfx_device
 /*************************************************************************************************
  * Globals
  */
-static struct gfx_device g_gfxdev;
+static struct GfxDevice g_gfxdev;
 
 /*************************************************************************************************
  * Fwd declarations
@@ -158,9 +156,9 @@ gfx_texture gfx_delayed_createtexture(enum gfxTextureType type, uint width, uint
                                       enum gfxMemHint memhint, uint thread_id);
 gfx_buffer gfx_delayed_createbuffer(enum gfxBufferType type, enum gfxMemHint memhint,
                                     uint size, const void* data, uint thread_id);
-void gfx_delayed_releaseitem(struct gfx_dev_delayed_item* citem);
-struct gfx_dev_delayed_signal* gfx_delayed_getsignal(uint thread_id);
-struct gfx_dev_delayed_signal* gfx_delayed_createsignal(uint thread_id);
+void gfx_delayed_releaseitem(struct DelayedItem* citem);
+struct DelayedSignal* gfx_delayed_getsignal(uint thread_id);
+struct DelayedSignal* gfx_delayed_createsignal(uint thread_id);
 
 void APIENTRY gfx_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
     GLsizei length, const GLchar* message, GLvoid* user_param);
@@ -259,7 +257,7 @@ INLINE appGfxDeviceVersion gfx_get_glver(int major, int minor)
 /*************************************************************************************************/
 void gfx_zerodev()
 {
-	memset(&g_gfxdev, 0x00, sizeof(struct gfx_device));
+    memset(&g_gfxdev, 0x00, sizeof(struct GfxDevice));
 }
 
 result_t gfx_initdev(const appGfxParams* params)
@@ -315,7 +313,7 @@ result_t gfx_initdev(const appGfxParams* params)
     /* threaded object creation */
     mt_mutex_init(&g_gfxdev.objcreate_mtx);
     g_gfxdev.objcreate_event = mt_event_create(mem_heap());
-    r = arr_create(mem_heap(), &g_gfxdev.objcreate_signals, sizeof(struct gfx_dev_delayed_signal),
+    r = arr_create(mem_heap(), &g_gfxdev.objcreate_signals, sizeof(struct DelayedSignal),
         16, 16, MID_GFX);
     if (IS_FAIL(r))
         return RET_OUTOFMEMORY;
@@ -328,7 +326,7 @@ void gfx_releasedev()
     gfx_delayed_release();
 
     for (uint i = 0; i < g_gfxdev.objcreate_signals.item_cnt; i++)   {
-        struct gfx_dev_delayed_signal* s = &((struct gfx_dev_delayed_signal*)
+        struct DelayedSignal* s = &((struct DelayedSignal*)
             g_gfxdev.objcreate_signals.buffer)[i];
         if (s->stream_pbo != 0)
             glDeleteBuffers(1, &s->stream_pbo);
@@ -353,11 +351,11 @@ gfx_inputlayout gfx_delayed_createinputlayout(const struct gfx_input_vbuff_desc*
     uint vbuff_cnt, const struct gfx_input_element_binding* inputs, uint input_cnt,
     OPTIONAL gfx_buffer idxbuffer, OPTIONAL enum gfxIndexType itype, uint thread_id)
 {
-    struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)
-        ALLOC(sizeof(struct gfx_dev_delayed_item), MID_GFX);
+    struct DelayedItem* citem = (struct DelayedItem*)
+        ALLOC(sizeof(struct DelayedItem), MID_GFX);
     if (citem == NULL)
         return NULL;
-    memset(citem, 0x00, sizeof(struct gfx_dev_delayed_item));
+    memset(citem, 0x00, sizeof(struct DelayedItem));
 
     /* gfx object */
     gfx_inputlayout obj = create_obj(0, GFX_OBJ_INPUTLAYOUT);
@@ -395,7 +393,7 @@ gfx_inputlayout gfx_delayed_createinputlayout(const struct gfx_input_vbuff_desc*
     citem->params.il.idxbuffer = idxbuffer;
 
     mt_mutex_lock(&g_gfxdev.objcreate_mtx);
-    struct gfx_dev_delayed_signal* s = gfx_delayed_createsignal(thread_id);
+    struct DelayedSignal* s = gfx_delayed_createsignal(thread_id);
     s->pending_cnt ++;
     citem->signal = s;
     list_add(&g_gfxdev.objcreates, &citem->lnode, citem);
@@ -699,11 +697,11 @@ void gfx_delayed_createobjects()
 
     struct linked_list* lnode = g_gfxdev.objcreates;
     while (lnode != NULL)   {
-        struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)lnode->data;
+        struct DelayedItem* citem = (struct DelayedItem*)lnode->data;
         struct gfx_obj_data* obj = citem->obj;
         ASSERT(obj);
 
-        struct gfx_dev_delayed_signal* s = citem->signal;
+        struct DelayedSignal* s = citem->signal;
         ASSERT(s);
 
         /* important: if not created,then proceed */
@@ -778,7 +776,7 @@ void gfx_delayed_fillobjects(uint thread_id)
 
     struct linked_list* lnode = g_gfxdev.objcreates;
     while (lnode != NULL)  {
-        struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)lnode->data;
+        struct DelayedItem* citem = (struct DelayedItem*)lnode->data;
         struct gfx_obj_data* obj = citem->obj;
         struct linked_list* lnext = lnode->next;
 
@@ -815,7 +813,7 @@ void gfx_delayed_finalizeobjects()
 
     struct linked_list* lnode = g_gfxdev.objunmaps;
     while (lnode != NULL)   {
-        struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)lnode->data;
+        struct DelayedItem* citem = (struct DelayedItem*)lnode->data;
         struct gfx_obj_data* obj = citem->obj;
         struct linked_list* lnext = lnode->next;
 
@@ -827,7 +825,7 @@ void gfx_delayed_finalizeobjects()
                 break;
             case GFX_OBJ_TEXTURE:
                 {
-                    struct gfx_dev_delayed_signal* s = citem->signal;
+                    struct DelayedSignal* s = citem->signal;
                     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s->stream_pbo);
                     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
@@ -885,7 +883,7 @@ void gfx_delayed_waitforobjects(uint thread_id)
         return;
     }
 
-    struct gfx_dev_delayed_signal* s = gfx_delayed_getsignal(thread_id);
+    struct DelayedSignal* s = gfx_delayed_getsignal(thread_id);
     ASSERT(s);
     s->waiting = TRUE;
     mt_mutex_unlock(&g_gfxdev.objcreate_mtx);
@@ -900,7 +898,7 @@ void gfx_delayed_release()
     struct linked_list* lnode = g_gfxdev.objcreates;
     while (lnode != NULL)   {
         struct linked_list* lnext = lnode->next;
-        struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)lnode->data;
+        struct DelayedItem* citem = (struct DelayedItem*)lnode->data;
         gfx_delayed_releaseitem(citem);
         lnode = lnext;
     }
@@ -908,7 +906,7 @@ void gfx_delayed_release()
     lnode = g_gfxdev.objunmaps;
     while (lnode != NULL)   {
         struct linked_list* lnext = lnode->next;
-        struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)lnode->data;
+        struct DelayedItem* citem = (struct DelayedItem*)lnode->data;
         gfx_delayed_releaseitem(citem);
         lnode = lnext;
     }
@@ -918,14 +916,14 @@ void gfx_delayed_release()
     mt_mutex_unlock(&g_gfxdev.objcreate_mtx);
 
     for (uint i = 0; i < g_gfxdev.objcreate_signals.item_cnt; i++)   {
-        struct gfx_dev_delayed_signal* s =
-            &((struct gfx_dev_delayed_signal*)g_gfxdev.objcreate_signals.buffer)[i];
+        struct DelayedSignal* s =
+            &((struct DelayedSignal*)g_gfxdev.objcreate_signals.buffer)[i];
         s->waiting = TRUE;
         mt_event_trigger(g_gfxdev.objcreate_event, s->signal_id);
     }
 }
 
-void gfx_delayed_releaseitem(struct gfx_dev_delayed_item* citem)
+void gfx_delayed_releaseitem(struct DelayedItem* citem)
 {
     switch (citem->obj->type)   {
     case GFX_OBJ_BUFFER:
@@ -993,11 +991,11 @@ gfx_buffer gfx_create_buffer(enum gfxBufferType type, enum gfxMemHint memhint,
 gfx_buffer gfx_delayed_createbuffer(enum gfxBufferType type, enum gfxMemHint memhint,
                                     uint size, const void* data, uint thread_id)
 {
-    struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)
-        ALLOC(sizeof(struct gfx_dev_delayed_item), MID_GFX);
+    struct DelayedItem* citem = (struct DelayedItem*)
+        ALLOC(sizeof(struct DelayedItem), MID_GFX);
     if (citem == NULL)
         return NULL;
-    memset(citem, 0x00, sizeof(struct gfx_dev_delayed_item));
+    memset(citem, 0x00, sizeof(struct DelayedItem));
     gfx_buffer obj = create_obj(0, GFX_OBJ_BUFFER);
     obj->desc.buff.type = type;
     obj->desc.buff.size = size;
@@ -1019,7 +1017,7 @@ gfx_buffer gfx_delayed_createbuffer(enum gfxBufferType type, enum gfxMemHint mem
     citem->params.buff.type = type;
 
     mt_mutex_lock(&g_gfxdev.objcreate_mtx);
-    struct gfx_dev_delayed_signal* s = gfx_delayed_createsignal(thread_id);
+    struct DelayedSignal* s = gfx_delayed_createsignal(thread_id);
     s->pending_cnt ++;
     citem->signal = s;
     list_add(&g_gfxdev.objcreates, &citem->lnode, citem);
@@ -1165,11 +1163,11 @@ gfx_texture gfx_delayed_createtexture(enum gfxTextureType type, uint width, uint
                                       const struct gfx_subresource_data* data,
                                       enum gfxMemHint memhint, uint thread_id)
 {
-    struct gfx_dev_delayed_item* citem = (struct gfx_dev_delayed_item*)
-    ALLOC(sizeof(struct gfx_dev_delayed_item), MID_GFX);
+    struct DelayedItem* citem = (struct DelayedItem*)
+    ALLOC(sizeof(struct DelayedItem), MID_GFX);
     if (citem == NULL)
         return NULL;
-    memset(citem, 0x00, sizeof(struct gfx_dev_delayed_item));
+    memset(citem, 0x00, sizeof(struct DelayedItem));
     gfx_buffer obj = create_obj(0, GFX_OBJ_TEXTURE);
 
     GLenum gl_type = 0;
@@ -1226,7 +1224,7 @@ gfx_texture gfx_delayed_createtexture(enum gfxTextureType type, uint width, uint
     }
 
     mt_mutex_lock(&g_gfxdev.objcreate_mtx);
-    struct gfx_dev_delayed_signal* s = gfx_delayed_createsignal(thread_id);
+    struct DelayedSignal* s = gfx_delayed_createsignal(thread_id);
     s->pending_cnt ++;
     citem->signal = s;
 
@@ -1236,13 +1234,13 @@ gfx_texture gfx_delayed_createtexture(enum gfxTextureType type, uint width, uint
     return obj;
 }
 
-struct gfx_dev_delayed_signal* gfx_delayed_createsignal(uint thread_id)
+struct DelayedSignal* gfx_delayed_createsignal(uint thread_id)
 {
-    struct gfx_dev_delayed_signal* s = gfx_delayed_getsignal(thread_id);
+    struct DelayedSignal* s = gfx_delayed_getsignal(thread_id);
     if (s == NULL)  {
-        s = (struct gfx_dev_delayed_signal*)arr_add(&g_gfxdev.objcreate_signals);
+        s = (struct DelayedSignal*)arr_add(&g_gfxdev.objcreate_signals);
         ASSERT(s);
-        memset(s, 0x00, sizeof(struct gfx_dev_delayed_signal));
+        memset(s, 0x00, sizeof(struct DelayedSignal));
         s->thread_id = thread_id;
         s->signal_id = mt_event_addsignal(g_gfxdev.objcreate_event);
     }
@@ -1250,11 +1248,11 @@ struct gfx_dev_delayed_signal* gfx_delayed_createsignal(uint thread_id)
     return s;
 }
 
-struct gfx_dev_delayed_signal* gfx_delayed_getsignal(uint thread_id)
+struct DelayedSignal* gfx_delayed_getsignal(uint thread_id)
 {
     for (uint i = 0, cnt = g_gfxdev.objcreate_signals.item_cnt; i < cnt; i++)    {
-        struct gfx_dev_delayed_signal* s =
-            &((struct gfx_dev_delayed_signal*)g_gfxdev.objcreate_signals.buffer)[i];
+        struct DelayedSignal* s =
+            &((struct DelayedSignal*)g_gfxdev.objcreate_signals.buffer)[i];
         if (s->thread_id == thread_id)
             return s;
     }
@@ -1962,9 +1960,9 @@ const char* gfx_get_driverstr()
     return info;
 }
 
-void gfx_get_devinfo(struct gfx_device_info* info)
+void gfx_get_devinfo(struct GfxDevice_info* info)
 {
-    memset(info, 0x00, sizeof(struct gfx_device_info));
+    memset(info, 0x00, sizeof(struct GfxDevice_info));
 
     const char* vendor = (const char*)glGetString(GL_VENDOR);
     if (strstr(vendor, "ATI"))

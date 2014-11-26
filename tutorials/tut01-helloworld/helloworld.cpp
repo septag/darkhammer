@@ -38,7 +38,7 @@
 /**
  * Globals
  */
-camera g_cam;
+Camera g_cam;
 uint g_scene = 0;
 timer* g_timer = NULL;
 
@@ -51,7 +51,7 @@ int init_scene()
     /* data root directory is "[tutorials]/data" */
     set_datadir();
 
-    /* Initialize low-level camera */
+    /* Initialize low-level Camera */
     vec4f pos;
     vec4f target;
     vec3_setf(&pos, 0.0f, 1.0f, -5.0f);
@@ -64,7 +64,7 @@ int init_scene()
         return FALSE;
     }
 
-    /* Activate the scene and the camera */
+    /* Activate the scene and the Camera */
     scn_setactive(g_scene);
     wld_set_cam(&g_cam);
 
@@ -110,7 +110,7 @@ void debug_view_callback(gfx_cmdqueue cmdqueue, const struct gfx_view_params* pa
 }
 
 /**
- * Update camera: We are using the most low-level method of camera handling here
+ * Update Camera: We are using the most low-level method of Camera handling here
  */
 void update_camera()
 {
@@ -128,7 +128,7 @@ void update_camera()
 
     /* update only if application is active and mouse activity is enabled */
     if (app_window_isactive() && !hud_console_isactive())   {
-        /* Move camera only if left mouse key is pressed inside the window */
+        /* Move Camera only if left mouse key is pressed inside the window */
         if (prev_x != 0 && prev_y != 0 && input_mouse_getkey(inMouseKey::LEFT, FALSE))   {
             /* Camera Rotation (with mouse) */
             float dx = (float)(mpos.x - prev_x);
@@ -170,7 +170,7 @@ void keypress_callback(char c, uint vkey)
 void update_callback()
 {
     input_update(); /* updates input system */
-    update_camera(); /* update camera after input is refreshed */
+    update_camera(); /* update Camera after input is refreshed */
     eng_update();   /* updates engine and renders the frame */
     app_window_swapbuffers();
 }
@@ -189,7 +189,7 @@ void activate_callback(int active)
 
 /**
  * Window resize callback
- * Resize the camera aspect
+ * Resize the Camera aspect
  */
 void resize_callback(uint width, uint height)
 {

@@ -15,9 +15,9 @@
 
 /**
  * @defgroup cam Camera
- * Low-level camera structures and functions\n
- * Currently we have two camera types: @b camera and @b camera_fps\n
- * @camera_fps is a bit higher level than @camera and automatically processes input and smoothing.
+ * Low-level Camera structures and functions\n
+ * Currently we have two Camera types: @b Camera and @b CameraFPS\n
+ * @CameraFPS is a bit higher level than @Camera and automatically processes input and smoothing.
  */
 
 #ifndef __CAMERA_H__
@@ -26,135 +26,135 @@
 #include "dhcore/types.h"
 #include "dhcore/vec-math.h"
 #include "dhcore/prims.h"
-#include "engine-api.h"
+
 #include "dhapp/input.h"
 
-#define CAM_FRUSTUM_LEFT    0
-#define CAM_FRUSTUM_RIGHT   1
-#define CAM_FRUSTUM_TOP		2
-#define CAM_FRUSTUM_BOTTOM	3
-#define CAM_FRUSTUM_NEAR    4
-#define CAM_FRUSTUM_FAR     5
+#include "engine-api.h"
 
 /**
- * Low-level camera structure, contains all the data that is needed to control basic low-level camera
+ * Low-level Camera, contains all the data that is needed to control basic low-level Camera
  * @ingroup cam
  */
-struct ALIGN16 camera
+class ALIGN16 Camera
 {
-    struct quat4f rot;  /* camera rotation */
-    struct vec4f look; /* camera look vector (normalized) */
-    struct vec4f right; /* camera right vector (normalized) */
-    struct vec4f up; /* camera up vector (normalized) */
-    struct vec4f pos; /* camera position */
+public:
+    enum class FrustumPlane
+    {
+        LEFT = 0,
+        RIGHT = 1,
+        TOP = 2,
+        BOTTOM = 3,
+        NEAR = 4,
+        FAR = 5
+    };
 
-    float fnear;     /**< near view distance */
-    float ffar;      /**< far view distance */
-    float fov;       /**< horizontal fov (field-of-view) angle (in radians) */
-    float aspect;    /**< viewport aspect ration (width/height) */
+protected:
+    dh::Quat _quat = dh::Quat::Ident;
+    dh::Vec3 _look = dh::Vec3::UnitZ;
+    dh::Vec3 _right = dh::Vec3::UnitX;
+    dh::Vec3 _up = dh::Vec3::UnitY;
+    dh::Vec3 _pos = dh::Vec3::Zero;
 
-    float pitch_cur;
-    float yaw_cur;
+    float _near = 0.0f;
+    float _far = 0.0f;
+    float _fov = 0.0f;
 
-    int const_pitch; /* constraint pitch */
-    float pitch_max;
-    float pitch_min;
+    float _pitch = 0.0f;
+    float _yaw = 0.0f;
+
+    float _pitch_max = PI_HALF - EPSILON - 0.0872664625f;
+    float _pitch_min = -PI_HALF + EPSILON + 0.0872664625f;
+
+public:
+    Camera() = default;
+
+    Camera(const dh::Vec3 &pos, const dh::Vec3 &lookat, float fnear, float ffar, float fov);
+
+    void set(const dh::Vec3 &pos, const dh::Vec3 &lookat, float fnear, float ffar, float fov);
+    void set_view(const dh::Vec3 &pos, const dh::Vec3 &lookat);
+    void set_proj(float fnear, float ffar, float fov);
+    void set_pos(const dh::Vec3 &pos);
+
+    void frustum_corners(float aspect_ratio, OUT dh::Vec3 corners[8],
+                         float near_override = -1.0f, float far_override = -1.0f) const;
+    void frustum_planes(const dh::Mat4 &viewproj, OUT dh::Plane planes[6]) const;
+
+    dh::Mat4 perspective(float aspect_ratio) const;
+    dh::Mat3 view() const;
+
+    /*! Call Update when rotation is changed */
+    void update();
+
+    void rotate_pitch(float pitch);
+    void rotate_yaw(float yaw);
+    void rotate_roll(float roll);
+
+    void move_forward(float df);
+    void move_strafe(float ds);
+
+    void set_pitch_range(float min_pitch, float max_pitch);
+
+    const dh::Vec3& look() const    {   return _look;  }
+    const dh::Vec3& up() const      {   return _up;    }
+    const dh::Vec3& right() const   {   return _right; }
+    const dh::Vec3& pos() const     {   return _pos;   }
+    float clip_near() const         {   return _near;  }
+    float clip_far() const          {   return _far;   }
+    float fov() const               {   return _fov;   }
 };
-
-/**
- * FPS camera, includes common camera and automatically controls input and smoothing.\n
- * @ingroup cam
- */
-struct ALIGN16 camera_fps
-{
-    struct camera c;    /**< Embedded common camera, you can use this to set active camera to scene or other low-level camera related stuff */
-
-    inKey fwd_keys[2];
-    inKey back_keys[2];
-    inKey strafe_left_keys[2];
-    inKey strafe_right_keys[2];
-
-    /* speeds */
-    float mouse_speed;
-    float move_speed;
-
-    /* smoothing */
-    int smooth;
-    float mouse_smoothness;
-    float move_smoothness;
-
-    float smx;
-    float smy;
-    struct vec3f spos;
-};
-
-void cam_calc_frustumcorners(const struct camera* cam, struct vec4f* corners,
-                             float* near_override, float* far_override);
-void cam_calc_frustumplanes(struct plane planes[6], const struct mat4f* viewproj);
-struct mat4f* cam_calc_perspective(struct mat4f* r, float fov, float aspect, float fnear, float ffar);
 
 /**
  * Create Camera, and allocate it's memory from heap. If you have already allocated memory for
- * the camera, use *cam_init* function instead
+ * the Camera, use *cam_init* function instead
  * @see cam_init
  * @ingroup cam
  */
-ENGINE_API struct camera* cam_create(const struct vec4f* pos, const struct vec4f* lookat,
-                                     float fnear, float ffar, float fov);
+ENGINE_API Camera* cam_create(const vec4f *pos, const vec4f *lookat,
+                              float fnear, float ffar, float fov);
 
 /**
- * Destroy created camera
+ * Destroy created Camera
  * @see cam_create
  * @ingroup cam
  */
-ENGINE_API void cam_destroy(struct camera* cam);
+ENGINE_API void cam_destroy(Camera *cam);
 
 /**
- * Initialize camera structure
- * @param cam resulting camera that needs to be initialized
- * @param pos camera position
- * @param lookat camera target position (looking at where?)
+ * Initialize Camera structure
+ * @param cam resulting Camera that needs to be initialized
+ * @param pos Camera position
+ * @param lookat Camera target position (looking at where?)
  * @param fnear near viewing distance
  * @param ffar far viewing distance
  * @param fov horizontal field-of-view angle (in radians)
  * @ingroup cam
  */
-ENGINE_API void cam_init(struct camera* cam, const struct vec4f* pos, const struct vec4f* lookat,
-    float fnear, float ffar, float fov);
+ENGINE_API void cam_init(Camera *cam, const vec4f *pos, const vec4f *lookat,
+                         float fnear, float ffar, float fov);
 
 /**
- * Enables/Sets constraints for camera pitch (rotate around x-axis).
+ * Enables/Sets constraints for Camera pitch (rotate around x-axis).
  * @param enable Enables/Disables pitch constraints
  * @param if enable=TRUE, pitch_min defines the minimum allowed pitch when looking down (in radians)
  * @param if enable=TRUE, pitch_max defines the maximum allowed pitch when looking down (in radians)
  * @ingroup cam
  */
-ENGINE_API void cam_set_pitchconst(struct camera* cam, int enable,
-    float pitch_min, float pitch_max);
+ENGINE_API void cam_set_pitchconst(Camera *cam, float pitch_min, float pitch_max);
 
 /**
- * Sets viewport size for the camera, must be called __before__ `cam_get_prespective` or resizing
- * the view
- * @param width width of the viewport (render-view) in pixels
- * @param height height of the viewport (render-view) in pixels
- * @see cam_get_perspective @ingroup cam
- */
-ENGINE_API void cam_set_viewsize(struct camera* cam, float width, float height);
-
-/**
- * Updates camera matices and axises. should be called on each frame update or camera modification
+ * Updates Camera matices and axises. should be called on each frame update or Camera modification
  * @ingroup cam
  */
-ENGINE_API void cam_update(struct camera* cam);
+ENGINE_API void cam_update(Camera *cam);
 
 /**
- * Receives perspective camera matrix for additional processing. aspect ratio should be calculated
+ * Receives perspective Camera matrix for additional processing. aspect ratio should be calculated
  * using cam_set_viewsize function
  * @param r resulting perspective matrix
  * @return resulting perspective matrix
  * @see cam_set_viewsize @ingroup cam
  */
-ENGINE_API struct mat4f* cam_get_perspective(struct mat4f* r, const struct camera* cam);
+ENGINE_API mat4f* cam_get_perspective(const Camera *cam, mat4f *r, float aspect);
 
 /**
  * Receives view matrix for additional processing, cam_update must be called before this function
@@ -163,157 +163,195 @@ ENGINE_API struct mat4f* cam_get_perspective(struct mat4f* r, const struct camer
  * @see cam_update
  * @ingroup cam
  */
-ENGINE_API struct mat3f* cam_get_view(struct mat3f* r, const struct camera* cam);
+ENGINE_API mat3f* cam_get_view(const Camera *cam, mat3f *r);
 
 /**
- * Adds rotation along x-axis angle to the camera, in radians
+ * Adds rotation along x-axis angle to the Camera, in radians
  * @ingroup cam
  */
-ENGINE_API void cam_pitch(struct camera* cam, float pitch);
+ENGINE_API void cam_pitch(Camera *cam, float pitch);
+
 /**
- * Adds rotation along y-axis angle to the camera, in radians
+ * Adds rotation along y-axis angle to the Camera, in radians
  * @ingroup cam
  */
-ENGINE_API void cam_yaw(struct camera* cam, float yaw);
+ENGINE_API void cam_yaw(Camera *cam, float yaw);
+
 /**
- * Adds rotation along z-axis angle to the camera, in radians
+ * Adds rotation along z-axis angle to the Camera, in radians
  * @ingroup cam
  */
-ENGINE_API void cam_roll(struct camera* cam, float roll);
+ENGINE_API void cam_roll(Camera *cam, float roll);
+
 /**
- * Moves camera forward-backward (along camera's look vector) relative to previous position
+ * Moves Camera forward-backward (along Camera's look vector) relative to previous position
  * @ingroup cam
  */
-ENGINE_API void cam_fwd(struct camera* cam, float dz);
+ENGINE_API void cam_fwd(Camera *cam, float dz);
+
 /**
- * Moves camera right-left (along camera's right vector) relative to previous position
+ * Moves Camera right-left (along Camera's right vector) relative to previous position
  * @ingroup cam
  */
-ENGINE_API void cam_strafe(struct camera* cam, float dx);
+ENGINE_API void cam_strafe(Camera *cam, float dx);
 
 /*************************************************************************************************/
+
+/**
+ * FPS Camera, includes common Camera and automatically controls input and smoothing.\n
+ * @ingroup cam
+ */
+class ALIGN16 CameraFPS : public Camera
+{
+private:
+    inKey _fwd_keys[2] = {inKey::UP, inKey::W};
+    inKey _back_keys[2] = {inKey::DOWN, inKey::S};
+    inKey _strafe_left_keys[2] = {inKey::LEFT, inKey::A};
+    inKey _strafe_right_keys[2] = {inKey::RIGHT, inKey::D};
+
+    // Speed
+    float _rotate_speed = 0.005f;
+    float _move_speed = 0.5f;
+
+    // Smoothing
+    bool _smooth = true;
+    float _mouse_smoothness = 70.0f;
+    float _move_smoothness = 80.0f;
+
+    float _smx = 0.0f;
+    float _smy = 0.0f;
+    dh::Vec3 _spos = dh::Vec3::Zero;
+
+public:
+    CameraFPS() = default;
+
+    void set_rotate_speed(float speed);
+    void set_move_speed(float speed);
+
+    void set_keys_forward(inKey key1, inKey key2 = inKey::COUNT);
+    void set_keys_backward(inKey key1, inKey key2 = inKey::COUNT);
+    void set_keys_strafeleft(inKey key1, inKey key2 = inKey::COUNT);
+    void set_keys_straferight(inKey key1, inKey key2 = inKey::COUNT);
+
+    void set_smoothing(bool enable, float mouse_smoothness = 70.0f, float move_smoothness = 80.0f);
+
+    /*!
+     * \brief Update FPS camera (for Rotation)
+     * \param rotate_dx DeltaX of rotation (around Y-Axis), usually mouse deltaX
+     * \param rotate_dy DeltaY of rotation (around X-AXis), usually mouse deltaY
+     * \param dt Delta Time
+     */
+    void update_input(float rotate_dx, float rotate_dy, float dt);
+};
+
 /**
  * Create FPS Camera, and allocate it's memory from heap. If you have already allocated memory for
- * the camera, use *cam_fps_init* function instead
+ * the Camera, use *cam_fps_init* function instead
  * @see cam_fps_init
  * @ingroup cam
  */
-ENGINE_API struct camera_fps* cam_fps_create(const struct vec4f* pos, const struct vec4f* lookat,
-                                             float fnear, float ffar, float fov);
+ENGINE_API CameraFPS* cam_fps_create(const vec4f *pos, const vec4f *lookat,
+                                     float fnear, float ffar, float fov);
 
 /**
- * Destroy created FPS camera
+ * Destroy created FPS Camera
  * @see cam_fps_create
  * @ingroup cam
  */
-ENGINE_API void cam_fps_destroy(struct camera_fps* cam);
+ENGINE_API void cam_fps_destroy(CameraFPS *cam);
 
 /**
- * Intializes fps camera: fps camera is a low-level wrapper over common camera that also
+ * Intializes fps Camera: fps Camera is a low-level wrapper over common Camera that also
  * automatically handles inputs and smoothing, the initialization is very much like initializing a
- * common camera.
+ * common Camera.
  * @param cfps Fps Camera structure that you want to initialize
- * @param pos Position of the camera in global space
- * @param lookat Target position of the camera in global space
+ * @param pos Position of the Camera in global space
+ * @param lookat Target position of the Camera in global space
  * @param fnear Near view distance
  * @param ffar Far view distance, this parameter greatly effects the view distance and performance
  * @param fov Horizontal field-of-view angle (in radians)
  * @see cam_init
  * @ingroup cam
  */
-ENGINE_API void cam_fps_init(struct camera_fps* cfps, const struct vec4f* pos,
-                             const struct vec4f* lookat, float fnear, float ffar, float fov);
+ENGINE_API void cam_fps_init(CameraFPS *cfps, const vec4f *pos, const vec4f *lookat,
+                             float fnear, float ffar, float fov);
 
 /**
- * Sets mouse speed that affects the rotation of the FPS camera
- * @param cfps Fps camera
+ * Sets mouse speed that affects the rotation of the FPS Camera
+ * @param cfps Fps Camera
  * @param speed By default, this value is 0.005, and it cannot be less than zero
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_mousespeed(struct camera_fps* cfps, float speed);
+ENGINE_API void cam_fps_set_mousespeed(CameraFPS *cfps, float speed);
 
 /**
- * Sets the movement speed of the FPS camera
- * @param cfps Fps camera
+ * Sets the movement speed of the FPS Camera
+ * @param cfps Fps Camera
  * @param speed By default, this value is 0.5, and it cannot be less than zero
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_movespeed(struct camera_fps* cfps, float speed);
+ENGINE_API void cam_fps_set_movespeed(CameraFPS *cfps, float speed);
 
 /**
- * Sets keys that moves the FPS camera forward, you can set 2 keys for each movement direction\n
+ * Sets keys that moves the FPS Camera forward, you can set 2 keys for each movement direction\n
  * By default 'W' and 'Up arrow' keys are set for this movement
- * @param cfps Fps camera
+ * @param cfps Fps Camera
  * @param key1 First key for movement check
  * @param key2 Second key for movement check
  * @see input_key
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_keys_fwd(struct camera_fps* cfps, inKey key1,
-                                     inKey key2);
+ENGINE_API void cam_fps_set_keys_fwd(CameraFPS *cfps, inKey key1, inKey key2);
 
 /**
- * Sets keys that moves the FPS camera backward, you can set 2 keys for each movement direction\n
+ * Sets keys that moves the FPS Camera backward, you can set 2 keys for each movement direction\n
  * By default 'S' and 'Down arrow' keys are set for this movement
- * @param cfps Fps camera
+ * @param cfps Fps Camera
  * @param key1 First key for movement check
  * @param key2 Second key for movement check
  * @see input_key
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_keys_backwd(struct camera_fps* cfps, inKey key1,
-                                        inKey key2);
+ENGINE_API void cam_fps_set_keys_backwd(CameraFPS *cfps, inKey key1, inKey key2);
 
 /**
- * Sets keys that moves the FPS camera forward, you can set 2 keys for each movement direction\n
+ * Sets keys that moves the FPS Camera forward, you can set 2 keys for each movement direction\n
  * By default 'A' and 'Left arrow' keys are set for this movement
- * @param cfps Fps camera
+ * @param cfps Fps Camera
  * @param key1 First key for movement check
  * @param key2 Second key for movement check
  * @see input_key
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_keys_strafeleft(struct camera_fps* cfps, inKey key1,
-                                            inKey key2);
+ENGINE_API void cam_fps_set_keys_strafeleft(CameraFPS *cfps, inKey key1, inKey key2);
 
 /**
- * Sets keys that moves the FPS camera forward, you can set 2 keys for each movement direction\n
+ * Sets keys that moves the FPS Camera forward, you can set 2 keys for each movement direction\n
  * By default 'D' and 'Right arrow' keys are set for this movement
- * @param cfps Fps camera
+ * @param cfps Fps Camera
  * @param key1 First key for movement check
  * @param key2 Second key for movement check
  * @see input_key
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_keys_straferight(struct camera_fps* cfps, inKey key1,
-                                            inKey key2);
+ENGINE_API void cam_fps_set_keys_straferight(CameraFPS *cfps, inKey key1, inKey key2);
 
 /**
- * Enable/Disable FPS camera smoothing. It makes rotation and movement less jerky.
- * @param cfps Fps camera
+ * Enable/Disable FPS Camera smoothing. It makes rotation and movement less jerky.
+ * @param cfps Fps Camera
  * @param smooth By default smoothing is TRUE, to disable it, set this parameter to FALSE
  * @ingroup cam
  */
-ENGINE_API void cam_fps_set_smoothing(struct camera_fps* cfps, int smooth);
+ENGINE_API void cam_fps_set_smoothing(CameraFPS *cfps, bool smooth);
 
 /**
- * Set smoothing values for FPS camera, smoothing values are usually between 50~100, but you
- * can experiment with different values for more obscene results
- * @param mouse_smoothing Mouse smoothing, by default this value is 70
- * @param move_smoothing Movement smoothing, by default this value is 80
- * @ingroup cam
- */
-ENGINE_API void cam_fps_set_smoothing_values(struct camera_fps* cfps, float mouse_smoothing,
-                                             float move_smoothing);
-
-/**
- * Updates FPS camera and it's internal camera structure. Must be called before any rendering.
- * @param cfps Fps camera
+ * Updates FPS Camera and it's internal Camera structure. Must be called before any rendering.
+ * @param cfps Fps Camera
  * @param dx Delta of the mouse position (X) with the previous frame (in pixels)
  * @param dy Delta of the mouse position (Y) with the previous frame (in pixels)
  * @param dt Delta time between current frame and the previous frame (in seconds)
  * @ingroup cam
  */
-ENGINE_API void cam_fps_update(struct camera_fps* cfps, int dx, int dy, float dt);
+ENGINE_API void cam_fps_updateinput(struct CameraFPS *cfps, float dx, float dy, float dt);
 
 #endif /* CAMERA_H */

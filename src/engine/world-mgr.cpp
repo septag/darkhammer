@@ -44,8 +44,8 @@ struct wld_data
 {
     struct hashtable_open stable; /* table for sections, key: section-name, value: section-ID */
     struct array sections; /* item: wld_section */
-    struct camera* cam;
-    struct camera default_cam;
+    Camera* cam;
+    Camera default_cam;
 };
 
 /*************************************************************************************************
@@ -80,7 +80,7 @@ result_t wld_initmgr()
         return r;
     }
 
-    /* camera */
+    /* Camera */
     struct vec3f pos;
     cam_init(&g_wld.default_cam, vec3_setf(&pos, 0.0f, 0.0f, -1.0f), &g_vec3_zero, CAM_NEAR,
         CAM_FAR, math_torad(CAM_FOV));
@@ -224,7 +224,7 @@ void wld_set_var(uint section_id, uint var_id, const struct variant* var)
         v->change_fn(&v->v, v->param);
 }
 
-void wld_set_cam(struct camera* cam)
+void wld_set_cam(Camera* cam)
 {
     if (cam != NULL)
         g_wld.cam = cam;
@@ -232,7 +232,7 @@ void wld_set_cam(struct camera* cam)
         g_wld.cam = &g_wld.default_cam;
 }
 
-struct camera* wld_get_cam()
+Camera* wld_get_cam()
 {
     return g_wld.cam;
 }

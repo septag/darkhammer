@@ -607,7 +607,7 @@ json_t prf_cmd_getcaminfo(const char* param1, const char* param2)
 {
     PROTECT_CMD();
 
-    struct camera* cam = wld_get_cam();
+    Camera* cam = wld_get_cam();
 
     json_t jroot = json_create_obj();
     json_t jcam = json_create_obj();
