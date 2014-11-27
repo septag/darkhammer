@@ -13,7 +13,8 @@
  *
  ***********************************************************************************/
 
-#include "res-mgr.h"
+#include "dheng/res-mgr.h"
+
 #include "dhcore/core.h"
 #include "dhcore/array.h"
 #include "dhcore/stack.h"
@@ -400,7 +401,7 @@ void rs_threaded_load_fn(void* params, void* result, uint thread_id, uint job_id
         break;
 
     case RS_RESOURCE_ANIMCTRL:
-        ptr = anim_ctrl_load(g_rs.alloc, ldata->filepath, thread_id);
+        ptr = anim_ctrl_load(ldata->filepath, g_rs.alloc, thread_id);
         if (ptr != NULL)
             log_printf(LOG_LOAD, "(anim-ctrl) \"%s\" - id: %d", ldata->filepath, GET_ID(ldata->hdl));
         break;
@@ -1020,7 +1021,7 @@ reshandle_t rs_load_animctrl(const char* ctrl_filepath, uint flags)
 
             /* model files should be valid extension */
             if (str_isequal_nocase(ext, "json"))
-                ctrl = anim_ctrl_load((struct allocator*)g_rs.alloc, ctrl_filepath, 0);
+                ctrl = anim_ctrl_load(ctrl_filepath, g_rs.alloc, 0);
 
             if (ctrl == NULL) {
                 log_printf(LOG_WARNING, "res-mgr: loading rs_resource '%s' failed:"

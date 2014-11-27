@@ -13,6 +13,8 @@
  *
  ***********************************************************************************/
 
+#include "dheng/anim.h"
+
 #include "dhcore/core.h"
 #include "dhcore/file-io.h"
 #include "dhcore/json.h"
@@ -21,79 +23,268 @@
 #include "dhcore/stack-alloc.h"
 #include "dhcore/task-mgr.h"
 
-#include "anim.h"
-#include "h3d-types.h"
-#include "mem-ids.h"
-#include "res-mgr.h"
-#include "cmp-mgr.h"
-#include "gfx-model.h"
-#include "gfx-canvas.h"
+#include "share/h3d-types.h"
+#include "share/mem-ids.h"
 
-#include "components/cmp-xform.h"
+#include "dheng/res-mgr.h"
+#include "dheng/cmp-mgr.h"
+#include "dheng/gfx-model.h"
+#include "dheng/gfx-canvas.h"
 
-/*************************************************************************************************
- * types
- */
+#include "dheng/components/cmp-xform.h"
 
-/* layer blend function callbacks */
-typedef const struct mat3f* (*pfn_anim_layerblend)(struct mat3f* result, struct mat3f* src,
-    struct mat3f* dest, float mask);
-const struct mat3f* anim_ctrl_layer_override(struct mat3f* result, struct mat3f* src,
-    struct mat3f* dest, float mask);
-const struct mat3f* anim_ctrl_layer_additive(struct mat3f* result, struct mat3f* src,
-    struct mat3f* dest, float mask);
+using namespace dh;
 
-/*************************************************************************************************
- * reel (container that holds a collection of clips)
- */
-enum anim_flags
+// Layer blending callback type
+typedef const Mat3* (*pfn_anim_layerblend)(Mat3* result, Mat3* src, Mat3* dest, float mask);
+
+// animReel
+class animReel1 : public animReel
 {
-    ANIM_LOOP = (1<<0), /* animation is looped */
-    ANIM_SCALE = (1<<1) /* animation has scale values */
-};
+public:
+    enum class Flags : uint
+    {
+        LOOP = (1<<0),
+        SCALE = (1<<1)
+    };
 
-struct ALIGN16 anim_pose
-{
-    struct vec4f pos_scale; /* w = uniform_scale */
-    struct quat4f rot;
-};
+    struct Clip
+    {
+        char name[32];
+        int frame_start; /* must be < subclip->frame_end */
+        int frame_end;   /* must be <= reel->frame_cnt */
+        int looped;
+        float duration;
+    };
 
-/* poses for one frame. each element in 'poses' array should match element(s) in ..
- * xforms of hierarchy mesh or poses in skeleton
- */
-struct anim_channel
-{
-    struct anim_pose* poses;    /* count: anim_reel.pose_cnt */
-};
+    struct Pose
+    {
+        Vec4 pos_scale;     // w = Uniform scale
+        Quat rot;
+    };
 
-/* sets of animation clips
- * long clips can be divided into clips for better referencing
- * for example an animation clip (loaded form file) can contain 'walk', 'attack', 'bend-over' clips */
-struct anim_clip
-{
-    char name[32];
-    uint frame_start; /* must be < subclip->frame_end */
-    uint frame_end;   /* must be <= reel->frame_cnt */
-    int looped;
-    float duration;
-};
+    struct Channel
+    {
+        Pose *poses;    // Count = pose_cnt
+    };
 
-/* reel: series of frames and channel data */
-struct anim_reel_data
-{
-    char name[32];
-    uint fps;
-    uint frame_cnt;
-    float duration;
-    float ft;
-    uint flags;   /* combination of enum anim_flags */
-    uint pose_cnt;
-    uint clip_cnt;
-    char* binds;   /* maps each joint/node to binded hierarchy/skeleton nodes. size: char(32)*pose_cnt */
-    struct anim_channel* channels;  /* count: frame_cnt */
-    struct anim_clip* clips;
-    struct hashtable_fixed clip_tbl;    /* key: name_hash, value: clip_idx */
-    struct allocator* alloc;
+    char _name[32];
+    int _fps = 0;
+    int _frame_cnt = 0;
+    float _duration = 0.0f;
+    float _frame_time = 0.0f;
+    uint _flags = 0;   // Combination of Flags
+    int _pose_cnt = 0;
+    int _clip_cnt = 0;
+    char *_binds = nullptr;   //Maps each joint/node to binded hierarchy nodes (Size=char(32)*pose_cnt)
+    Channel *_channels = nullptr; // Count = frame_cnt
+    Clip *_clips = nullptr;
+    HashtableFixed<int, -1> _clips_tbl; // Key points to _clips array
+    Allocator *_alloc = nullptr;
+
+public:
+    animReel1() = default;
+
+public:
+    // Interited from animReel
+    int find_clip(const char *name) const
+    {
+        return _clips_tbl.value(name);
+    }
+
+    ClipInfo clip_info(int index) const
+    {
+        ASSERT(index < _clip_cnt);
+        const animReel1::Clip &clip = _clips[index];
+        ClipInfo info;
+        info.name = clip.name;
+        info.duration = clip.duration;
+        info.looped = clip.looped;
+        return info;
+    }
+
+    ReelInfo info() const
+    {
+        ReelInfo info;
+        info.fps = _fps;
+        info.clip_cnt = _clip_cnt;
+        info.duration = _duration;
+        info.frame_cnt = _frame_cnt;
+        info.frame_time = _frame_time;
+        info.pose_cnt = _pose_cnt;
+        return info;
+    }
+
+    const char* pose_binding(int pose_index) const
+    {
+        ASSERT(pose_index < _pose_cnt);
+        return _binds + pose_index*32;
+    }
+
+    void destroy()
+    {
+        mem_delete_alloc_aligned<animReel1>(_alloc, this);
+    }
+
+public:
+    static animReel* loadf(const char *h3da_filepath, Allocator *alloc, uint thread_id)
+    {
+        static const char *err_fmt = "Loading animation reel '%s' failed: %s";
+
+        // Fetch temp allocator
+        Allocator *tmp_alloc = tsk_get_tmpalloc(thread_id);
+        A_PUSH(tmp_alloc);
+
+        // Load file in memory
+        File f = File::open_mem(h3da_filepath, tmp_alloc, MID_ANIM);
+        if (!f.is_open())  {
+            A_POP(tmp_alloc);
+            err_printf(__FILE__, __LINE__, err_fmt, h3da_filepath, "Could not open file");
+            return nullptr;
+        }
+
+        // Read header
+        h3dHeader header;
+        f.read(&header, sizeof(header), 1);
+        if (header.sign != H3D_SIGN || header.type != h3dType::ANIM_REEL) {
+            err_printf(__FILE__, __LINE__, err_fmt, h3da_filepath, "Invalid file format");
+            A_POP(tmp_alloc);
+            return nullptr;
+        }
+        if (header.version != H3D_VERSION_11)   {
+            err_printf(__FILE__, __LINE__, err_fmt, h3da_filepath, "Invalid file version");
+            A_POP(tmp_alloc);
+            return nullptr;
+        }
+
+        // Animation Reel descriptor
+        h3dAnim h3danim;
+        f.seek(header.data_offset);
+        f.read(&h3danim, sizeof(h3danim), 1);
+
+        // Create stack allocator for faster allocations
+        StackAlloc stack_mem;
+        Allocator stack_alloc;
+        size_t total_sz =
+            sizeof(animReel1) +
+            32*h3danim.channel_cnt +
+            sizeof(animReel1::Channel)*h3danim.frame_cnt +
+            sizeof(animReel1::Clip)*h3danim.clip_cnt +
+            sizeof(animReel1::Pose)*h3danim.channel_cnt*h3danim.frame_cnt + 16 +
+            HashtableFixed<int, -1>::estimate_size(h3danim.clip_cnt);
+
+        if (IS_FAIL(stack_mem.create(total_sz, alloc, MID_GFX))) {
+            err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
+            A_POP(tmp_alloc);
+            return nullptr;
+        }
+        stack_mem.bindto(&stack_alloc);
+
+        // Start allocating and loading data
+        animReel1 *reel = mem_new_alloc<animReel1>(&stack_alloc);
+
+        char filename[64];
+        str_safecpy(reel->_name, sizeof(reel->_name), path_getfilename(filename, h3da_filepath));
+        reel->_fps = h3danim.fps;
+        reel->_frame_cnt = h3danim.frame_cnt;
+        reel->_frame_time = 1.0f / ((float)h3danim.fps);
+        reel->_duration = reel->_frame_time * (float)h3danim.frame_cnt;
+        reel->_pose_cnt = h3danim.channel_cnt;
+        reel->_alloc = alloc;
+        reel->_clip_cnt = h3danim.clip_cnt;
+        if (h3danim.has_scale)
+            BIT_ADD(reel->_flags, (uint)animReel1::Flags::SCALE);
+
+        // Channel data
+        // Bind names is an array buffer with each item being 32-byte(char) wide
+        reel->_binds = (char*)A_ALLOC(&stack_alloc, 32*h3danim.channel_cnt, 0);
+        ASSERT(reel->_binds);
+        memset(reel->_binds, 0x00, 32*h3danim.channel_cnt);
+
+        int frame_cnt = h3danim.frame_cnt;
+
+        // Channels are set of poses for each frame.
+        // We allocate frame_cnt number of channels
+        reel->_channels = (animReel1::Channel*)A_ALLOC(&stack_alloc,
+                                                       sizeof(animReel1::Channel)*frame_cnt, 0);
+        ASSERT(reel->_channels);
+        memset(reel->_channels, 0x00, sizeof(animReel1::Channel)*frame_cnt);
+
+        Vec4 *pos_scale = (Vec4*)A_ALLOC(tmp_alloc, sizeof(Vec4)*frame_cnt, 0);
+        Quat *rot = (Quat*)A_ALLOC(tmp_alloc, sizeof(Quat)*frame_cnt, 0);
+        if (!pos_scale || !rot)   {
+            reel->destroy();
+            err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
+            A_POP(tmp_alloc);
+            return nullptr;
+        }
+
+        // Create a big buffer for all poses in all frames and assign them to each channel
+        uint8 *pos_buff = (uint8*)A_ALIGNED_ALLOC(&stack_alloc,
+                                          sizeof(animReel1::Pose)*h3danim.channel_cnt*frame_cnt, 0);
+        ASSERT(pos_buff);
+
+        for (int i = 0; i < frame_cnt; i++) {
+            reel->_channels[i].poses =
+                    (animReel1::Pose*)(pos_buff + i*reel->_pose_cnt*sizeof(animReel1::Pose));
+        }
+
+        for (int i = 0; i < h3danim.channel_cnt; i++)   {
+            h3dAnimChannel h3dchannel;
+            f.read(&h3dchannel, sizeof(h3dchannel), 1);
+
+            strcpy(reel->_binds + i*32, h3dchannel.bindto);
+            f.read(pos_scale, sizeof(Vec4), frame_cnt);
+            f.read(rot, sizeof(Quat), frame_cnt);
+
+            for (int k = 0; k < frame_cnt; k++)  {
+                reel->_channels[k].poses[i].pos_scale = pos_scale[k];
+                reel->_channels[k].poses[i].rot = rot[k];
+            }
+        }
+
+        A_FREE(tmp_alloc, pos_scale);
+        A_FREE(tmp_alloc, rot);
+
+        // Clips
+        ASSERT(h3danim.clip_cnt);
+        reel->_clips = (animReel1::Clip*)A_ALLOC(&stack_alloc,
+                                                 sizeof(animReel1::Clip)*reel->_clip_cnt, 0);
+        ASSERT(reel->_clips);
+        reel->_clips_tbl.create(reel->_clip_cnt, &stack_alloc);
+
+        f.seek(h3danim.clips_offset);
+        for (int i = 0; i < h3danim.clip_cnt; i++)   {
+            h3dAnimClip h3dclip;
+            animReel1::Clip *subclip = &reel->_clips[i];
+            f.read(&h3dclip, sizeof(h3dclip), 1);
+            strcpy(subclip->name, h3dclip.name);
+            subclip->frame_start = h3dclip.start;
+            subclip->frame_end = h3dclip.end;
+            subclip->looped = (bool)h3dclip.looped;
+            subclip->duration = reel->_frame_time * (float)(h3dclip.end - h3dclip.start);
+
+            reel->_clips_tbl.add(hash_str(h3dclip.name), i);
+        }
+
+        A_POP(tmp_alloc);
+        return (animReel*)reel;
+    }
+
+    int find_pose_binding(const char *name)
+    {
+        for (int i = 0, cnt = _pose_cnt; i < cnt; i++)  {
+            const char *bindname = _binds + i*32;
+            if (str_isequal(bindname, name))
+                return i;
+        }
+        return -1;
+    }
+
+    int find_clip_hashed(uint name_hash) const
+    {
+        return _clips_tbl.value(name_hash);
+    }
 };
 
 /*************************************************************************************************
@@ -298,8 +489,6 @@ struct anim_ctrl_instance_data
  */
 
 /* animation reel */
-static void anim_loadchannel(file_t f, anim_reel reel, struct vec4f* tmp_pos_scale,
-    struct quat4f* tmp_rot, uint pose_idx, uint frame_cnt);
 static uint anim_findclip_hashed(const anim_reel reel, uint name_hash);
 
 /* animation controller - loading */
@@ -367,11 +556,6 @@ static float anim_ctrl_updateblendtree(struct anim_pose* poses,
 INLINE char* anim_get_bindname(char* binds, uint idx)
 {
     return binds + idx*32;
-}
-
-INLINE float anim_calc_duration(float ft, float frame_cnt)
-{
-    return ft*frame_cnt;
 }
 
 INLINE enum anim_ctrl_sequencetype anim_ctrl_parse_seqtype(json_t jseq)
@@ -465,169 +649,9 @@ INLINE int anim_ctrl_testpredicate_b(int value1, int value2)
 }
 
 /*************************************************************************************************/
-anim_reel anim_load(struct allocator* alloc, const char* h3da_filepath, uint thread_id)
-{
-    /* fetch temp allocator (likely it's a stack) */
-    struct allocator* tmp_alloc = tsk_get_tmpalloc(thread_id);
-    A_SAVE(tmp_alloc);
-
-    file_t f = fio_openmem(alloc, h3da_filepath, FALSE, MID_ANIM);
-    if (f == NULL)  {
-        A_LOAD(tmp_alloc);
-        err_printf(__FILE__, __LINE__, "load anim '%s' failed: could not open file", h3da_filepath);
-        return NULL;
-    }
-
-    /* check header */
-    struct h3d_header header;
-    fio_read(f, &header, sizeof(header), 1);
-    if (header.sign != H3D_SIGN || header.type != H3D_ANIM) {
-        fio_close(f);
-        err_printf(__FILE__, __LINE__, "load anim '%s' failed: invalid file format", h3da_filepath);
-        A_LOAD(tmp_alloc);
-        return NULL;
-    }
-    if (header.version != H3D_VERSION_11)   {
-        fio_close(f);
-        err_printf(__FILE__, __LINE__, "load anim '%s' failed: invalid file version", h3da_filepath);
-        A_LOAD(tmp_alloc);
-        return NULL;
-    }
-
-    /* anim descriptor */
-    struct h3d_anim h3danim;
-    fio_seek(f, SEEK_MODE_START,header.data_offset);
-    fio_read(f, &h3danim, sizeof(h3danim), 1);
-
-    /* create stack allocator for proceeding allocations */
-    struct stack_alloc stack_mem;
-    struct allocator stack_alloc;
-    size_t total_sz =
-        sizeof(struct anim_reel_data) +
-        32*h3danim.channel_cnt +
-        sizeof(struct anim_channel)*h3danim.frame_cnt +
-        sizeof(struct anim_clip)*h3danim.clip_cnt +
-        sizeof(struct anim_pose)*h3danim.channel_cnt*h3danim.frame_cnt + 16 +
-        hashtable_fixed_estimate_size(h3danim.clip_cnt);
-    if (IS_FAIL(mem_stack_create(alloc, &stack_mem, total_sz, MID_GFX))) {
-        err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
-        fio_close(f);
-        A_LOAD(tmp_alloc);
-        return NULL;
-    }
-    mem_stack_bindalloc(&stack_mem, &stack_alloc);
-
-    /* */
-    anim_reel reel = (anim_reel)A_ALLOC(&stack_alloc, sizeof(struct anim_reel_data), MID_ANIM);
-    ASSERT(reel);
-    memset(reel, 0x00, sizeof(struct anim_reel_data));
-
-    char filename[32];
-    path_getfilename(filename, h3da_filepath);
-    strcpy(reel->name, filename);
-    reel->fps = h3danim.fps;
-    reel->frame_cnt = h3danim.frame_cnt;
-    reel->ft = 1.0f / ((float)h3danim.fps);
-    reel->duration = reel->ft * ((float)h3danim.frame_cnt);
-    reel->pose_cnt = h3danim.channel_cnt;
-    reel->alloc = alloc;
-    reel->clip_cnt = h3danim.clip_cnt;
-    if (h3danim.has_scale)
-        BIT_ADD(reel->flags, ANIM_SCALE);
-
-    /* channel data */
-    /* bind names is a buffer with each item being 32-byte char
-     * so we have to access them using 'anim_get_bindname' function */
-    reel->binds = (char*)A_ALLOC(&stack_alloc, 32*h3danim.channel_cnt, MID_ANIM);
-    ASSERT(reel->binds);
-    memset(reel->binds, 0x00, 32*h3danim.channel_cnt);
-
-    uint frame_cnt = h3danim.frame_cnt;
-    /* channels are set of poses in each frame , unlike what is in the file which are poses
-     * so we allocate frame_cnt of channels */
-    reel->channels = (struct anim_channel*)A_ALLOC(&stack_alloc,
-        sizeof(struct anim_channel)*frame_cnt, MID_ANIM);
-    ASSERT(reel->channels);
-    memset(reel->channels, 0x00, sizeof(struct anim_channel)*frame_cnt);
-
-    struct vec4f* pos_scale = (struct vec4f*)A_ALLOC(tmp_alloc, sizeof(struct vec4f)*frame_cnt,
-        MID_ANIM);
-    struct quat4f* rot = (struct quat4f*)A_ALLOC(tmp_alloc, sizeof(struct quat4f)*frame_cnt,
-        MID_ANIM);
-    if (pos_scale == NULL || rot == NULL)   {
-        fio_close(f);
-        anim_unload(reel);
-        err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
-        A_LOAD(tmp_alloc);
-        return NULL;
-    }
-
-    /* create a big buffer for all poses in all frames and assign them to each channel
-     * (better cache locality) */
-    uint8* pos_buff = (uint8*)A_ALIGNED_ALLOC(&stack_alloc,
-        sizeof(struct anim_pose)*h3danim.channel_cnt*frame_cnt, MID_ANIM);
-    ASSERT(pos_buff);
-
-    for (uint i = 0; i < frame_cnt; i++)
-        reel->channels[i].poses = (struct anim_pose*)
-            (pos_buff + i*reel->pose_cnt*sizeof(struct anim_pose));
-
-    for (uint i = 0; i < h3danim.channel_cnt; i++)
-        anim_loadchannel(f, reel, pos_scale, rot, i, frame_cnt);
-
-    A_FREE(tmp_alloc, pos_scale);
-    A_FREE(tmp_alloc, rot);
-
-    /* clips */
-    ASSERT(h3danim.clip_cnt > 0);
-    reel->clips = (struct anim_clip*)A_ALLOC(&stack_alloc,
-        sizeof(struct anim_clip)*reel->clip_cnt, MID_ANIM);
-    ASSERT(reel->clips);
-    hashtable_fixed_create(&stack_alloc, &reel->clip_tbl, reel->clip_cnt, MID_ANIM);
-
-    fio_seek(f, SEEK_MODE_START, h3danim.clips_offset);
-    for (uint i = 0; i < h3danim.clip_cnt; i++)   {
-        struct h3d_anim_clip h3dclip;
-        struct anim_clip* subclip = &reel->clips[i];
-        fio_read(f, &h3dclip, sizeof(h3dclip), 1);
-        strcpy(subclip->name, h3dclip.name);
-        subclip->frame_start = h3dclip.start;
-        subclip->frame_end = h3dclip.end;
-        subclip->looped = h3dclip.looped;
-        subclip->duration = anim_calc_duration(reel->ft, (float)(h3dclip.end - h3dclip.start));
-
-        hashtable_fixed_add(&reel->clip_tbl, hash_str(h3dclip.name), i);
-    }
-
-    fio_close(f);
-    A_LOAD(tmp_alloc);
-    return reel;
-}
-
-void anim_loadchannel(file_t f, anim_reel reel, struct vec4f* tmp_pos_scale,
-    struct quat4f* tmp_rot, uint pose_idx, uint frame_cnt)
-{
-    struct h3d_anim_channel h3dchannel;
-    fio_read(f, &h3dchannel, sizeof(h3dchannel), 1);
-
-    strcpy(anim_get_bindname(reel->binds, pose_idx), h3dchannel.bindto);
-    fio_read(f, tmp_pos_scale, sizeof(struct vec4f), frame_cnt);
-    fio_read(f, tmp_rot, sizeof(struct quat4f), frame_cnt);
-
-    for (uint i = 0; i < frame_cnt; i++)  {
-        vec4_setv(&reel->channels[i].poses[pose_idx].pos_scale, &tmp_pos_scale[i]);
-        quat_setq(&reel->channels[i].poses[pose_idx].rot, &tmp_rot[i]);
-    }
-}
-
-void anim_unload(anim_reel reel)
-{
-    A_ALIGNED_FREE(reel->alloc, reel);
-}
-
 void anim_update_clip_hierarchal(const anim_reel reel, uint clip_idx, float t,
     const uint* bindmap, const cmphandle_t* xforms, uint frame_force_idx,
-    const uint* root_idxs, uint root_idx_cnt, const struct mat3f* root_mat)
+    const uint* root_idxs, uint root_idx_cnt, const Mat3* root_mat)
 {
     uint frame_cnt, frame_idx;
     const struct anim_clip* subclip = &reel->clips[clip_idx];
@@ -650,7 +674,7 @@ void anim_update_clip_hierarchal(const anim_reel reel, uint clip_idx, float t,
     const struct anim_channel* sampl = &reel->channels[frame_idx + subclip->frame_start];
     const struct anim_channel* next_sampl = &reel->channels[nextframe_idx + subclip->frame_start];
 
-    struct mat3f xfm;
+    Mat3 xfm;
     mat3_set_ident(&xfm);
 
     for (uint i = 0, pose_cnt = reel->pose_cnt; i < pose_cnt; i++)    {
@@ -674,8 +698,8 @@ void anim_update_clip_hierarchal(const anim_reel reel, uint clip_idx, float t,
 }
 
 void anim_update_clip_skeletal(const anim_reel reel, uint clip_idx, float t,
-    const uint* bindmap, struct mat3f* joints, uint frame_force_idx,
-    const uint* root_idxs, uint root_idx_cnt, const struct mat3f* root_mat)
+    const uint* bindmap, Mat3* joints, uint frame_force_idx,
+    const uint* root_idxs, uint root_idx_cnt, const Mat3* root_mat)
 {
     uint frame_cnt, frame_idx;
     const struct anim_clip* subclip = &reel->clips[clip_idx];
@@ -698,7 +722,7 @@ void anim_update_clip_skeletal(const anim_reel reel, uint clip_idx, float t,
     const struct anim_channel* sampl = &reel->channels[frame_idx + subclip->frame_start];
     const struct anim_channel* next_sampl = &reel->channels[nextframe_idx + subclip->frame_start];
 
-    struct mat3f xfm;
+    Mat3 xfm;
     mat3_set_ident(&xfm);
 
     for (uint i = 0, pose_cnt = reel->pose_cnt; i < pose_cnt; i++)    {
@@ -716,64 +740,11 @@ void anim_update_clip_skeletal(const anim_reel reel, uint clip_idx, float t,
     }
 }
 
-
-uint anim_findclip(const anim_reel reel, const char* name)
-{
-    struct hashtable_item* item = hashtable_fixed_find(&reel->clip_tbl, hash_str(name));
-    if (item != NULL)
-        return (uint)item->value;
-    return INVALID_INDEX;
-}
-
-uint anim_findclip_hashed(const anim_reel reel, uint name_hash)
-{
-    struct hashtable_item* item = hashtable_fixed_find(&reel->clip_tbl, name_hash);
-    if (item != NULL)
-        return (uint)item->value;
-    return INVALID_INDEX;
-}
-
-void anim_get_clipdesc(struct anim_clip_desc* desc, const anim_reel reel, uint clip_idx)
-{
-    ASSERT(clip_idx < reel->clip_cnt);
-    struct anim_clip* clip = &reel->clips[clip_idx];
-    desc->name = clip->name;
-    desc->duration = clip->duration;
-    desc->looped = clip->looped;
-}
-
-
-void anim_get_desc(struct anim_reel_desc* desc, const anim_reel reel)
-{
-    desc->fps = reel->fps;
-    desc->clip_cnt = reel->clip_cnt;
-    desc->duration = reel->duration;
-    desc->frame_cnt = reel->frame_cnt;
-    desc->ft = reel->ft;
-    desc->pose_cnt = reel->pose_cnt;
-}
-
-const char* anim_get_posebinding(const anim_reel reel, uint pose_idx)
-{
-    ASSERT(pose_idx < reel->pose_cnt);
-    return reel->binds + pose_idx*32;
-}
-
-uint anim_find_posebinding(const anim_reel reel, const char* name)
-{
-    for (uint i = 0, cnt = reel->pose_cnt; i < cnt; i++)  {
-        const char* bindname = reel->binds + i*32;
-        if (str_isequal(bindname, name))
-            return i;
-    }
-    return INVALID_INDEX;
-}
-
 /*************************************************************************************************/
 uint anim_ctrl_getcount(json_t jparent, const char* name)
 {
     json_t j = json_getitem(jparent, name);
-    if (j != NULL)
+    if (j != nullptr)
         return json_getarr_count(j);
     else
         return 0;
@@ -782,12 +753,12 @@ uint anim_ctrl_getcount(json_t jparent, const char* name)
 uint anim_ctrl_getcount_2nd(json_t jparent, const char* name0, const char* name1)
 {
     json_t j = json_getitem(jparent, name0);
-    if (j != NULL)  {
+    if (j != nullptr)  {
         uint cnt = 0;
         uint l1_cnt = json_getarr_count(j);
         for (uint i = 0; i < l1_cnt; i++)    {
             json_t j2 = json_getitem(json_getarr_item(j, i), name1);
-            cnt += (j2 != NULL) ? json_getarr_count(j2) : 0;
+            cnt += (j2 != nullptr) ? json_getarr_count(j2) : 0;
         }
         return cnt;
     }   else    {
@@ -799,17 +770,17 @@ uint anim_ctrl_getcount_3rd(json_t jparent, const char* name0, const char* name1
                               const char* name2)
 {
     json_t j = json_getitem(jparent, name0);
-    if (j != NULL)  {
+    if (j != nullptr)  {
         uint cnt = 0;
         uint l1_cnt = json_getarr_count(j);
         for (uint i = 0; i < l1_cnt; i++)    {
             json_t j2 = json_getitem(json_getarr_item(j, i), name1);
 
-            if (j2 != NULL) {
+            if (j2 != nullptr) {
                 uint l2_cnt = json_getarr_count(j2);
                 for (uint k = 0; k < l2_cnt; k++) {
                     json_t j3 = json_getitem(json_getarr_item(j2, k), name2);
-                    cnt += (j3 != NULL) ? json_getarr_count(j3) : 0;
+                    cnt += (j3 != nullptr) ? json_getarr_count(j3) : 0;
                 }
             }
         }
@@ -826,20 +797,20 @@ anim_ctrl anim_ctrl_load(struct allocator* alloc, const char* janim_filepath, ui
 
     /* load JSON ctrl file */
     file_t f = fio_openmem(tmp_alloc, janim_filepath, FALSE, MID_ANIM);
-    if (f == NULL) {
+    if (f == nullptr) {
         err_printf(__FILE__, __LINE__, "Loading ctrl-anim failed: Could not open file '%s'",
             janim_filepath);
-        A_LOAD(tmp_alloc);
-        return NULL;
+        A_POP(tmp_alloc);
+        return nullptr;
     }
 
     json_t jroot = json_parsefilef(f, tmp_alloc);
     fio_close(f);
-    if (jroot == NULL)  {
+    if (jroot == nullptr)  {
         err_printf(__FILE__, __LINE__, "Loading ctrl-anim failed: Invalid json '%s'",
             janim_filepath);
-        A_LOAD(tmp_alloc);
-        return NULL;
+        A_POP(tmp_alloc);
+        return nullptr;
     }
 
     /* calculate total size and create memory stack */
@@ -869,8 +840,8 @@ anim_ctrl anim_ctrl_load(struct allocator* alloc, const char* janim_filepath, ui
         total_bonemasks*32;
     if (IS_FAIL(mem_stack_create(alloc, &stack_mem, total_sz, MID_GFX)))    {
         err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
-        A_LOAD(tmp_alloc);
-        return NULL;
+        A_POP(tmp_alloc);
+        return nullptr;
     }
     mem_stack_bindalloc(&stack_mem, &stack_alloc);
 
@@ -886,8 +857,8 @@ anim_ctrl anim_ctrl_load(struct allocator* alloc, const char* janim_filepath, ui
     if (reel_filepath[0] == 0)  {
         err_printf(__FILE__, __LINE__, "Loading ctrl-anim failed: empty reel file");
         anim_ctrl_unload(ctrl);
-        A_LOAD(tmp_alloc);
-        return NULL;
+        A_POP(tmp_alloc);
+        return nullptr;
     }
     str_safecpy(ctrl->reel_filepath, sizeof(ctrl->reel_filepath), reel_filepath);
 
@@ -900,14 +871,14 @@ anim_ctrl anim_ctrl_load(struct allocator* alloc, const char* janim_filepath, ui
     anim_ctrl_load_layers(ctrl, json_getitem(jroot, "layers"), &stack_alloc);
 
     json_destroy(jroot);
-    A_LOAD(tmp_alloc);
+    A_POP(tmp_alloc);
 
     return ctrl;
 }
 
 void anim_ctrl_load_params(anim_ctrl ctrl, json_t jparams, struct allocator* alloc)
 {
-    if (jparams == NULL)
+    if (jparams == nullptr)
         return;
 
     uint cnt = json_getarr_count(jparams);
@@ -948,7 +919,7 @@ void anim_ctrl_load_params(anim_ctrl ctrl, json_t jparams, struct allocator* all
 
 void anim_ctrl_load_clips(anim_ctrl ctrl, json_t jclips, struct allocator* alloc)
 {
-    if (jclips == NULL)
+    if (jclips == nullptr)
         return;
 
     uint cnt = json_getarr_count(jclips);
@@ -971,7 +942,7 @@ void anim_ctrl_load_clips(anim_ctrl ctrl, json_t jclips, struct allocator* alloc
 
 void anim_ctrl_load_transitions(anim_ctrl ctrl, json_t jtransitions, struct allocator* alloc)
 {
-    if (jtransitions == NULL)
+    if (jtransitions == nullptr)
         return;
 
     uint cnt = json_getarr_count(jtransitions);
@@ -993,7 +964,7 @@ void anim_ctrl_load_transitions(anim_ctrl ctrl, json_t jtransitions, struct allo
 
         /* groups */
         json_t jgroups = json_getitem(jtrans, "groups");
-        if (jgroups != NULL)    {
+        if (jgroups != nullptr)    {
             uint group_cnt = json_getarr_count(jgroups);
             if (group_cnt > 0)  {
                 trans->groups = (struct anim_ctrl_transition_group*)A_ALLOC(alloc,
@@ -1016,7 +987,7 @@ void anim_ctrl_parse_group(struct allocator* alloc, struct anim_ctrl_transition_
                            json_t jgrp)
 {
     json_t jconds = json_getitem(jgrp, "conditions");
-    if (jconds != NULL) {
+    if (jconds != nullptr) {
         uint cnt = json_getarr_count(jconds);
         grp->item_cnt = cnt;
         if (cnt == 0)
@@ -1044,14 +1015,14 @@ void anim_ctrl_parse_group(struct allocator* alloc, struct anim_ctrl_transition_
         }
     }   else    {
         grp->item_cnt = 0;
-        grp->items = NULL;
+        grp->items = nullptr;
     }
 }
 
 
 void anim_ctrl_load_blendtrees(anim_ctrl ctrl, json_t jblendtrees, struct allocator* alloc)
 {
-    if (jblendtrees == NULL)
+    if (jblendtrees == nullptr)
         return;
 
     uint cnt = json_getarr_count(jblendtrees);
@@ -1072,7 +1043,7 @@ void anim_ctrl_load_blendtrees(anim_ctrl ctrl, json_t jblendtrees, struct alloca
 
         /* childs */
         json_t jchilds = json_getitem(jbt, "childs");
-        if (jchilds != NULL)    {
+        if (jchilds != nullptr)    {
             uint child_cnt = json_getarr_count(jchilds);
             if (child_cnt > 0)  {
                 bt->child_seqs = (struct anim_ctrl_sequence*)A_ALLOC(alloc,
@@ -1098,7 +1069,7 @@ void anim_ctrl_load_blendtrees(anim_ctrl ctrl, json_t jblendtrees, struct alloca
 
 void anim_ctrl_load_states(anim_ctrl ctrl, json_t jstates, struct allocator* alloc)
 {
-    if (jstates == NULL)
+    if (jstates == nullptr)
         return;
 
     uint cnt = json_getarr_count(jstates);
@@ -1118,14 +1089,14 @@ void anim_ctrl_load_states(anim_ctrl ctrl, json_t jstates, struct allocator* all
 
         /* sequence */
         json_t jseq = json_getitem(jstate, "sequence");
-        if (jseq != NULL)   {
+        if (jseq != nullptr)   {
             state->seq.type = anim_ctrl_parse_seqtype(jseq);
             state->seq.idx = json_geti_child(jseq, "id", INVALID_INDEX);
         }
 
         /* transitions */
         json_t jtrans = json_getitem(jstate, "transitions");
-        if (jtrans != NULL) {
+        if (jtrans != nullptr) {
             state->transition_cnt = json_getarr_count(jtrans);
             if (state->transition_cnt > 0) {
                 state->transitions = (uint*)A_ALLOC(alloc,
@@ -1143,7 +1114,7 @@ void anim_ctrl_load_states(anim_ctrl ctrl, json_t jstates, struct allocator* all
 
 void anim_ctrl_load_layers(anim_ctrl ctrl, json_t jlayers, struct allocator* alloc)
 {
-    if (jlayers == NULL)
+    if (jlayers == nullptr)
         return;
 
     uint cnt = json_getarr_count(jlayers);
@@ -1165,7 +1136,7 @@ void anim_ctrl_load_layers(anim_ctrl ctrl, json_t jlayers, struct allocator* all
 
         /* states */
         json_t jstates = json_getitem(jlayer, "states");
-        if (jstates != NULL)    {
+        if (jstates != nullptr)    {
             layer->state_cnt = json_getarr_count(jstates);
             if (layer->state_cnt != 0)  {
                 layer->states = (uint*)A_ALLOC(alloc, sizeof(uint)*layer->state_cnt,
@@ -1178,7 +1149,7 @@ void anim_ctrl_load_layers(anim_ctrl ctrl, json_t jlayers, struct allocator* all
 
         /* bone-mask */
         json_t jbonemask = json_getitem(jlayer, "bone-mask");
-        if (jbonemask != NULL)  {
+        if (jbonemask != nullptr)  {
             layer->bone_mask_cnt = json_getarr_count(jbonemask);
             if (layer->bone_mask_cnt != 0)  {
                 layer->bone_mask = (char*)A_ALLOC(alloc, 32*layer->bone_mask_cnt, MID_ANIM);
@@ -1203,7 +1174,7 @@ void anim_ctrl_update(const anim_ctrl ctrl, anim_ctrl_inst inst, float tm,
                       struct allocator* tmp_alloc)
 {
     const anim_reel reel = rs_get_animreel(inst->reel_hdl);
-    if (reel == NULL)
+    if (reel == nullptr)
         return;
 
     for (uint i = 0, cnt = ctrl->layer_cnt; i < cnt; i++) {
@@ -1613,7 +1584,7 @@ enum anim_ctrl_paramtype anim_ctrl_get_paramtype(anim_ctrl ctrl, anim_ctrl_inst 
     const char* name)
 {
     struct hashtable_item* item = hashtable_fixed_find(&ctrl->param_tbl, hash_str(name));
-    if (item != NULL)
+    if (item != nullptr)
         return inst->params[item->value].type;
     return ANIM_CTRL_PARAM_UNKNOWN;
 }
@@ -1621,7 +1592,7 @@ enum anim_ctrl_paramtype anim_ctrl_get_paramtype(anim_ctrl ctrl, anim_ctrl_inst 
 float anim_ctrl_get_paramf(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name)
 {
     struct hashtable_item* item = hashtable_fixed_find(&ctrl->param_tbl, hash_str(name));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         ASSERT(inst->params[item->value].type == ANIM_CTRL_PARAM_FLOAT);
         return inst->params[item->value].value.f;
     }
@@ -1631,7 +1602,7 @@ float anim_ctrl_get_paramf(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name
 void anim_ctrl_set_paramf(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name, float value)
 {
     struct hashtable_item* item = hashtable_fixed_find(&ctrl->param_tbl, hash_str(name));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         ASSERT(inst->params[item->value].type == ANIM_CTRL_PARAM_FLOAT);
         inst->params[item->value].value.f = value;
     }
@@ -1640,7 +1611,7 @@ void anim_ctrl_set_paramf(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name,
 int anim_ctrl_get_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name)
 {
     struct hashtable_item* item = hashtable_fixed_find(&ctrl->param_tbl, hash_str(name));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         ASSERT(inst->params[item->value].type == ANIM_CTRL_PARAM_BOOLEAN);
         return inst->params[item->value].value.b;
     }
@@ -1650,7 +1621,7 @@ int anim_ctrl_get_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name)
 void anim_ctrl_set_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name, int value)
 {
     struct hashtable_item* item = hashtable_fixed_find(&ctrl->param_tbl, hash_str(name));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         ASSERT(inst->params[item->value].type == ANIM_CTRL_PARAM_BOOLEAN);
         inst->params[item->value].value.b = value;
     }
@@ -1659,7 +1630,7 @@ void anim_ctrl_set_paramb(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name,
 int anim_ctrl_get_parami(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name)
 {
     struct hashtable_item* item = hashtable_fixed_find(&ctrl->param_tbl, hash_str(name));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         ASSERT(inst->params[item->value].type == ANIM_CTRL_PARAM_INT);
         return inst->params[item->value].value.i;
     }
@@ -1669,7 +1640,7 @@ int anim_ctrl_get_parami(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name)
 void anim_ctrl_set_parami(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name, int value)
 {
     struct hashtable_item* item = hashtable_fixed_find(&ctrl->param_tbl, hash_str(name));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         ASSERT(inst->params[item->value].type == ANIM_CTRL_PARAM_INT);
         inst->params[item->value].value.i = value;
     }
@@ -1705,11 +1676,11 @@ result_t anim_ctrl_bindreel(anim_ctrl_inst inst, const anim_reel reel)
     /* layers */
     for (uint i = 0; i < ctrl->layer_cnt; i++)    {
         struct anim_ctrl_layer_inst* ilayer = &inst->layers[i];
-        if (ilayer->buff != NULL)
+        if (ilayer->buff != nullptr)
             A_ALIGNED_FREE(inst->alloc, ilayer->buff);
         size_t sz = (sizeof(struct anim_pose) + sizeof(float)) * reel->pose_cnt;
         uint8* buff = (uint8*)A_ALIGNED_ALLOC(inst->alloc, sz, MID_ANIM);
-        if (buff == NULL)
+        if (buff == nullptr)
             return RET_OUTOFMEMORY;
         memset(buff, 0x00, sz);
 
@@ -1743,11 +1714,11 @@ void anim_ctrl_unbindreel(anim_ctrl_inst inst)
 {
     for (uint i = 0; i < inst->layer_cnt; i++)    {
         struct anim_ctrl_layer_inst* ilayer = &inst->layers[i];
-        if (ilayer->buff != NULL)   {
+        if (ilayer->buff != nullptr)   {
             A_ALIGNED_FREE(inst->alloc, ilayer->buff);
-            ilayer->buff = NULL;
-            ilayer->poses = NULL;
-            ilayer->bone_mask = NULL;
+            ilayer->buff = nullptr;
+            ilayer->poses = nullptr;
+            ilayer->bone_mask = nullptr;
         }
     }
 }
@@ -1764,9 +1735,9 @@ anim_ctrl_inst anim_ctrl_createinstance(struct allocator* alloc, const anim_ctrl
         ctrl->transition_cnt*sizeof(struct anim_ctrl_transition_inst);
 
     uint8* buff = (uint8*)A_ALIGNED_ALLOC(alloc, bytes, MID_ANIM);
-    if (buff == NULL)   {
+    if (buff == nullptr)   {
         err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
-        return NULL;
+        return nullptr;
     }
     memset(buff, 0x00, bytes);
     struct anim_ctrl_instance_data* inst = (struct anim_ctrl_instance_data*)buff;
@@ -1782,7 +1753,7 @@ anim_ctrl_inst anim_ctrl_createinstance(struct allocator* alloc, const anim_ctrl
         err_printf(__FILE__, __LINE__, "Creating anim-ctrl instance failed: could not load resource"
             " '%s'", ctrl->reel_filepath);
         A_FREE(alloc, inst);
-        return NULL;
+        return nullptr;
     }
 
     if (ctrl->param_cnt > 0)    {
@@ -1846,12 +1817,12 @@ anim_ctrl_inst anim_ctrl_createinstance(struct allocator* alloc, const anim_ctrl
     }
 
     anim_reel reel = rs_get_animreel(inst->reel_hdl);
-    if (reel == NULL)
+    if (reel == nullptr)
         return inst;
 
     if (IS_FAIL(anim_ctrl_bindreel(inst, reel)))    {
         anim_ctrl_destroyinstance(inst);
-        return NULL;
+        return nullptr;
     }
 
     return inst;
@@ -1873,7 +1844,7 @@ result_t anim_ctrl_set_reel(anim_ctrl_inst inst, reshandle_t reel_hdl)
 
     anim_ctrl_unbindreel(inst);
     anim_reel reel = rs_get_animreel(reel_hdl);
-    if (reel != NULL)   {
+    if (reel != nullptr)   {
         if (IS_FAIL(anim_ctrl_bindreel(inst, reel)))
             return RET_FAIL;
     }
@@ -1884,17 +1855,17 @@ result_t anim_ctrl_set_reel(anim_ctrl_inst inst, reshandle_t reel_hdl)
 
 void anim_ctrl_fetchresult_hierarchal(const anim_ctrl_inst inst, const uint* bindmap,
                                       const cmphandle_t* xforms, const uint* root_idxs,
-                                      uint root_idx_cnt, const struct mat3f* root_mat)
+                                      uint root_idx_cnt, const Mat3* root_mat)
 {
     const anim_reel reel = rs_get_animreel(inst->reel_hdl);
-    if (reel == NULL)
+    if (reel == nullptr)
         return;
 
     uint pose_cnt = reel->pose_cnt;
     uint layer_cnt = inst->layer_cnt;
 
-    struct mat3f mat;
-    struct mat3f mat_tmp;
+    Mat3 mat;
+    Mat3 mat_tmp;
 
     for (uint i = 0; i < pose_cnt; i++)   {
         memset(&mat, 0x00, sizeof(mat));
@@ -1919,17 +1890,17 @@ void anim_ctrl_fetchresult_hierarchal(const anim_ctrl_inst inst, const uint* bin
 }
 
 void anim_ctrl_fetchresult_skeletal(const anim_ctrl_inst inst, const uint* bindmap,
-    struct mat3f* joints, const uint* root_idxs, uint root_idx_cnt, const struct mat3f* root_mat)
+    Mat3* joints, const uint* root_idxs, uint root_idx_cnt, const Mat3* root_mat)
 {
     const anim_reel reel = rs_get_animreel(inst->reel_hdl);
-    if (reel == NULL)
+    if (reel == nullptr)
         return;
 
     uint pose_cnt = reel->pose_cnt;
     uint layer_cnt = inst->layer_cnt;
 
-    struct mat3f mat;
-    struct mat3f mat_tmp;
+    Mat3 mat;
+    Mat3 mat_tmp;
 
     for (uint i = 0; i < pose_cnt; i++)   {
         memset(&mat, 0x00, sizeof(mat));
@@ -1949,14 +1920,14 @@ void anim_ctrl_fetchresult_skeletal(const anim_ctrl_inst inst, const uint* bindm
     }
 }
 
-const struct mat3f* anim_ctrl_layer_override(struct mat3f* result, struct mat3f* src,
-    struct mat3f* dest, float mask)
+const Mat3* anim_ctrl_layer_override(Mat3* result, Mat3* src,
+    Mat3* dest, float mask)
 {
     return mat3_setm(result, mask == 0.0f ? dest : src);
 }
 
-const struct mat3f* anim_ctrl_layer_additive(struct mat3f* result, struct mat3f* src,
-    struct mat3f* dest, float mask)
+const Mat3* anim_ctrl_layer_additive(Mat3* result, Mat3* src,
+    Mat3* dest, float mask)
 {
     return mat3_add(result, dest, mat3_muls(src, src, mask));
 }

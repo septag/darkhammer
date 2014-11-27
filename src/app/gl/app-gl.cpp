@@ -548,6 +548,7 @@ void event_callback_update()
 
 void app_window_setevents(appEvents *events)
 {
+    ASSERT(g_app);
     if (g_app)
         g_app->events = events;
 }

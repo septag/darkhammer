@@ -34,11 +34,11 @@
 #define H3D_VERSION_13 0x312e33 /*1.3*/
 #pragma pack(push, 1)
 
-enum h3d_type
+enum class h3dType : uint
 {
-	H3D_MESH = (1<<0),  /* h3dm files */
-	H3D_ANIM = (1<<1),  /* h3da files */
-    H3D_PHX = (1<<2)    /* h3dp files */
+    MODEL = (1<<0),  // h3dm
+    ANIM_REEL = (1<<1),  // h3da
+    PHYSICS = (1<<2)    // h3dp
 };
 
 enum h3d_texture_type
@@ -51,11 +51,11 @@ enum h3d_texture_type
 	H3D_TEXTURE_REFLECTION = 5
 };
 
-struct _GCCPACKED_ h3d_header
+struct  h3dHeader
 {
 	uint sign;
 	uint version;
-	uint type;	/* enum h3d_type */
+    h3dType type;	/* enum h3d_type */
 	uint data_offset;
 };
 
@@ -197,7 +197,7 @@ struct _GCCPACKED_ h3d_model
 /*************************************************************************************************
  * anim
  */
-struct _GCCPACKED_ h3d_anim_channel
+struct _GCCPACKED_ h3dAnimChannel
 {
     char bindto[32];
 #if 0
@@ -207,22 +207,22 @@ struct _GCCPACKED_ h3d_anim_channel
 #endif
 };
 
-struct _GCCPACKED_ h3d_anim_clip
+struct _GCCPACKED_ h3dAnimClip
 {
     char name[32];
-    uint start;
-    uint end;
+    int start;
+    int end;
     int looped;
 };
 
-struct _GCCPACKED_ h3d_anim
+struct h3dAnim
 {
-    uint fps;
-    uint frame_cnt;
-    uint channel_cnt;
+    int fps;
+    int frame_cnt;
+    int channel_cnt;
     int has_scale;
-    uint clip_cnt;
-    uint clips_offset;    /* points to end of anim data for clips table */
+    int clip_cnt;
+    int clips_offset;    // Points to Clip table in file
 
 #if 0
     /* data comes after in the file */
