@@ -28,7 +28,9 @@ unix {
         gl/input-glfw.cpp
     HEADERS += \
         gl/glfw-keycodes.h
-    LIBS += -lglfw -lGL
+
+    macx:LIBS += -lglfw3 -framework OpenGL
+    else:LIBS += -lglfw -lGL
 }
 
 SOURCES += \

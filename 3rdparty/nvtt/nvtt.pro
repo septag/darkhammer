@@ -9,9 +9,8 @@ CONFIG(debug, debug|release):TARGET = nvtt-dbg
 linux-g++|linux-clang|macx-clang {
     QMAKE_CFLAGS += \
         -std=gnu99 \
-        -msse -msse2 \
+        -msse -msse2
     QMAKE_CXXFLAGS += \
-        -fno-exceptions \
         -std=c++11
 
     LIBS *= -lpthread -lm -ldl -lstdc++

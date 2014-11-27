@@ -39,7 +39,7 @@ using namespace dh;
 typedef const Mat3* (*pfn_anim_layerblend)(Mat3* result, Mat3* src, Mat3* dest, float mask);
 
 // animReel
-class animReel1 : public animReel
+class Reel : public animReel
 {
 public:
     enum class Flags : uint
@@ -83,7 +83,7 @@ public:
     Allocator *_alloc = nullptr;
 
 public:
-    animReel1() = default;
+    Reel() = default;
 
 public:
     // Interited from animReel
@@ -95,7 +95,7 @@ public:
     ClipInfo clip_info(int index) const
     {
         ASSERT(index < _clip_cnt);
-        const animReel1::Clip &clip = _clips[index];
+        const Reel::Clip &clip = _clips[index];
         ClipInfo info;
         info.name = clip.name;
         info.duration = clip.duration;
@@ -123,7 +123,7 @@ public:
 
     void destroy()
     {
-        mem_delete_alloc_aligned<animReel1>(_alloc, this);
+        mem_delete_alloc_aligned<Reel>(_alloc, this);
     }
 
 public:
@@ -166,11 +166,11 @@ public:
         StackAlloc stack_mem;
         Allocator stack_alloc;
         size_t total_sz =
-            sizeof(animReel1) +
+            sizeof(Reel) +
             32*h3danim.channel_cnt +
-            sizeof(animReel1::Channel)*h3danim.frame_cnt +
-            sizeof(animReel1::Clip)*h3danim.clip_cnt +
-            sizeof(animReel1::Pose)*h3danim.channel_cnt*h3danim.frame_cnt + 16 +
+            sizeof(Reel::Channel)*h3danim.frame_cnt +
+            sizeof(Reel::Clip)*h3danim.clip_cnt +
+            sizeof(Reel::Pose)*h3danim.channel_cnt*h3danim.frame_cnt + 16 +
             HashtableFixed<int, -1>::estimate_size(h3danim.clip_cnt);
 
         if (IS_FAIL(stack_mem.create(total_sz, alloc, MID_GFX))) {
@@ -181,7 +181,7 @@ public:
         stack_mem.bindto(&stack_alloc);
 
         // Start allocating and loading data
-        animReel1 *reel = mem_new_alloc<animReel1>(&stack_alloc);
+        Reel *reel = mem_new_alloc<Reel>(&stack_alloc);
 
         char filename[64];
         str_safecpy(reel->_name, sizeof(reel->_name), path_getfilename(filename, h3da_filepath));
@@ -193,7 +193,7 @@ public:
         reel->_alloc = alloc;
         reel->_clip_cnt = h3danim.clip_cnt;
         if (h3danim.has_scale)
-            BIT_ADD(reel->_flags, (uint)animReel1::Flags::SCALE);
+            BIT_ADD(reel->_flags, (uint)Reel::Flags::SCALE);
 
         // Channel data
         // Bind names is an array buffer with each item being 32-byte(char) wide
@@ -205,10 +205,10 @@ public:
 
         // Channels are set of poses for each frame.
         // We allocate frame_cnt number of channels
-        reel->_channels = (animReel1::Channel*)A_ALLOC(&stack_alloc,
-                                                       sizeof(animReel1::Channel)*frame_cnt, 0);
+        reel->_channels = (Reel::Channel*)A_ALLOC(&stack_alloc,
+                                                       sizeof(Reel::Channel)*frame_cnt, 0);
         ASSERT(reel->_channels);
-        memset(reel->_channels, 0x00, sizeof(animReel1::Channel)*frame_cnt);
+        memset(reel->_channels, 0x00, sizeof(Reel::Channel)*frame_cnt);
 
         Vec4 *pos_scale = (Vec4*)A_ALLOC(tmp_alloc, sizeof(Vec4)*frame_cnt, 0);
         Quat *rot = (Quat*)A_ALLOC(tmp_alloc, sizeof(Quat)*frame_cnt, 0);
@@ -221,12 +221,12 @@ public:
 
         // Create a big buffer for all poses in all frames and assign them to each channel
         uint8 *pos_buff = (uint8*)A_ALIGNED_ALLOC(&stack_alloc,
-                                          sizeof(animReel1::Pose)*h3danim.channel_cnt*frame_cnt, 0);
+                                          sizeof(Reel::Pose)*h3danim.channel_cnt*frame_cnt, 0);
         ASSERT(pos_buff);
 
         for (int i = 0; i < frame_cnt; i++) {
             reel->_channels[i].poses =
-                    (animReel1::Pose*)(pos_buff + i*reel->_pose_cnt*sizeof(animReel1::Pose));
+                    (Reel::Pose*)(pos_buff + i*reel->_pose_cnt*sizeof(Reel::Pose));
         }
 
         for (int i = 0; i < h3danim.channel_cnt; i++)   {
@@ -248,15 +248,15 @@ public:
 
         // Clips
         ASSERT(h3danim.clip_cnt);
-        reel->_clips = (animReel1::Clip*)A_ALLOC(&stack_alloc,
-                                                 sizeof(animReel1::Clip)*reel->_clip_cnt, 0);
+        reel->_clips = (Reel::Clip*)A_ALLOC(&stack_alloc,
+                                                 sizeof(Reel::Clip)*reel->_clip_cnt, 0);
         ASSERT(reel->_clips);
         reel->_clips_tbl.create(reel->_clip_cnt, &stack_alloc);
 
         f.seek(h3danim.clips_offset);
         for (int i = 0; i < h3danim.clip_cnt; i++)   {
             h3dAnimClip h3dclip;
-            animReel1::Clip *subclip = &reel->_clips[i];
+            Reel::Clip *subclip = &reel->_clips[i];
             f.read(&h3dclip, sizeof(h3dclip), 1);
             strcpy(subclip->name, h3dclip.name);
             subclip->frame_start = h3dclip.start;
@@ -264,7 +264,7 @@ public:
             subclip->looped = (bool)h3dclip.looped;
             subclip->duration = reel->_frame_time * (float)(h3dclip.end - h3dclip.start);
 
-            reel->_clips_tbl.add(hash_str(h3dclip.name), i);
+            reel->_clips_tbl.add(h3dclip.name, i);
         }
 
         A_POP(tmp_alloc);
@@ -287,136 +287,134 @@ public:
     }
 };
 
-/*************************************************************************************************
- * animation controller (mainly used for characters)
- */
-enum anim_ctrl_sequencetype
+// CharController
+class CharController : public animCharController
 {
-    ANIM_CTRL_SEQUENCE_UNKNOWN = 0,
-    ANIM_CTRL_SEQUENCE_CLIP,
-    ANIM_CTRL_SEQUENCE_BLENDTREE
-};
+public:
+    enum class LayerType : int
+    {
+        OVERRIDE = 0,
+        ADDITIVE
+    };
 
-enum anim_ctrl_layertype
-{
-    ANIM_CTRL_LAYER_OVERRIDE = 0,
-    ANIM_CTRL_LAYER_ADDITIVE
-};
+    struct Layer
+    {
+        char name[32];
+        LayerType type;
+        int state_cnt;
+        int *states;
+        int default_state;
+        int bone_mask_cnt;
+        char *bone_mask;    // Array of strings (joint names). Series of char[32]
+    };
 
-struct anim_ctrl_param
-{
-    char name[32];
-    enum anim_ctrl_paramtype type;
-    union   {
-        float f;
-        int i;
-        int b;
-    } value;
-};
+    struct Param
+    {
+        char name[32];
+        animParam value;
+    };
 
-struct anim_ctrl_layer
-{
-    char name[32];
-    enum anim_ctrl_layertype type;
-    uint state_cnt;
-    uint* states; /* index to states in anim_ctrl */
-    uint default_state_idx;
-    uint bone_mask_cnt;
-    char* bone_mask;    /* array of strings, in form of series of char[32] items */
-};
+    enum class SequenceType : int
+    {
+        UNKNOWN = 0,
+        CLIP,
+        BLEND_TREE
+    };
 
-struct anim_ctrl_sequence
-{
-    enum anim_ctrl_sequencetype type;
-    uint idx;
-};
+    struct Sequence
+    {
+        SequenceType type;
+        int index;  // Index to clip or blend_tree
+    };
 
-struct anim_ctrl_state
-{
-    char name[32];
-    float speed;
-    uint transition_cnt;
-    uint* transitions;
-    struct anim_ctrl_sequence seq;
-};
+    struct BlendTree
+    {
+        char name[32];
+        int param;
+        int child_cnt;
+        float child_cnt_f;
+        Sequence  *childs;
+    };
 
-struct anim_ctrl_blendtree
-{
-    char name[32];
-    uint param_idx;
-    uint child_seq_cnt;
-    float child_cnt_f;
-    struct anim_ctrl_sequence* child_seqs;
-};
+    struct State
+    {
+        char name[32];
+        float speed;
+        int transition_cnt;
+        int *transitions;
+        Sequence seq;
+    };
 
-struct anim_ctrl_clip
-{
-    char name[32];
-    uint name_hash;
-};
+    enum class Predicate : int
+    {
+        UNKNOWN = 0,
+        EQUAL,
+        NOT,
+        GREATER,
+        LESS
+    };
 
-enum anim_predicate
-{
-    ANIM_PREDICATE_UNKNOWN = 0,
-    ANIM_PREDICATE_EQUAL,
-    ANIM_PREDICATE_NOT,
-    ANIM_PREDICATE_GREATER,
-    ANIM_PREDICATE_LESS
-};
+    enum class ConditionType : int
+    {
+        EXIT,   // Transition acts when reaches a certain Exit time
+        PARAM   // Transition acts when custom paremeter meets it's condition
+    };
 
-enum anim_ctrl_tgrouptype
-{
-    ANIM_CTRL_TGROUP_EXIT = 0,
-    ANIM_CTRL_TGROUP_PARAM
-};
+    struct Condition
+    {
+        ConditionType type;
+        int param;  // Index to parameter
+        Predicate predicate;
+        animParam value;    // Rerefence value to compare to parameter/exit time
+    };
 
-struct anim_ctrl_transition_groupitem
-{
-    enum anim_ctrl_tgrouptype type;
-    enum anim_predicate predicate;
-    uint param_idx;
-    union {
-        float f;
-        int b;
-        int i;
-    } value;
-};
+    struct ConditionGroup
+    {
+        int count;
+        Condition *conditions;
+    };
 
-struct anim_ctrl_transition_group
-{
-    uint item_cnt;
-    struct anim_ctrl_transition_groupitem* items;  /* conditions */
-};
+    struct Transition
+    {
+        float duration;
+        int owner_state;    // Index to owner state
+        int target_state;   // Index to target state
+        int group_cnt;
+        TransitionGroup *groups;
+    };
 
-struct anim_ctrl_transition
-{
-    float duration;
-    uint owner_state_idx;
-    uint target_state_idx;
-    uint group_cnt;
-    struct anim_ctrl_transition_group* groups;
-};
+    struct Clip
+    {
+        char name[32];
+        uint name_hash;
+    };
 
-struct anim_ctrl_data
-{
-    struct allocator* alloc;
-    char reel_filepath[128];
+public:
+    Allocator *_alloc = nullptr;
+    char _reel_filepath[128];
 
-    uint transition_cnt;
-    uint clip_cnt;
-    uint blendtree_cnt;
-    uint state_cnt;
-    uint param_cnt;
-    uint layer_cnt;
+    int _transition_cnt = 0;
+    int _clip_cnt = 0;
+    int _blendtree_cnt = 0;
+    int _state_cnt = 0;
+    int _param_cnt = 0;
+    int _layer_cnt = 0;
 
-    struct anim_ctrl_transition* transitions;
-    struct anim_ctrl_clip* clips;
-    struct anim_ctrl_blendtree* blendtrees;
-    struct anim_ctrl_state* states;
-    struct anim_ctrl_param* params;
-    struct anim_ctrl_layer* layers;
+    Transition *_transitions;
+    Clip *_clips;
+    BlendTree *_blendtrees;
+    State *_states;
+    Param *_params;
+    Layer *_layers;
 
-    struct hashtable_fixed param_tbl;   /* key: param-name, value: index */
+    HashtableFixed<int, -1> _params_tbl;    // ParamName->ParamIndex
+
+public:
+    // Inherited from animCharController
+    void destroy();
+
+public:
+    static CharController* load_json(const char *json_filepath, Allocator *alloc, uint thread_id);
 };
 
 /*************************************************************************************************/
@@ -487,9 +485,6 @@ struct anim_ctrl_instance_data
 /*************************************************************************************************
  * fwd declarations
  */
-
-/* animation reel */
-static uint anim_findclip_hashed(const anim_reel reel, uint name_hash);
 
 /* animation controller - loading */
 static void anim_ctrl_load_params(anim_ctrl ctrl, json_t jparams, struct allocator* alloc);

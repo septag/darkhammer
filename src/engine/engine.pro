@@ -25,7 +25,8 @@ unix {
     }
 
     DEFINES += _GL_
-    LIBS += -lGL
+    macx:LIBS += -framework OpenGL
+    else:LIBS += -lGL
 
     SOURCES += \
         gl/gfx-cmdqueue-gl.cpp \
