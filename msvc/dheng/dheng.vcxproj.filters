@@ -226,120 +226,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\engine\anim.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\camera.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\cmp-mgr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\cmp-register-main.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\console.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\debug-hud.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\engine.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gfx.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gfx-billboard.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gfx-buffers.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gfx-canvas.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gfx-font.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gfx-model.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gfx-occ.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gfx-postfx.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gfx-shader.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gfx-texture.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\gui.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\lod-scheme.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\phx.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\phx-prefab.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\prf-mgr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\res-mgr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\scene-mgr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\script.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\world-mgr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-anim.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-animchar.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-attachdock.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-attachment.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-bounds.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-camera.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-light.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-lodmodel.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-model.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-rbody.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-trigger.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\engine\components\cmp-xform.c">
-      <Filter>Source Files\components</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\engine\d3d\gfx-cmdqueue-d3d.cpp">
       <Filter>Source Files\d3d</Filter>
     </ClCompile>
@@ -349,20 +235,95 @@
     <ClCompile Include="..\..\src\engine\d3d\gfx-shader-d3d.cpp">
       <Filter>Source Files\d3d</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\gl\gfx-cmdqueue-gl.c">
-      <Filter>Source Files\gl</Filter>
+    <ClCompile Include="..\..\src\engine\anim.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\gl\gfx-device-gl.c">
-      <Filter>Source Files\gl</Filter>
+    <ClCompile Include="..\..\src\engine\camera.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\gl\gfx-shader-gl.c">
-      <Filter>Source Files\gl</Filter>
+    <ClCompile Include="..\..\src\engine\cmp-mgr.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\luabind\script-lua-core.cpp">
-      <Filter>Source Files\luabind</Filter>
+    <ClCompile Include="..\..\src\engine\cmp-register-main.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\luabind\script-lua-engine.cpp">
-      <Filter>Source Files\luabind</Filter>
+    <ClCompile Include="..\..\src\engine\console.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\debug-hud.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-billboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-buffers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-canvas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-font.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-occ.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-postfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gfx-texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\lod-scheme.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\phx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\phx-prefab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\prf-mgr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\res-mgr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\scene-mgr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\script.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\world-mgr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\renderpaths\gfx-csm.cpp">
+      <Filter>Source Files\renderpaths</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\renderpaths\gfx-deferred.cpp">
+      <Filter>Source Files\renderpaths</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\renderpaths\gfx-fwd.cpp">
+      <Filter>Source Files\renderpaths</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\physx\phx-device-px.cpp">
+      <Filter>Source Files\physx</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\engine\luabind\luacore_wrap.cxx">
       <Filter>Source Files\luabind</Filter>
@@ -370,20 +331,60 @@
     <ClCompile Include="..\..\src\engine\luabind\luaengine_wrap.cxx">
       <Filter>Source Files\luabind</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\physx\phx-device-px.cpp">
-      <Filter>Source Files\physx</Filter>
+    <ClCompile Include="..\..\src\engine\luabind\script-lua-core.cpp">
+      <Filter>Source Files\luabind</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\renderpaths\gfx-csm.c">
-      <Filter>Source Files\renderpaths</Filter>
+    <ClCompile Include="..\..\src\engine\luabind\script-lua-engine.cpp">
+      <Filter>Source Files\luabind</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\renderpaths\gfx-deferred.c">
-      <Filter>Source Files\renderpaths</Filter>
+    <ClCompile Include="..\..\src\engine\gl\gfx-cmdqueue-gl.cpp">
+      <Filter>Source Files\gl</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\renderpaths\gfx-fwd.c">
-      <Filter>Source Files\renderpaths</Filter>
+    <ClCompile Include="..\..\src\engine\gl\gfx-device-gl.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\gl\gfx-shader-gl.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-anim.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-animchar.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-attachdock.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-attachment.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-bounds.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-camera.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-light.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-lodmodel.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-model.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-rbody.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-trigger.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\components\cmp-xform.cpp">
+      <Filter>Source Files\components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\src\engine\engine.pro" />
     <None Include="..\..\src\engine\luabind\luacore.i">
       <Filter>Source Files\luabind</Filter>
     </None>

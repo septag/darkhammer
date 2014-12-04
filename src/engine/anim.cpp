@@ -380,7 +380,7 @@ public:
         int owner_state;    // Index to owner state
         int target_state;   // Index to target state
         int group_cnt;
-        TransitionGroup *groups;
+        ConditionGroup *groups;
     };
 
     struct Clip
@@ -411,10 +411,460 @@ public:
 
 public:
     // Inherited from animCharController
-    void destroy();
+    void destroy()
+    {
+        mem_delete_alloc_aligned<CharController>(_alloc, this);
+    }
+
+private:
+    static int jloader_getcount(JNode jparent, const char *name)
+    {
+        JNode j = jparent.child(name);
+        if (j.is_valid())        return json_getarr_count(j);
+        else                     return 0;
+    }
+
+    static int jloader_getcount_2nd(JNode jparent, const char *name0, const char *name1)
+    {
+        JNode j = jparent.child(name0);
+        if (j.is_valid())  {
+            int cnt = 0;
+            for (int i = 0, l1_cnt = j.array_item_count(); i < l1_cnt; i++)    {
+                JNode j2 = j.array_item(i).child(name1);
+                cnt += j2.is_valid() ? j2.array_item_count() : 0;
+            }
+            return cnt;
+        }   else    {
+            return 0;
+        }
+    }
+
+    static int jloader_getcount_3rd(JNode jparent, const char *name0, const char *name1, 
+                                    const char *name2)
+    {
+        JNode j = jparent.child(name0);
+        if (j.is_valid())  {
+            int cnt = 0;
+            for (int i = 0, l1_cnt = j.array_item_count(); i < l1_cnt; i++)    {
+                JNode j2 = j.array_item(i).child(name1);
+                if (j2.is_valid()) {
+                    for (int k = 0, l2_cnt = j2.array_item_count(); k < l2_cnt; k++) {
+                        JNode j3 = j2.array_item(k).child(name2);
+                        cnt += j3.is_valid() ? j3.array_item_count() : 0;
+                    }
+                }
+            }
+            return cnt;
+        }   else    {
+            return 0;
+        }
+    }
+
+    static void jloader_load_params(CharController *ctrl, JNode jparams, Allocator *alloc)
+    {
+        if (!jparams.is_valid())
+            return;
+
+        int cnt = jparams.array_item_count();
+        if (cnt == 0)
+            return;
+        ctrl->_params = (struct Param*)A_ALLOC(alloc, sizeof(Param)*cnt, MID_ANIM);
+        ASSERT(ctrl->_params);
+        memset(ctrl->_params, 0x00, sizeof(Param)*cnt);
+
+        ctrl->_params_tbl.create(cnt, alloc);
+
+        for (int i = 0; i < cnt; i++)    {
+            JNode jparam = jparams.array_item(i);
+            Param *param = &ctrl->_params[i];
+
+            str_safecpy(param->name, sizeof(param->name), jparam.child_str("name"));
+            ctrl->_params_tbl.add(param->name, i);
+
+            const char *type = jparam.child_str("type", "float");
+            if (str_isequal_nocase(type, "float"))
+                param->value = jparam.child_float("value");
+            else if (str_isequal_nocase(type, "int"))
+                param->value = jparam.child_int("value");
+            else if (str_isequal_nocase(type, "bool"))
+                param->value = jparam.child_bool("value");
+            else
+                param->value = 0.0f;
+        }
+
+        ctrl->_param_cnt = cnt;
+    }
+
+    static void jloader_load_clips(CharController *ctrl, JNode jclips, Allocator *alloc)
+    {
+        if (!jclips.is_valid())
+            return;
+
+        int cnt = jclips.array_item_count();
+        if (cnt == 0)
+            return;
+
+        ctrl->_clips = (Clip*)A_ALLOC(alloc, sizeof(Clip)*cnt, MID_ANIM);
+        ASSERT(ctrl->_clips);
+        memset(ctrl->_clips, 0x00, sizeof(Clip)*cnt);
+
+        for (int i = 0; i < cnt; i++)    {
+            JNode jclip = jclips.array_item(i);
+            Clip *clip = &ctrl->_clips[i];
+            str_safecpy(clip->name, sizeof(clip->name), jclip.child_str("name"));
+            clip->name_hash = hash_str(clip->name);
+        }
+
+        ctrl->_clip_cnt = cnt;
+    }
+
+    static SequenceType jloader_parse_seqtype(JNode jseq)
+    {
+        const char *seq_type_s = jseq.child_str("type");
+        if (str_isequal(seq_type_s, "clip"))
+            return SequenceType::CLIP;
+        else if (str_isequal(seq_type_s, "blendtree"))
+            return SequenceType::BLEND_TREE;
+        else
+            return SequenceType::UNKNOWN;
+    }
+
+    static LayerType jloader_parse_layertype(JNode jtype)
+    {
+        const char *layer_type_s = jtype.child_str("layer");
+        if (str_isequal(layer_type_s, "override"))
+            return LayerType::OVERRIDE;
+        else if (str_isequal(layer_type_s, "additive"))
+            return LayerType::ADDITIVE;
+        else
+            return LayerType::OVERRIDE;
+    }
+
+    static ConditionType jloader_parse_grptype(JNode jgrp)
+    {
+        const char *type_s = jgrp.child_str("type");
+
+        if (str_isequal(type_s, "exit"))
+            return ConditionType::EXIT;
+        else if (str_isequal(type_s, "param"))
+            return ConditionType::PARAM;
+        else
+            return ConditionType::EXIT;
+    }
+
+    static Predicate jloader_parse_grppred(JNode jgrp)
+    {
+        const char *pred_s = jgrp.child_str("predicate");
+
+        if (str_isequal(pred_s, "=="))
+            return Predicate::EQUAL;
+        else if (str_isequal(pred_s, "!="))
+            return Predicate::NOT;
+        else if (str_isequal(pred_s, ">"))
+            return Predicate::GREATER;
+        else if (str_isequal(pred_s, "<"))
+            return Predicate::LESS;
+        else
+            return Predicate::UNKNOWN;
+    }
+
+    static void json_parse_condgroup(JNode jgrp, ConditionGroup *grp, Allocator* alloc)
+    {
+        ASSERT(jgrp.is_valid());
+
+        JNode jconds = jgrp.child("conditions");
+        if (jconds.is_valid()) {
+            int cnt = jconds.array_item_count();
+            grp->count = cnt;
+            if (cnt == 0)
+                return;
+
+            grp->conditions = (Condition*)A_ALLOC(alloc, sizeof(Condition)*cnt, MID_ANIM);
+            ASSERT(grp->conditions);
+
+            for (int i = 0; i < cnt; i++)    {
+                Condition *item = &grp->conditions[i];
+                JNode jitem = jconds.array_item(i);
+
+                item->type = jloader_parse_grptype(jitem);
+                item->param = jitem.child_int("param", -1);
+                item->predicate = jloader_parse_grppred(jitem);
+
+                const char *value_type = jitem.child_str("value-type", "float");
+                if (str_isequal_nocase(value_type, "bool"))
+                    item->value = jitem.child_bool("value");
+                else if (str_isequal_nocase(value_type, "int"))
+                    item->value = jitem.child_int("value");
+                else if (str_isequal_nocase(value_type, "float"))
+                    item->value = jitem.child_float("value");
+            }
+        }   else    {
+            grp->count = 0;
+            grp->conditions = nullptr;
+        }
+    }
+
+    static void jloader_load_transitions(CharController *ctrl, JNode jtransitions, Allocator *alloc)
+    {
+        if (!jtransitions.is_valid())
+            return;
+
+        int cnt = jtransitions.array_item_count();
+        if (cnt == 0)   
+            return;
+
+        ctrl->_transitions = (Transition*)A_ALLOC(alloc, sizeof(Transition)*cnt, MID_ANIM);
+        ASSERT(ctrl->_transitions);
+        memset(ctrl->_transitions, 0x00, sizeof(Transition)*cnt);
+
+        for (int i = 0; i < cnt; i++)    {
+            JNode jtrans = jtransitions.array_item(i);
+            Transition *trans = &ctrl->_transitions[i];
+
+            trans->duration = jtrans.child_float("duration");
+            trans->owner_state = jtrans.child_int("owner", -1);
+            trans->target_state = jtrans.child_int("target", -1);
+
+            // Condition groups
+            JNode jgroups = jtrans.child("groups");
+            if (jgroups.is_valid())    {
+                int group_cnt = jgroups.array_item_count();
+                if (group_cnt)  {
+                    trans->groups = (ConditionGroup*)A_ALLOC(alloc, 
+                        sizeof(ConditionGroup)*group_cnt, MID_GFX);
+                    ASSERT(trans->groups);
+                    memset(trans->groups, 0x00, sizeof(ConditionGroup)*group_cnt);
+
+                    for (int k = 0; k < group_cnt; k++)  {
+                        json_parse_condgroup(jgroups.array_item(k), &trans->groups[k], alloc);
+                        trans->group_cnt ++;
+                    }  
+                }
+            }
+
+            ctrl->_transition_cnt ++;
+        }
+    }
+
+    static void jloader_load_blendtrees(CharController *ctrl, JNode jblendtrees, Allocator* alloc)
+    {
+        if (!jblendtrees.is_valid())
+            return;
+
+        int cnt = jblendtrees.array_item_count();
+        if (!cnt)
+            return;
+
+        ctrl->_blendtrees = (BlendTree*)A_ALLOC(alloc, sizeof(BlendTree)*cnt, MID_ANIM);
+        ASSERT(ctrl->_blendtrees);
+        memset(ctrl->_blendtrees, 0x00, sizeof(BlendTree)*cnt);
+
+        for (int i = 0; i < cnt; i++)    {
+            JNode jbt = jblendtrees.array_item(i);
+            BlendTree *bt = &ctrl->_blendtrees[i];
+            str_safecpy(bt->name, sizeof(bt->name), jbt.child_str("name"));
+
+            bt->param = jbt.child_int("param", -1);
+
+            // Children
+            JNode jchilds = jbt.child("childs");
+            if (jchilds.is_valid())    {
+                int child_cnt = jchilds.array_item_count();
+                if (child_cnt)  {
+                    bt->childs = (Sequence*)A_ALLOC(alloc, sizeof(Sequence)*child_cnt, MID_ANIM);
+                    ASSERT(bt->childs);
+
+                    for (int k = 0; k < child_cnt; k++)  {
+                        JNode jseq = jchilds.array_item(k);
+                        Sequence *seq = &bt->childs[k];
+                        seq->index = jseq.child_int("id", -1);
+                        seq->type = jloader_parse_seqtype(jseq);
+
+                        bt->child_cnt ++;
+                    }
+                    bt->child_cnt_f = (float)bt->child_cnt;
+                }
+            }
+
+            ctrl->_blendtree_cnt++;
+        }
+    }
+
+
+    static void jloader_load_states(CharController *ctrl, JNode jstates, Allocator *alloc)
+    {
+        if (!jstates.is_valid())
+            return;
+
+        int cnt = jstates.array_item_count();
+        if (cnt == 0)
+            return;
+        ctrl->_states = (State*)A_ALLOC(alloc, sizeof(State)*cnt, MID_ANIM);
+        ASSERT(ctrl->_states);
+        memset(ctrl->_states, 0x00, sizeof(State)*cnt);
+
+        for (int i = 0; i < cnt; i++)    {
+            JNode jstate = jstates.array_item(i);
+            State *state = &ctrl->_states[i];
+
+            str_safecpy(state->name, sizeof(state->name), jstate.child_str("name"));
+            state->speed = jstate.child_float("speed", 1.0f);
+
+            // Sequence
+            JNode jseq = jstate.child("sequence");
+            if (jseq.is_valid())   {
+                state->seq.type = jloader_parse_seqtype(jseq);
+                state->seq.index = jseq.child_int("id", -1);
+            }
+
+            // Transitions
+            JNode jtrans = jstate.child("transitions");
+            if (jtrans.is_valid()) {
+                state->transition_cnt = jtrans.array_item_count();
+                if (state->transition_cnt)   {
+                    state->transitions = (int*)A_ALLOC(alloc, sizeof(int)*state->transition_cnt, 0);
+                    ASSERT(state->transitions);
+                    for (int k = 0; k < state->transition_cnt; k++)
+                        state->transitions[k] = jtrans.array_item(k).to_int();
+                }
+            }
+
+            ctrl->_state_cnt ++;
+        }
+    }
+
+    static void jloader_load_layers(CharController *ctrl, JNode jlayers, Allocator *alloc)
+    {
+        if (!jlayers.is_valid())
+            return;
+
+        int cnt = jlayers.array_item_count();
+        if (cnt == 0)
+            return;
+        ctrl->_layers = (Layer*)A_ALLOC(alloc, sizeof(Layer)*cnt, MID_ANIM);
+        ASSERT(ctrl->_layers);
+        memset(ctrl->_layers, 0x00, sizeof(Layer)*cnt);
+
+        for (int i = 0; i < cnt; i++)    {
+            JNode jlayer = jlayers.array_item(i);
+            Layer *layer = &ctrl->_layers[i];
+
+            str_safecpy(layer->name, sizeof(layer->name), jlayer.child_str("name"));
+            layer->default_state = jlayer.child_int("default", -1);
+            layer->type = jloader_parse_layertype(jlayer);
+
+            // States
+            JNode jstates = jlayer.child("states");
+            if (jstates.is_valid())    {
+                layer->state_cnt = jstates.array_item_count();
+                if (layer->state_cnt)  {
+                    layer->states = (int*)A_ALLOC(alloc, sizeof(uint)*layer->state_cnt, 0);
+                    ASSERT(layer->states);
+                    for (int k = 0; k < layer->state_cnt; k++)
+                        layer->states[k] = jstates.array_item(k).to_int();
+                }
+            }
+
+            // Bone mask
+            JNode jbonemask = jlayer.child("bone-mask");
+            if (jbonemask.is_valid())  {
+                layer->bone_mask_cnt = jbonemask.array_item_count();
+                if (layer->bone_mask_cnt)  {
+                    layer->bone_mask = (char*)A_ALLOC(alloc, 32*layer->bone_mask_cnt, 0);
+                    ASSERT(layer->bone_mask);
+                    for (int k = 0; k < layer->bone_mask_cnt; k++)
+                        str_safecpy(layer->bone_mask+32*k, 32, jbonemask.array_item(k).to_str());
+                }
+            }
+
+            ctrl->_layer_cnt++;
+        }
+    }
 
 public:
-    static CharController* load_json(const char *json_filepath, Allocator *alloc, uint thread_id);
+    static CharController* load_json(const char *json_filepath, Allocator *alloc, uint thread_id)
+    {
+        static const char *err_fmt = "Loading animation controller '%s' failed: %s";
+
+        Allocator *tmp_alloc = tsk_get_tmpalloc(thread_id);
+        A_PUSH(tmp_alloc);
+
+        // Load JSON
+        File f = File::open_mem(json_filepath, tmp_alloc, MID_ANIM);
+        if (!f.is_open())   {
+            err_printf(__FILE__, __LINE__, err_fmt, json_filepath, "File not found");
+            A_POP(tmp_alloc);
+            return nullptr;
+        }
+    
+        JNode jroot = JNode(json_parsefilef(f, tmp_alloc));
+        f.close();
+
+        if (!jroot.is_valid())  {
+            err_printf(__FILE__, __LINE__, err_fmt, json_filepath, "Invalid JSON format");
+            A_POP(tmp_alloc);
+            return nullptr;
+        }
+
+        // Calculate the total size of memory stack, so we can allocate all at once
+        StackAlloc stack_mem;
+        Allocator stack_alloc;
+
+        int total_tgroups = jloader_getcount_2nd(jroot, "transitions", "groups");
+        int total_tgroupitems = jloader_getcount_3rd(jroot, "transitions", "groups", "conditions");
+        int total_seqs = jloader_getcount_2nd(jroot, "blendtrees", "childs");
+        int total_idxs = jloader_getcount_2nd(jroot, "states", "transitions") +
+                         jloader_getcount_2nd(jroot, "layers", "states");
+        int total_bonemasks = jloader_getcount_2nd(jroot, "layers", "bone-mask");
+        int param_cnt = jloader_getcount(jroot, "params");
+        size_t total_sz =
+            sizeof(CharController) +
+            HashtableFixed<int, -1>::estimate_size(param_cnt) +
+            param_cnt*sizeof(CharController) +
+            jloader_getcount(jroot, "clips")*sizeof(Clip) +
+            jloader_getcount(jroot, "transitions")*sizeof(Transition) +
+            jloader_getcount(jroot, "blendtrees")*sizeof(BlendTree) +
+            jloader_getcount(jroot, "layers")*sizeof(Layer) +
+            jloader_getcount(jroot, "states")*sizeof(State) +
+            total_tgroups*sizeof(ConditionGroup) +
+            total_tgroupitems*sizeof(Condition) +
+            total_seqs*sizeof(Sequence) +
+            total_idxs*sizeof(int) +
+            total_bonemasks*32;
+        if (IS_FAIL(stack_mem.create(total_sz, alloc, MID_GFX)))    {
+            err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
+            A_POP(tmp_alloc);
+            return nullptr;
+        }
+        stack_mem.bindto(&stack_alloc);
+
+        // Create 
+        CharController *ctrl = mem_new_alloc<CharController>(&stack_alloc);
+        ASSERT(ctrl);
+        ctrl->_alloc = alloc;
+
+        // Load Animation Reel
+        const char *reel_filepath = jroot.child_str("reel");
+        if (str_isempty(reel_filepath))  {
+            err_printf(__FILE__, __LINE__, err_fmt, json_filepath, "Could not load AnimReel");
+            ctrl->destroy();
+            A_POP(tmp_alloc);
+            return nullptr;
+        }
+        str_safecpy(ctrl->_reel_filepath, sizeof(ctrl->_reel_filepath), reel_filepath);
+
+        jloader_load_params(ctrl, json_getitem(jroot, "params"), &stack_alloc);
+        jloader_load_clips(ctrl, json_getitem(jroot, "clips"), &stack_alloc);
+        jloader_load_transitions(ctrl, json_getitem(jroot, "transitions"), &stack_alloc);
+        jloader_load_blendtrees(ctrl, json_getitem(jroot, "blendtrees"), &stack_alloc);
+        jloader_load_states(ctrl, json_getitem(jroot, "states"), &stack_alloc);
+        jloader_load_layers(ctrl, json_getitem(jroot, "layers"), &stack_alloc);
+
+        jroot.destroy();
+        A_POP(tmp_alloc);
+
+        return ctrl;
+    }
 };
 
 /*************************************************************************************************/
@@ -545,65 +995,13 @@ static float anim_ctrl_updateblendtree(struct anim_pose* poses,
                                const anim_reel reel, uint blendtree_idx, float tm,
                                float playrate, struct allocator* tmp_alloc);
 
+
 /*************************************************************************************************
  * inlines
  */
 INLINE char* anim_get_bindname(char* binds, uint idx)
 {
     return binds + idx*32;
-}
-
-INLINE enum anim_ctrl_sequencetype anim_ctrl_parse_seqtype(json_t jseq)
-{
-    char seq_type_s[32];
-    strcpy(seq_type_s, json_gets_child(jseq, "type", ""));
-    if (str_isequal(seq_type_s, "clip"))
-        return ANIM_CTRL_SEQUENCE_CLIP;
-    else if (str_isequal(seq_type_s, "blendtree"))
-        return ANIM_CTRL_SEQUENCE_BLENDTREE;
-    else
-        return ANIM_CTRL_SEQUENCE_UNKNOWN;
-}
-
-INLINE enum anim_ctrl_layertype anim_ctrl_parse_layertype(json_t jtype)
-{
-    const char* layer_type_s = json_gets_child(jtype, "layer", "");
-    if (str_isequal(layer_type_s, "override"))
-        return ANIM_CTRL_LAYER_OVERRIDE;
-    else if (str_isequal(layer_type_s, "additive"))
-        return ANIM_CTRL_LAYER_ADDITIVE;
-    else
-        return ANIM_CTRL_LAYER_OVERRIDE;
-}
-
-INLINE enum anim_ctrl_tgrouptype anim_ctrl_parse_grptype(json_t jgrp)
-{
-    char type_s[32];
-    strcpy(type_s, json_gets_child(jgrp, "type", ""));
-
-    if (str_isequal(type_s, "exit"))
-        return ANIM_CTRL_TGROUP_EXIT;
-    else if (str_isequal(type_s, "param"))
-        return ANIM_CTRL_TGROUP_PARAM;
-    else
-        return ANIM_CTRL_TGROUP_EXIT;
-}
-
-INLINE enum anim_predicate anim_ctrl_parse_grppred(json_t jgrp)
-{
-    char pred_s[32];
-    strcpy(pred_s, json_gets_child(jgrp, "predicate", ""));
-
-    if (str_isequal(pred_s, "=="))
-        return ANIM_PREDICATE_EQUAL;
-    else if (str_isequal(pred_s, "!="))
-        return ANIM_PREDICATE_NOT;
-    else if (str_isequal(pred_s, ">"))
-        return ANIM_PREDICATE_GREATER;
-    else if (str_isequal(pred_s, "<"))
-        return ANIM_PREDICATE_LESS;
-    else
-        return ANIM_PREDICATE_UNKNOWN;
 }
 
 INLINE int anim_ctrl_testpredicate_f(enum anim_predicate pred, float value1, float value2)
@@ -736,54 +1134,7 @@ void anim_update_clip_skeletal(const anim_reel reel, uint clip_idx, float t,
 }
 
 /*************************************************************************************************/
-uint anim_ctrl_getcount(json_t jparent, const char* name)
-{
-    json_t j = json_getitem(jparent, name);
-    if (j != nullptr)
-        return json_getarr_count(j);
-    else
-        return 0;
-}
 
-uint anim_ctrl_getcount_2nd(json_t jparent, const char* name0, const char* name1)
-{
-    json_t j = json_getitem(jparent, name0);
-    if (j != nullptr)  {
-        uint cnt = 0;
-        uint l1_cnt = json_getarr_count(j);
-        for (uint i = 0; i < l1_cnt; i++)    {
-            json_t j2 = json_getitem(json_getarr_item(j, i), name1);
-            cnt += (j2 != nullptr) ? json_getarr_count(j2) : 0;
-        }
-        return cnt;
-    }   else    {
-        return 0;
-    }
-}
-
-uint anim_ctrl_getcount_3rd(json_t jparent, const char* name0, const char* name1,
-                              const char* name2)
-{
-    json_t j = json_getitem(jparent, name0);
-    if (j != nullptr)  {
-        uint cnt = 0;
-        uint l1_cnt = json_getarr_count(j);
-        for (uint i = 0; i < l1_cnt; i++)    {
-            json_t j2 = json_getitem(json_getarr_item(j, i), name1);
-
-            if (j2 != nullptr) {
-                uint l2_cnt = json_getarr_count(j2);
-                for (uint k = 0; k < l2_cnt; k++) {
-                    json_t j3 = json_getitem(json_getarr_item(j2, k), name2);
-                    cnt += (j3 != nullptr) ? json_getarr_count(j3) : 0;
-                }
-            }
-        }
-        return cnt;
-    }   else    {
-        return 0;
-    }
-}
 
 anim_ctrl anim_ctrl_load(struct allocator* alloc, const char* janim_filepath, uint thread_id)
 {
@@ -871,292 +1222,7 @@ anim_ctrl anim_ctrl_load(struct allocator* alloc, const char* janim_filepath, ui
     return ctrl;
 }
 
-void anim_ctrl_load_params(anim_ctrl ctrl, json_t jparams, struct allocator* alloc)
-{
-    if (jparams == nullptr)
-        return;
 
-    uint cnt = json_getarr_count(jparams);
-    if (cnt == 0)
-        return;
-    ctrl->params = (struct anim_ctrl_param*)A_ALLOC(alloc, sizeof(struct anim_ctrl_param)*cnt,
-        MID_ANIM);
-    ASSERT(ctrl->params);
-
-    hashtable_fixed_create(alloc, &ctrl->param_tbl, cnt, MID_ANIM);
-
-    for (uint i = 0; i < cnt; i++)    {
-        json_t jparam = json_getarr_item(jparams, i);
-        struct anim_ctrl_param* param = &ctrl->params[i];
-
-        strcpy(param->name, json_gets_child(jparam, "name", ""));
-        hashtable_fixed_add(&ctrl->param_tbl, hash_str(param->name), i);
-
-        char type[32];
-        strcpy(type, json_gets_child(jparam, "type", "float"));
-        if (str_isequal_nocase(type, "float")) {
-            param->type = ANIM_CTRL_PARAM_FLOAT;
-            param->value.f = json_getf_child(jparam, "value", 0.0f);
-        }   else if (str_isequal_nocase(type, "int"))  {
-            param->type = ANIM_CTRL_PARAM_INT;
-            param->value.i = json_geti_child(jparam, "value", 0);
-        }   else if (str_isequal_nocase(type, "bool")) {
-            param->type = ANIM_CTRL_PARAM_BOOLEAN;
-            param->value.b = json_getb_child(jparam, "value", FALSE);
-        }   else    {
-            param->type = ANIM_CTRL_PARAM_FLOAT;
-            param->value.f = 0.0f;
-        }
-    }
-
-    ctrl->param_cnt = cnt;
-}
-
-void anim_ctrl_load_clips(anim_ctrl ctrl, json_t jclips, struct allocator* alloc)
-{
-    if (jclips == nullptr)
-        return;
-
-    uint cnt = json_getarr_count(jclips);
-    if (cnt == 0)
-        return;
-
-    ctrl->clips = (struct anim_ctrl_clip*)A_ALLOC(alloc, sizeof(struct anim_ctrl_clip)*cnt,
-        MID_ANIM);
-    ASSERT(ctrl->clips);
-
-    for (uint i = 0; i < cnt; i++)    {
-        json_t jclip = json_getarr_item(jclips, i);
-        struct anim_ctrl_clip* clip = &ctrl->clips[i];
-        strcpy(clip->name, json_gets_child(jclip, "name", ""));
-        clip->name_hash = hash_str(clip->name);
-    }
-
-    ctrl->clip_cnt = cnt;
-}
-
-void anim_ctrl_load_transitions(anim_ctrl ctrl, json_t jtransitions, struct allocator* alloc)
-{
-    if (jtransitions == nullptr)
-        return;
-
-    uint cnt = json_getarr_count(jtransitions);
-    if (cnt == 0)
-        return;
-
-    ctrl->transitions = (struct anim_ctrl_transition*)
-        A_ALLOC(alloc, sizeof(struct anim_ctrl_transition)*cnt, MID_ANIM);
-    ASSERT(ctrl->transitions);
-    memset(ctrl->transitions, 0x00, sizeof(struct anim_ctrl_transition)*cnt);
-
-    for (uint i = 0; i < cnt; i++)    {
-        json_t jtrans = json_getarr_item(jtransitions, i);
-        struct anim_ctrl_transition* trans = &ctrl->transitions[i];
-
-        trans->duration = json_getf_child(jtrans, "duration", 0.0f);
-        trans->owner_state_idx = json_geti_child(jtrans, "owner", INVALID_INDEX);
-        trans->target_state_idx = json_geti_child(jtrans, "target", INVALID_INDEX);
-
-        /* groups */
-        json_t jgroups = json_getitem(jtrans, "groups");
-        if (jgroups != nullptr)    {
-            uint group_cnt = json_getarr_count(jgroups);
-            if (group_cnt > 0)  {
-                trans->groups = (struct anim_ctrl_transition_group*)A_ALLOC(alloc,
-                    sizeof(struct anim_ctrl_transition_group)*group_cnt, MID_GFX);
-                ASSERT(trans->groups);
-                memset(trans->groups, 0x00, sizeof(struct anim_ctrl_transition_group)*group_cnt);
-
-                for (uint k = 0; k < group_cnt; k++)  {
-                    anim_ctrl_parse_group(alloc, &trans->groups[k], json_getarr_item(jgroups, k));
-                    trans->group_cnt ++;
-                }   /* endfor: groups */
-            }
-        }
-
-        ctrl->transition_cnt ++;
-    }
-}
-
-void anim_ctrl_parse_group(struct allocator* alloc, struct anim_ctrl_transition_group* grp,
-                           json_t jgrp)
-{
-    json_t jconds = json_getitem(jgrp, "conditions");
-    if (jconds != nullptr) {
-        uint cnt = json_getarr_count(jconds);
-        grp->item_cnt = cnt;
-        if (cnt == 0)
-            return;
-
-        grp->items = (struct anim_ctrl_transition_groupitem*)
-            A_ALLOC(alloc, sizeof(struct anim_ctrl_transition_groupitem)*cnt, MID_ANIM);
-        ASSERT(grp->items);
-
-        for (uint i = 0; i < cnt; i++)    {
-            struct anim_ctrl_transition_groupitem* item = &grp->items[i];
-            json_t jitem = json_getarr_item(jconds, i);
-
-            item->type = anim_ctrl_parse_grptype(jitem);
-            item->param_idx = json_geti_child(jitem, "param", INVALID_INDEX);
-            item->predicate = anim_ctrl_parse_grppred(jitem);
-
-            const char* value_type = json_gets_child(jitem, "value-type", "float");
-            if (str_isequal_nocase(value_type, "bool"))
-                item->value.b = json_getb_child(jitem, "value", FALSE);
-            else if (str_isequal_nocase(value_type, "int"))
-                item->value.i = json_geti_child(jitem, "value", 0);
-            else if (str_isequal_nocase(value_type, "float"))
-                item->value.f = json_getf_child(jitem, "value", 0.0f);
-        }
-    }   else    {
-        grp->item_cnt = 0;
-        grp->items = nullptr;
-    }
-}
-
-
-void anim_ctrl_load_blendtrees(anim_ctrl ctrl, json_t jblendtrees, struct allocator* alloc)
-{
-    if (jblendtrees == nullptr)
-        return;
-
-    uint cnt = json_getarr_count(jblendtrees);
-    if (cnt == 0)
-        return;
-
-    ctrl->blendtrees = (struct anim_ctrl_blendtree*)A_ALLOC(alloc,
-        sizeof(struct anim_ctrl_blendtree)*cnt, MID_ANIM);
-    ASSERT(ctrl->blendtrees);
-    memset(ctrl->blendtrees, 0x00, sizeof(struct anim_ctrl_blendtree)*cnt);
-
-    for (uint i = 0; i < cnt; i++)    {
-        json_t jbt = json_getarr_item(jblendtrees, i);
-        struct anim_ctrl_blendtree* bt = &ctrl->blendtrees[i];
-        strcpy(bt->name, json_gets_child(jbt, "name", ""));
-
-        bt->param_idx = json_geti_child(jbt, "param", INVALID_INDEX);
-
-        /* childs */
-        json_t jchilds = json_getitem(jbt, "childs");
-        if (jchilds != nullptr)    {
-            uint child_cnt = json_getarr_count(jchilds);
-            if (child_cnt > 0)  {
-                bt->child_seqs = (struct anim_ctrl_sequence*)A_ALLOC(alloc,
-                    sizeof(struct anim_ctrl_sequence)*child_cnt, MID_ANIM);
-                ASSERT(bt->child_seqs);
-
-                for (uint k = 0; k < child_cnt; k++)  {
-                    json_t jseq = json_getarr_item(jchilds, k);
-                    struct anim_ctrl_sequence* seq = &bt->child_seqs[k];
-                    seq->idx = json_geti_child(jseq, "id", INVALID_INDEX);
-                    seq->type = anim_ctrl_parse_seqtype(jseq);
-
-                    bt->child_seq_cnt ++;
-                }
-                bt->child_cnt_f = (float)bt->child_seq_cnt;
-            }
-        }
-
-        ctrl->blendtree_cnt ++;
-    }
-}
-
-
-void anim_ctrl_load_states(anim_ctrl ctrl, json_t jstates, struct allocator* alloc)
-{
-    if (jstates == nullptr)
-        return;
-
-    uint cnt = json_getarr_count(jstates);
-    if (cnt == 0)
-        return;
-    ctrl->states = (struct anim_ctrl_state*)A_ALLOC(alloc, sizeof(struct anim_ctrl_state)*cnt,
-        MID_ANIM);
-    ASSERT(ctrl->states);
-    memset(ctrl->states, 0x00, sizeof(struct anim_ctrl_state)*cnt);
-
-    for (uint i = 0; i < cnt; i++)    {
-        json_t jstate = json_getarr_item(jstates, i);
-        struct anim_ctrl_state* state = &ctrl->states[i];
-
-        strcpy(state->name, json_gets_child(jstate, "name", ""));
-        state->speed = json_getf_child(jstate, "speed", 1.0f);
-
-        /* sequence */
-        json_t jseq = json_getitem(jstate, "sequence");
-        if (jseq != nullptr)   {
-            state->seq.type = anim_ctrl_parse_seqtype(jseq);
-            state->seq.idx = json_geti_child(jseq, "id", INVALID_INDEX);
-        }
-
-        /* transitions */
-        json_t jtrans = json_getitem(jstate, "transitions");
-        if (jtrans != nullptr) {
-            state->transition_cnt = json_getarr_count(jtrans);
-            if (state->transition_cnt > 0) {
-                state->transitions = (uint*)A_ALLOC(alloc,
-                    sizeof(uint)*state->transition_cnt, MID_ANIM);
-                ASSERT(state->transitions);
-
-                for (uint k = 0; k < state->transition_cnt; k++)
-                    state->transitions[k] = json_geti(json_getarr_item(jtrans, k));
-            }
-        }
-
-        ctrl->state_cnt ++;
-    }
-}
-
-void anim_ctrl_load_layers(anim_ctrl ctrl, json_t jlayers, struct allocator* alloc)
-{
-    if (jlayers == nullptr)
-        return;
-
-    uint cnt = json_getarr_count(jlayers);
-    if (cnt == 0)
-        return;
-    ctrl->layers = (struct anim_ctrl_layer*)A_ALLOC(alloc, sizeof(struct anim_ctrl_layer)*cnt,
-        MID_ANIM);
-    ASSERT(ctrl->layers);
-    memset(ctrl->layers, 0x00, sizeof(struct anim_ctrl_layer)*cnt);
-
-    for (uint i = 0; i < cnt; i++)    {
-        json_t jlayer = json_getarr_item(jlayers, i);
-        struct anim_ctrl_layer* layer = &ctrl->layers[i];
-
-        strcpy(layer->name, json_gets_child(jlayer, "name", ""));
-        layer->default_state_idx = json_geti_child(jlayer, "default", INVALID_INDEX);
-
-        layer->type = anim_ctrl_parse_layertype(jlayer);
-
-        /* states */
-        json_t jstates = json_getitem(jlayer, "states");
-        if (jstates != nullptr)    {
-            layer->state_cnt = json_getarr_count(jstates);
-            if (layer->state_cnt != 0)  {
-                layer->states = (uint*)A_ALLOC(alloc, sizeof(uint)*layer->state_cnt,
-                    MID_ANIM);
-                ASSERT(layer->states);
-                for (uint k = 0; k < layer->state_cnt; k++)
-                    layer->states[k] = json_geti(json_getarr_item(jstates, k));
-            }
-        }
-
-        /* bone-mask */
-        json_t jbonemask = json_getitem(jlayer, "bone-mask");
-        if (jbonemask != nullptr)  {
-            layer->bone_mask_cnt = json_getarr_count(jbonemask);
-            if (layer->bone_mask_cnt != 0)  {
-                layer->bone_mask = (char*)A_ALLOC(alloc, 32*layer->bone_mask_cnt, MID_ANIM);
-                ASSERT(layer->bone_mask);
-                for (uint k = 0; k < layer->bone_mask_cnt; k++)
-                    strcpy(layer->bone_mask + 32*k, json_gets(json_getarr_item(jbonemask, k)));
-            }
-        }
-
-        ctrl->layer_cnt ++;
-    }
-}
 
 void anim_ctrl_unload(anim_ctrl ctrl)
 {

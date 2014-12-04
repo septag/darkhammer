@@ -243,14 +243,14 @@ enum class gfxInputElemFormat : uint
     INT
 };
 
-enum gfxIndexType
+enum class gfxIndexType : uint
 {
     UNKNOWN = 0,
     UINT32 = 42, /*DXGI_FORMAT_R32_UINT*/
     UINT16 = 57, /*DXGI_FORMAT_R16_UINT*/
 };
 
-enum gfxUniformType
+enum class gfxUniformType : uint
 {
     UNKNOWN = 0,
     FLOAT,
