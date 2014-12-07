@@ -35,9 +35,6 @@
 
 using namespace dh;
 
-// Layer blending callback type
-typedef const Mat3* (*pfn_anim_layerblend)(Mat3* result, Mat3* src, Mat3* dest, float mask);
-
 // animReel
 class Reel : public animReel
 {
@@ -124,6 +121,88 @@ public:
     void destroy()
     {
         mem_delete_alloc_aligned<Reel>(_alloc, this);
+    }
+
+    void update_nodes(int clip, float t, const int* bindmap, const cmphandle_t *xforms,
+                      int frame_force, const int *root_idxs, int root_idx_cnt, const Mat3 *root_mat)
+    {
+        int frame_cnt, frame_idx;
+        const Reel::Clip *subclip = &reel->_clips[clip];
+        float ft = reel->ft;
+
+        if (frame_force == -1)   {
+            frame_cnt = subclip->frame_end - subclip->frame_start;
+            frame_idx = tclamp<int>((int)(t/ft), 0, frame_cnt-1);
+        }   else    {
+            frame_cnt = reel->frame_cnt;
+            frame_idx = frame_force;
+        }
+
+        int nextframe_idx = (frame_idx + 1) % frame_cnt;
+
+        // Interpolate between two frames and normalize (0-1)
+        float ivalue = (t - (frame_idx * ft)) / ft;
+
+        Reel::Channel *sampl = &reel->_channels[frame_idx + subclip->frame_start];
+        Reel::Channel *next_sampl = &reel->_channels[nextframe_idx + subclip->frame_start];
+
+        Mat3 xfm(Mat3::Ident);
+
+        for (int i = 0, pose_cnt = reel->pose_cnt; i < pose_cnt; i++)    {
+            Vec3 pos = Vec3::lerp(sampl->poses[i].pos_scale, next_sampl->poses[i].pos_scale, ivalue);
+            Quat rot = Quat::slerp(sampl->poses[i].rot, next_sampl->poses[i].rot, ivalue);
+
+            xfm.set_rotation_quat(rot);
+            xfm.set_translation(pos);
+
+            cmphandle_t xfh = xforms[bindmap[i]];
+            cmp_xform *xf = (cmp_xform*)cmp_getinstancedata(xfh);
+
+            mat3_setm(&xf->mat, &xfm);
+        }
+
+        for (int i = 0; i < root_idx_cnt; i++)   {
+            cmphandle_t xfh = xforms[root_idxs[i]];
+            struct cmp_xform* xf = (struct cmp_xform*)cmp_getinstancedata(xfh);
+            mat3_mul(&xf->mat, &xf->mat, root_mat);
+        }
+    }
+
+    void update_skeletal(int clip, float t, const int* bindmap, Mat3 *joints, int frame_force,
+                         const int *root_idxs, int root_idx_cnt, const Mat3 *root_mat)
+    {
+        int frame_cnt, frame_idx;
+        const Reel::Clip *subclip = &reel->_clips[clip];
+        float ft = reel->ft;
+
+        if (frame_force == INVALID_INDEX)   {
+            frame_cnt = subclip->frame_end - subclip->frame_start;
+            frame_idx = tclamp<int>((int)(t/ft), 0, frame_cnt-1);
+        }   else    {
+            frame_cnt = reel->frame_cnt;
+            frame_idx = frame_force;
+        }
+
+        int nextframe_idx = (frame_idx + 1) % frame_cnt;
+        float ivalue = (t - (frame_idx * ft)) / ft;
+
+        Reel::Channel *sampl = &reel->_channels[frame_idx + subclip->frame_start];
+        Reel::Channel *next_sampl = &reel->_channels[nextframe_idx + subclip->frame_start];
+
+        Mat3 xfm(Mat3::Ident);
+
+        for (int i = 0, pose_cnt = reel->pose_cnt; i < pose_cnt; i++)    {
+            Vec3 pos = Vec3::lerp(sampl->poses[i].pos_scale, next_sampl->poses[i].pos_scale, ivalue);
+            Quat rot = Quat::slerp(sampl->poses[i].rot, next_sampl->poses[i].rot, ivalue);
+
+            xfm.set_translation(pos);
+            xfm.set_rotation_quat(rot);
+
+            mat3_setm(&joints[bindmap[i]], &xfm);
+        }
+
+        for (int i = 0; i < root_idx_cnt; i++)
+            mat3_mul(&joints[root_idxs[i]], &joints[root_idxs[i]], root_mat);
     }
 
 public:
@@ -867,91 +946,599 @@ public:
     }
 };
 
-/*************************************************************************************************/
-/* instance for each anim-controller */
-struct anim_ctrl_param_inst
+// CharControllerInst
+class CharControllerInst : public animCharController
 {
-    enum anim_ctrl_paramtype type;
-    union   {
-        float f;
-        int i;
-        int b;
-    } value;
+public:
+    typedef const Mat3* (*FnLayerBlend)(Mat3* result, Mat3* src, Mat3* dest, float mask);
+
+    struct LayerInst
+    {
+        int state;
+        int transition;
+        FnLayerBlend blend_fn;
+        uint8 *buff;
+        Reel::Pose *poses;
+        float *bone_mask;
+    };
+
+    struct ClipInst
+    {
+        float start_tm; // Global start time
+        float tm;       // Local time
+        float progress; // Normalized progress (*N-times if looped)
+        float duration;
+        bool looped;
+        int rclip;      // Index to clip
+    };
+
+    struct BlendTreeInst
+    {
+        int seq_a;
+        int seq_b;
+        float blend;
+        float progress;
+    };
+
+    struct TransitionInst
+    {
+        float start_tm;
+        float blend;
+    };
+
+public:
+    Allocator *_alloc = nullptr;
+    CharController *_ctrl = nullptr;
+    reshandle_t _reel_hdl = INVALID_HANDLE;
+    float _tm = 0.0f;   // Global time
+    float _playrate = 1.0f;
+    int layer_cnt = 0;
+
+    animParam *_params = nullptr;
+    LayerInst *_layers = nullptr;
+    ClipInst *_clips = nullptr;
+    BlendTreeInst *_blendtrees = nullptr;
+    TransitionInst *_transitions = nullptr;
+
+public:
+    CharControllerInst() = default;
+
+public:
+    // Inherited from animCharControllerInst
+    void debug();
+    void destroy();
+
+    animParam param(const char *name) const;
+    void set_param(const char *name, const animParam param);
+
+    reshandle_t reel() const;
+    void set_reel(reshandle_t reel_hdl);
+
+    void update(float tm, Allocator *tmp_alloc = mem_heap());
+
+    bool debug_state(const char *layer, char *state, size_t state_sz, float *progress);
+    bool debug_transition(const char *layer,
+                          char *state_A, size_t state_A_sz,
+                          char *state_B, size_t state_B_sz,
+                          float *progress = nullptr);
+
+private:
+    bool test_predicate(CharController::Predicate pred, float value1, float value2)
+    {
+        switch (pred)   {
+        case CharController::Predicate::EQUAL:
+            return math_isequal(value1, value2);
+        case CharController::Predicate::GREATER:
+            return value1 > (value2 + EPSILON);
+        case CharController::Predicate::LESS:
+            return value1 < (value2 - EPSILON);
+        case CharController::Predicate::NOT:
+            return !math_isequal(value1, value2);
+        default:
+            return false;
+        }
+    }
+
+    bool test_predicate(CharController::Predicate pred, int value1, int value2)
+    {
+        switch (pred)   {
+        case CharController::Predicate::EQUAL:
+            return value1 == value2;
+        case CharController::Predicate::GREATER:
+            return value1 > value2;
+        case CharController::Predicate::LESS:
+            return value1 < value2 - EPSILON;
+        case CharController::Predicate::NOT:
+            return value1 != value2;
+        default:
+            return false;
+        }
+    }
+
+    bool test_predicate(bool value1, bool value2)
+    {
+        return value1 == value2;
+    }
+
+    result_t bindto(Reel *reel)
+    {
+        const CharController *ctrl = inst->_ctrl;
+
+        // Setup clip instances
+        for (int i = 0; i < ctrl->_clip_cnt; i++)   {
+            const CharController::Clip *cclip = &ctrl->_clips[i];
+            ClipInst *iclip = &inst->_clips[i];
+
+            iclip->rclip = reel->find_clip_hashed(cclip->name_hash);
+            if (iclip->rclip == -1)
+                continue;
+
+            Reel::Clip *rclip = &reel->_clips[iclip->rclip];
+            iclip->duration = rclip->duration;
+            iclip->looped = rclip->looped;
+        }
+
+        // Setup layers
+        for (int i = 0; i < ctrl->_layer_cnt; i++)    {
+            LayerInst *ilayer = &inst->_layers[i];
+            if (ilayer->buff)
+                A_ALIGNED_FREE(inst->alloc, ilayer->buff);
+            size_t sz = (sizeof(Reel::Pose) + sizeof(float)) * reel->_pose_cnt;
+            uint8 *buff = (uint8*)A_ALIGNED_ALLOC(inst->alloc, sz, MID_ANIM);
+            if (buff == nullptr)
+                return RET_OUTOFMEMORY;
+            memset(buff, 0x00, sz);
+
+            ilayer->buff = buff;
+            ilayer->poses = (Reel::Pose*)buff;
+            buff += sizeof(Reel::Pose)*reel->_pose_cnt;
+
+            // Bone-Mask: It's an array of weights for each joint
+            ilayer->bone_mask = (float*)buff;
+            CharController::Layer *layer = &ctrl->_layers[i];
+
+            if (i || layer->bone_mask_cnt) {
+                for (int k = 0; k < layer->bone_mask_cnt; k++)   {
+                    const char *mask_name = layer->bone_mask + k*32;
+
+                    // Find mask name in bindings
+                    int pose_idx = reel->find_pose_binding(mask_name);
+                    if (pose_idx != -1)
+                        ilayer->bone_mask[pose_idx] = 1.0f;
+                }
+            }   else    {
+                // First layer always applies to full skeleton
+                for (int k = 0; k < reel->_pose_cnt; k++)
+                    ilayer->bone_mask[k] = 1.0f;
+            }
+        }
+
+        return RET_OK;
+    }
+
+    static CharControllerInst* create(const CharController *ctrl, Allocator *alloc)
+    {
+        static const char *err_fmt = "Creating CharController instance failed: %s";
+
+        // Calculate total bytes to create in one allocation
+        size_t bytes =
+            sizeof(struct CharControllerInst) +
+            ctrl->_param_cnt*sizeof(animParam) +
+            ctrl->_blendtree_cnt*sizeof(BlendTreeInst) +
+            ctrl->_clip_cnt*sizeof(ClipInst) +
+            ctrl->_layer_cnt*sizeof(LayerInst) +
+            ctrl->_transition_cnt*sizeof(TransitionInst);
+
+        StackAlloc stack_mem;
+        Allocator stack_alloc;
+        if (IS_FAIL(stack_mem.create(bytes, alloc, MID_ANIM)))   {
+            err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
+            return nullptr;
+        }
+        stack_mem.bindto(&stack_alloc);
+
+        CharControllerInst *inst = mem_new_alloc<CharControllerInst>(&stack_alloc);
+        inst->_alloc = alloc;
+        inst->_ctrl = ctrl;
+
+        // Load animation reel
+        inst->_reel_hdl = rs_load_animreel(ctrl->_reel_filepath, 0);
+        if (inst->_reel_hdl == INVALID_HANDLE)   {
+            err_printf(__FILE__, __LINE__, err_fmt, "Could not load animation reel");
+            stack_mem.destroy();
+            return nullptr;
+        }
+
+        if (ctrl->_param_cnt)    {
+            inst->_params = (animParam*)A_ALLOC(&stack_alloc, sizeof(animParam)*ctrl->_param_cnt, 0);
+            for (int i = 0; i < ctrl->_param_cnt; i++)
+                inst->params[i] = ctrl->_params[i].value;
+        }
+
+        if (ctrl->_layer_cnt)    {
+            inst->_layers = (LayerInst*)A_ALLOC(&stack_alloc, sizeof(LayerInst)*ctrl->_layer_cnt, 0);
+            memset(inst->_layers, 0x00, sizeof(LayerInst)*ctrl->_layer_cnt);
+            for (int i = 0; i < ctrl->_layer_cnt; i++)    {
+                LayerInst *layer = &inst->_layers[i];
+                layer->state = -1;
+                layer->transition = -1;
+                switch (ctrl->layers[i].type)   {
+                case CharController::LayerType::OVERRIDE:
+                    layer->blend_fn = layer_override;
+                    break;
+                case CharController::LayerType::ADDITIVE:
+                    layer->blend_fn = layer_additive;
+                    break;
+                }
+            }
+            inst->_layer_cnt = ctrl->_layer_cnt;
+        }
+
+        if (ctrl->_clip_cnt) {
+            inst->_clips = (ClipInst*)A_ALLOC(&stack_alloc, sizeof(ClipInst)*ctrl->_clip_cnt, 0);
+            memset(inst->_clips, 0x00, sizeof(ClipInst)*ctrl->_clip_cnt);
+        }
+
+        if (ctrl->_blendtree_cnt)    {
+            inst->_blendtrees = (BlendTreeInst*)A_ALLOC(&stack_alloc,
+                                                        sizeof(BlendTreeInst)*ctrl->_blendtree_cnt, 0);
+            memset(inst->_blendtrees, 0x00, sizeof(BlendTreeInst)*ctrl->_blendtree_cnt);
+            for (int i = 0; i < ctrl->_blendtree_cnt; i++)    {
+                BlendTreeInst *bt = &inst->blendtrees[i];
+                bt->seq_a = -1;
+                bt->seq_b = -1;
+            }
+        }
+
+        if (ctrl->_transition_cnt)   {
+            ctrl->_transitions = (TransitionInst*)A_ALLOC(&stack_alloc,
+                                                          sizeof(TransitionInst)*ctrl->_transition_cnt,
+                                                          0);
+            memset(inst->_transitions, 0x00, sizeof(TransitionInst)*ctrl->_transition_cnt);
+        }
+
+        Reel *reel = rs_get_animreel(inst->_reel_hdl);
+        if (reel == nullptr)
+            return inst;
+
+        if (IS_FAIL(inst->bindto(reel)))    {
+            inst->destroy();
+            err_printf(__FILE__, __LINE__, err_fmt, "Could not bind to Reel");
+            return nullptr;
+        }
+
+        return inst;
+    }
+
+    // Updates
+    float progress_state(int state_idx)
+    {
+        const CharController::Sequence &seq = _ctrl->_states[state_idx].seq;
+
+        if (seq.type == CharController::SequenceType::CLIP)
+            return tmin<float>(inst->clips[seq.index].progress, 1.0f);
+        else if (seq->type == CharController::SequenceType::BLEND_TREE)
+            return tmin<float>(inst->blendtrees[seq.index].progress, 1.0f);
+        return 0.0f;
+    }
+
+    bool check_condition_group(int state_idx, const CharController::ConditionGroup &tgroup)
+    {
+        bool condition = true;
+        for (int i = 0; i < tgroup.count && condition; i++)   {
+            const CharController::Condition &item = tgroup.conditions[i];
+
+            if (item.type == CharController::ConditionType::EXIT)    {
+                float k = progress_state(state_idx);
+                condition &= test_predicate(item->predicate, k, (float)item.value);
+            }    else if (item->type == CharController::ConditionType::PARAM) {
+                const animParam &iparam = _params[item.param];
+                switch (iparam.type())    {
+                case animParam::Type::BOOL:
+                    condition &= test_predicate((bool)iparam, (bool)item.value);
+                    break;
+                case animParam::Type::FLOAT:
+                    condition &= test_predicate(item.predicate, (float)iparam, (float)item.value);
+                    break;
+                case animParam::Type::INT:
+                    condition &= test_predicate(item->predicate, (int)iparam, (int)item.value);
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+        return condition;
+    }
+
+    void start_clip(int clip_idx, float start_tm)
+    {
+        ClipInst *iclip = &_clips[clip_idx];
+        iclip->start_tm = start_tm;
+        iclip->progress = 0.0f;
+    }
+
+    void start_blendtree(int blendtree_idx, float start_tm)
+    {
+        BlendTreeInst *ibt = &_blendtrees[blendtree_idx];
+        ibt->seq_a = -1;
+        ibt->seq_b = -1;
+        ibt->progress = 0.0f;
+
+        // Recurse for child nodes
+        const CharController::BlendTree &bt = _ctrl->_blendtrees[blendtree_idx];
+        for (int i = 0, cnt = bt->child_cnt; i < cnt; i++)  {
+            const CharController &seq = bt.childs[i];
+            if (seq.type == CharController::SequenceType::CLIP)
+                start_clip(seq.index, start_tm);
+            else if (seq.type == CharController::SequenceType::BLEND_TREE)
+                start_blendtree(seq.index, start_tm);
+        }
+    }
+
+    void start_sequence(const CharController::Sequence &seq, float start_tm)
+    {
+        if (seq.type == CharController::SequenceType::CLIP)
+            start_clip(seq.index, start_tm);
+        else if (seq.type == CharController::SequenceType::BLEND_TREE)
+            start_blendtree(seq.index, start_tm);
+    }
+
+    void start_state(int state_idx, float start_tm)
+    {
+        start_sequence(_ctrl->_states[state_idx].seq, start_tm);
+    }
+
+    void start_transition(int layer_idx, int transition_idx, float tm)
+    {
+        const CharController::Transition &trans = _ctrl->_transitions[transition_idx];
+        TransitionInst *itrans = &_transitions[transition_idx];
+        LayerInst *ilayer = &_layers[layer_idx];
+
+        ilayer->state = -1;
+        ilayer->transition = transition_idx;
+
+        itrans->start_tm = tm;
+        itrans->blend = 0.0;
+
+        start_state(trans.target_state, tm);
+    }
+
+    bool check_state(int layer_idx, int state_idx, float tm)
+    {
+        CharController *ctrl = _ctrl;
+        const CharController::State &cstate = ctrl->_states[state_idx];
+        bool condition_meet = false;
+
+        for (int i = 0, cnt = cstate.transition_cnt; i < cnt; i++)  {
+            const CharController::Transition &trans = ctrl->_transitions[cstate.transitions[i]];
+            for (int k = 0; k < trans.group_cnt; k++)
+                condition_meet |= check_condition_group(state_idx, layer_idx, trans.groups[k]);
+
+            if (condition_meet) {
+                int trans_idx = cstate.transitions[i];
+                if (_layers[layer_idx].transition != trans_idx)
+                    start_transition(layer_idx, cstate.transitions[i], tm);
+                break;
+            }
+        }
+
+        return condition_meet;
+    }
+
+    void blend_pose(Reel::Pose *poses, const Reel::Pose *poses_a, const Reel::Pose *poses_b,
+                    int pose_cnt, float blend)
+    {
+        for (int i = 0; i < pose_cnt; i++)   {
+            poses[i].pos_scale = Vec4::lerp(poses_a[i].pos_scale, poses_b[i].pos_scale, blend);
+            poses[i].rot = Quat::slerp(poses_a[i].rot, poses_b[i].rot, blend);
+        }
+    }
+
+    void calculate_pose(Reel::Pose *poses, const Reel *reel, int clip_idx, float tm)
+    {
+        const Reel::Clip &clip = reel->_clips[clip_idx];
+        float ft = reel->ft;
+
+        int frame_cnt = clip.frame_end - clip.frame_start;
+        int frame_idx = tclamp<float>((int)(tm/ft), 0, frame_cnt - 1);
+        int frame_next_idx = (frame_idx + 1) % frame_cnt;
+
+        float interpolate = (tm - (frame_idx*ft)) / ft;
+
+        const Reel::Channel &frame_a = reel->_channels[frame_idx + clip.frame_start];
+        const Reel::Channel &frame_b = reel->_channels[frame_next_idx + clip.frame_start];
+
+        blend_pose(poses, frame_a.poses, frame_b.poses, reel->_pose_cnt, interpolate);
+    }
+
+    // Returns progress
+    float update_clip(Reel::Pose *poses, const Reel *reel, int clip_idx, float tm, float playrate)
+    {
+        const ClipInst *iclip = &_clips[clip_idx];
+
+        float tm_raw = playrate * (tm - iclip->start_tm);
+        float progress = tm_raw/iclip->duration;
+
+        // Local clip time
+        if (iclip->looped)   {
+            iclip->tm = fmodf(tm_raw, iclip->duration);
+            iclip->progress = progress;
+        }   else    {
+            iclip->tm = tclamp<float>(tm_raw, 0.0f, iclip->duration);
+            iclip->progress = tclamp<float>(progress, 0.0f, 1.0f);
+        }
+
+        // Interpolate and calculate pose
+        calculate_pose(poses, reel, iclip->rclip_idx, iclip->tm);
+
+        return iclip->progress;
+    }
+
+    float update_sequence(Reel::Pose *poses, const Reel *reel,
+                          const CharController::Sequence &seq, float tm, float playrate,
+                          Allocator *tmp_alloc);
+
+    // Returns progress
+    float update_blendtree(Reel::Pose *poses, const Reel *reel, int blendtree_idx,
+                           float tm, float playrate, Allocator *tmp_alloc)
+    {
+        const CharController::BlendTree &bt = _ctrl->_blendtrees[blendtree_idx];
+        BlendTreeInst *ibt = &_blendtrees[blendtree_idx];
+
+        animParam *iparam = &_params[bt.param];
+        ASSERT(iparam->type() == animParam::Type::FLOAT);
+
+        float f = tclamp<float>(*iparam, 0.0f, 1.0f); // Make it normalized
+
+        // Detect which children we have to blend
+        float progress = f*(bt.child_cnt_f - 1.0f);
+        float idx_f = floorf(progress);
+        float blend = progress - idx_f;
+
+        int idx = (int)idx_f;
+        int idx2 = tmin<int>(idx + 1, bt.child_cnt - 1);
+
+        // Update instance
+        ibt->seq_a = idx;
+        ibt->seq_b = idx2;
+        ibt->blend = blend;
+
+        // Calculate
+        if (idx != idx2)    {
+            const CharController::Sequence &seq_a = bt.childs[idx];
+            const CharController::Sequence &seq_b = bt.childs[idx2];
+
+            int pose_cnt = reel->_pose_cnt;
+            Reel::Pose *poses_a = (Reel::Pose*)A_ALIGNED_ALLOC(tmp_alloc,
+                                                               sizeof(Reel::Pose)*pose_cnt, 0);
+            Reel::Pose *poses_b = (Reel::Pose*)A_ALIGNED_ALLOC(tmp_alloc,
+                                                               sizeof(struct anim_pose)*pose_cnt, 0);
+            ASSERT(poses_a);
+            ASSERT(poses_b);
+
+            float progress_a = update_sequence(poses_a, reel, seq_a, tm, playrate, tmp_alloc);
+            float progress_b = update_sequence(poses_b, reel, seq_b, tm, playrate, tmp_alloc);
+
+            // Blend two sequences
+            blend_pose(poses, poses_a, poses_b, pose_cnt, blend);
+
+            A_ALIGNED_FREE(tmp_alloc, poses_a);
+            A_ALIGNED_FREE(tmp_alloc, poses_b);
+
+            progress = (1.0f - blend)*progress_a + blend*progress_b;
+        }    else   {
+            const CharController::Sequence &seq = bt.childs[idx];
+            progress = update_sequence(poses, reel, seq, tm, playrate, tmp_alloc);
+        }
+
+        return progress;
+    }
+
+    // Returns progress
+    float update_sequence(Reel::Pose *poses, const Reel *reel,
+                          const CharController::Sequence &seq, float tm, float playrate,
+                          Allocator *tmp_alloc)
+    {
+        if (seq.type == CharController::SequenceType::CLIP)
+            return update_clip(poses, reel, seq.index, tm, playrate);
+        else if (seq->type == CharController::SequenceType::BLEND_TREE)
+            return update_blendtree(poses, reel, seq.index, tm, playrate, tmp_alloc);
+        return 0.0f;
+    }
+
+    void update_state(Reel::Pose *poses, const Reel *reel, int state_idx, float tm,
+                      Allocator *tmp_alloc)
+    {
+        const CharController::State &cstate = _ctrl->_states[state_idx];
+
+        float progress = update_sequence(poses, reel, cstate.seq, tm, _playrate, tmp_alloc);
+
+        /* only update progress for blendtrees because they are recursive */
+        if (cstate.seq.type == CharController::SequenceType::BLEND_TREE)
+            _blendtrees[cstate.seq.index].progress = progress;
+    }
+
+
+    void update(float tm, Allocator *tmp_alloc)
+    {
+        const CharController *ctrl = _ctrl;
+        const Reel *reel = rs_get_animreel(inst->reel_hdl);
+        if (reel == nullptr)
+            return;
+
+        for (int i = 0, cnt = ctrl->_layer_cnt; i < cnt; i++) {
+            LayerInst *ilayer = &inst->layers[i];
+
+            // Update state
+            Reel::Pose *rposes = ilayer->poses;
+            if (ilayer->state != -1)   {
+                if (check_state(reel, i, ilayer->state, tm))  {
+                    update(inst, tm, tmp_alloc);
+                    return;
+                }
+                anim_ctrl_updatestate(rposes, ctrl, inst, reel, i, ilayer->state, tm, tmp_alloc);
+            }   else if (ilayer->transition != -1) {
+                anim_ctrl_updatetransition(rposes, ctrl, inst, reel, i, ilayer->transition, tm,
+                    tmp_alloc);
+            }   else    {
+                /* we have no state, go to default state */
+                ilayer->state = ctrl->layers[i].default_state_idx;
+                ilayer->transition = -1;
+                start_state(ctrl, inst, ilayer->state, tm);
+                anim_ctrl_updatestate(rposes, ctrl, inst, reel, i, ilayer->state, tm, tmp_alloc);
+            }
+        }
+
+        inst->tm = tm;
+    }
+
+    void anim_ctrl_updatetransition(struct anim_pose* poses,
+                                    const anim_ctrl ctrl, anim_ctrl_inst inst,
+                                    const anim_reel reel, uint layer_idx, uint transition_idx,
+                                    float tm, struct allocator* tmp_alloc)
+    {
+        const struct anim_ctrl_transition* trans = &ctrl->transitions[transition_idx];
+        struct anim_ctrl_transition_inst* itrans = &inst->transitions[transition_idx];
+        struct anim_ctrl_layer_inst* ilayer = &inst->layers[layer_idx];
+        ASSERT(trans->owner_state_idx != INVALID_INDEX);
+        ASSERT(trans->target_state_idx != INVALID_INDEX);
+
+        float elapsed = inst->playrate*(tm - itrans->start_tm);   /* local elapsed time */
+        float blend = clampf(elapsed / trans->duration, 0.0f, 1.0f);
+        itrans->blend = blend;
+
+        if (blend == 1.0f)  {
+            /* finish transition and move on to target state */
+            ilayer->state_idx = trans->target_state_idx;
+            ilayer->transition_idx = INVALID_INDEX;
+            anim_ctrl_updatestate(poses, ctrl, inst, reel, layer_idx, trans->target_state_idx, tm,
+                tmp_alloc);
+        }   else {
+            /* do blending of two states */
+            uint pose_cnt = reel->pose_cnt;
+            struct anim_pose* poses_a = (struct anim_pose*)A_ALIGNED_ALLOC(tmp_alloc,
+                sizeof(struct anim_pose)*pose_cnt, MID_ANIM);
+            struct anim_pose* poses_b = (struct anim_pose*)A_ALIGNED_ALLOC(tmp_alloc,
+                sizeof(struct anim_pose)*pose_cnt, MID_ANIM);
+            ASSERT(poses_a);
+            ASSERT(poses_b);
+
+            anim_ctrl_updatestate(poses_a, ctrl, inst, reel, layer_idx, trans->owner_state_idx, tm,
+                tmp_alloc);
+            anim_ctrl_updatestate(poses_b, ctrl, inst, reel, layer_idx, trans->target_state_idx, tm,
+                tmp_alloc);
+
+            A_ALIGNED_FREE(tmp_alloc, poses_a);
+            A_ALIGNED_FREE(tmp_alloc, poses_b);
+
+            blend_pose(poses, poses_a, poses_b, pose_cnt, blend);
+        }
+    }
 };
-
-struct anim_ctrl_layer_inst
-{
-    uint state_idx;   /* active state (=INVALID_INDEX if we are on state) */
-    uint transition_idx;  /* active transition (=INVALID_INDEX if we are not on transition) */
-    pfn_anim_layerblend blend_fn;
-
-    uint8* buff; /* buffer for below allocations */
-    struct anim_pose* poses;    /* temp storing final blended pose (cnt = pose_cnt of reel) */
-    float* bone_mask;    /* bone-mask, multipliers for poses (cnt = pose_cnt of reel) */
-};
-
-struct anim_ctrl_clip_inst
-{
-    float start_tm;  /* global start time */
-    float tm;    /* local time */
-    float progress;  /* normalized progress (*N if looped) */
-    float duration;
-    int looped;
-    uint rclip_idx;
-};
-
-struct anim_ctrl_blendtree_inst
-{
-    uint seq_a;   /* first sequence being played (=INVALID_INDEX if none) */
-    uint seq_b;   /* second sequence being played (=INVALID_INDEX if none) */
-    float blend;
-    float progress;
-};
-
-struct anim_ctrl_transition_inst
-{
-    float start_tm; /* global start time */
-    float blend; /* blend position [0~1] */
-};
-
-/* instance data holds the whole state of each anim-controller */
-struct anim_ctrl_instance_data
-{
-    struct allocator* alloc;
-    anim_ctrl owner;
-    reshandle_t reel_hdl;
-
-    float tm;    /* global time */
-    float playrate;  /* playback rate (default=1) */
-
-    uint layer_cnt;
-    struct anim_ctrl_param_inst* params;
-    struct anim_ctrl_layer_inst* layers;
-    struct anim_ctrl_clip_inst* clips;
-    struct anim_ctrl_blendtree_inst* blendtrees;
-    struct anim_ctrl_transition_inst* transitions;
-};
-
-/*************************************************************************************************
- * fwd declarations
- */
-
-/* animation controller - loading */
-static void anim_ctrl_load_params(anim_ctrl ctrl, json_t jparams, struct allocator* alloc);
-static void anim_ctrl_load_clips(anim_ctrl ctrl, json_t jclips, struct allocator* alloc);
-static void anim_ctrl_load_states(anim_ctrl ctrl, json_t jstates, struct allocator* alloc);
-static void anim_ctrl_load_layers(anim_ctrl ctrl, json_t jlayers, struct allocator* alloc);
-static void anim_ctrl_load_blendtrees(anim_ctrl ctrl, json_t jblendtrees, struct allocator* alloc);
-static void anim_ctrl_load_transitions(anim_ctrl ctrl, json_t jtransitions, struct allocator* alloc);
-static void anim_ctrl_parse_group(struct allocator* alloc, struct anim_ctrl_transition_group* grp,
-                           json_t jgrp);
-static uint anim_ctrl_getcount(json_t jparent, const char* name);
-static uint anim_ctrl_getcount_2nd(json_t jparent, const char* name0, const char* name1);
-static uint anim_ctrl_getcount_3rd(json_t jparent, const char* name0, const char* name1,
-                              const char* name2);
 
 /* animation controller */
-static void anim_ctrl_startstate(const anim_ctrl ctrl, anim_ctrl_inst inst, uint state_idx,
+static void start_state(const anim_ctrl ctrl, anim_ctrl_inst inst, uint state_idx,
                           float start_tm);
 static int anim_ctrl_checkstate(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
                             uint layer_idx, uint state_idx, float tm);
@@ -959,618 +1546,45 @@ static void anim_ctrl_updatetransition(struct anim_pose* poses,
                                 const anim_ctrl ctrl, anim_ctrl_inst inst,
                                 const anim_reel reel, uint layer_idx, uint transition_idx,
                                 float tm, struct allocator* tmp_alloc);
-static void anim_ctrl_startstate(const anim_ctrl ctrl, anim_ctrl_inst inst, uint state_idx,
+static void start_state(const anim_ctrl ctrl, anim_ctrl_inst inst, uint state_idx,
                           float start_tm);
-static int anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
+static int check_condition_group(const anim_ctrl ctrl, anim_ctrl_inst inst,
                              const anim_reel reel, uint state_idx, uint layer_idx,
                              const struct anim_ctrl_transition_group* tgroup, float tm);
 static void anim_ctrl_updatestate(struct anim_pose* poses, const anim_ctrl ctrl, anim_ctrl_inst inst,
                            const anim_reel reel, uint layer_idx, uint state_idx, float tm,
                            struct allocator* tmp_alloc);
-static void anim_ctrl_starttransition(const anim_ctrl ctrl, anim_ctrl_inst inst,
+static void start_transition(const anim_ctrl ctrl, anim_ctrl_inst inst,
                                const anim_reel reel, uint layer_idx, uint transition_idx,
                                float tm);
-static float anim_ctrl_progress_state(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
+static float progress_state(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
                               uint state_idx);
-static float anim_ctrl_updateseq(struct anim_pose* poses,
+static float update_sequence(struct anim_pose* poses,
                          const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
                          const struct anim_ctrl_sequence* seq, float tm, float playrate,
                          struct allocator* tmp_alloc);
-static void anim_ctrl_calcpose(struct anim_pose* poses, const anim_reel reel, uint clip_idx, float tm);
-static void anim_ctrl_blendpose(struct anim_pose* poses, const struct anim_pose* poses_a,
+static void calculate_pose(struct anim_pose* poses, const anim_reel reel, uint clip_idx, float tm);
+static void blend_pose(struct anim_pose* poses, const struct anim_pose* poses_a,
                          const struct anim_pose* poses_b, uint pose_cnt, float blend);
-static void anim_ctrl_startseq(const anim_ctrl ctrl, anim_ctrl_inst inst,
+static void start_sequence(const anim_ctrl ctrl, anim_ctrl_inst inst,
                         const struct anim_ctrl_sequence* seq, float start_tm);
-static void anim_ctrl_startclip(const anim_ctrl ctrl, anim_ctrl_inst inst, uint clip_idx, float start_tm);
-static void anim_ctrl_startblendtree(const anim_ctrl ctrl, anim_ctrl_inst inst, uint blendtree_idx,
+static void start_clip(const anim_ctrl ctrl, anim_ctrl_inst inst, uint clip_idx, float start_tm);
+static void start_blendtree(const anim_ctrl ctrl, anim_ctrl_inst inst, uint blendtree_idx,
                               float start_tm);
-static int anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
+static int check_condition_group(const anim_ctrl ctrl, anim_ctrl_inst inst,
                              const anim_reel reel, uint state_idx, uint layer_idx,
                              const struct anim_ctrl_transition_group* tgroup, float tm);
-static float anim_ctrl_updateclip(struct anim_pose* poses, const anim_ctrl ctrl,
+static float update_clip(struct anim_pose* poses, const anim_ctrl ctrl,
                           anim_ctrl_inst inst, const anim_reel reel, uint clip_idx, float tm,
                           float playrate);
-static float anim_ctrl_updateblendtree(struct anim_pose* poses,
+static float update_blendtree(struct anim_pose* poses,
                                const anim_ctrl ctrl, anim_ctrl_inst inst,
                                const anim_reel reel, uint blendtree_idx, float tm,
                                float playrate, struct allocator* tmp_alloc);
 
 
-/*************************************************************************************************
- * inlines
- */
-INLINE char* anim_get_bindname(char* binds, uint idx)
-{
-    return binds + idx*32;
-}
-
-INLINE int anim_ctrl_testpredicate_f(enum anim_predicate pred, float value1, float value2)
-{
-    switch (pred)   {
-    case ANIM_PREDICATE_EQUAL:
-        return math_isequal(value1, value2);
-    case ANIM_PREDICATE_GREATER:
-        return value1 > (value2 + EPSILON);
-    case ANIM_PREDICATE_LESS:
-        return value1 < (value2 - EPSILON);
-    case ANIM_PREDICATE_NOT:
-        return !math_isequal(value1, value2);
-    default:
-        return FALSE;
-    }
-}
-
-INLINE int anim_ctrl_testpredicate_n(enum anim_predicate pred, int value1, int value2)
-{
-    switch (pred)   {
-    case ANIM_PREDICATE_EQUAL:
-        return value1 == value2;
-    case ANIM_PREDICATE_GREATER:
-        return value1 > value2;
-    case ANIM_PREDICATE_LESS:
-        return value1 < value2 - EPSILON;
-    case ANIM_PREDICATE_NOT:
-        return value1 != value2;
-    default:
-        return FALSE;
-    }
-}
-
-INLINE int anim_ctrl_testpredicate_b(int value1, int value2)
-{
-    return value1 == value2;
-}
-
-/*************************************************************************************************/
-void anim_update_clip_hierarchal(const anim_reel reel, uint clip_idx, float t,
-    const uint* bindmap, const cmphandle_t* xforms, uint frame_force_idx,
-    const uint* root_idxs, uint root_idx_cnt, const Mat3* root_mat)
-{
-    uint frame_cnt, frame_idx;
-    const struct anim_clip* subclip = &reel->clips[clip_idx];
-    float ft = reel->ft;
-
-    if (frame_force_idx == INVALID_INDEX)   {
-        frame_cnt = subclip->frame_end - subclip->frame_start;
-        frame_idx = clampui((uint)(t/ft), 0, frame_cnt-1);
-    }   else    {
-        frame_cnt = reel->frame_cnt;
-        frame_idx = frame_force_idx;
-    }
-
-    uint nextframe_idx = (frame_idx + 1) % frame_cnt;
-
-    /* interpolate between two frames (samples) by time
-     * normalize between 0~1 */
-    float ivalue = (t - (frame_idx * ft)) / ft;
-
-    const struct anim_channel* sampl = &reel->channels[frame_idx + subclip->frame_start];
-    const struct anim_channel* next_sampl = &reel->channels[nextframe_idx + subclip->frame_start];
-
-    Mat3 xfm;
-    mat3_set_ident(&xfm);
-
-    for (uint i = 0, pose_cnt = reel->pose_cnt; i < pose_cnt; i++)    {
-        struct vec3f pos_lerp;
-        struct quat4f rot_slerp;
-
-        vec3_lerp(&pos_lerp, &sampl->poses[i].pos_scale, &next_sampl->poses[i].pos_scale, ivalue);
-        quat_slerp(&rot_slerp, &sampl->poses[i].rot, &next_sampl->poses[i].rot, ivalue);
-        mat3_set_trans_rot(&xfm, &pos_lerp, &rot_slerp);
-
-        cmphandle_t xfh = xforms[bindmap[i]];
-        struct cmp_xform* xf = (struct cmp_xform*)cmp_getinstancedata(xfh);
-        mat3_setm(&xf->mat, &xfm);
-    }
-
-    for (uint i = 0; i < root_idx_cnt; i++)   {
-        cmphandle_t xfh = xforms[root_idxs[i]];
-        struct cmp_xform* xf = (struct cmp_xform*)cmp_getinstancedata(xfh);
-        mat3_mul(&xf->mat, &xf->mat, root_mat);
-    }
-}
-
-void anim_update_clip_skeletal(const anim_reel reel, uint clip_idx, float t,
-    const uint* bindmap, Mat3* joints, uint frame_force_idx,
-    const uint* root_idxs, uint root_idx_cnt, const Mat3* root_mat)
-{
-    uint frame_cnt, frame_idx;
-    const struct anim_clip* subclip = &reel->clips[clip_idx];
-    float ft = reel->ft;
-
-    if (frame_force_idx == INVALID_INDEX)   {
-        frame_cnt = subclip->frame_end - subclip->frame_start;
-        frame_idx = clampui((uint)(t/ft), 0, frame_cnt-1);
-    }   else    {
-        frame_cnt = reel->frame_cnt;
-        frame_idx = frame_force_idx;
-    }
-
-    uint nextframe_idx = (frame_idx + 1) % frame_cnt;
-
-    /* interpolate between two frames (samples) by time
-     * normalize between 0~1 */
-    float ivalue = (t - (frame_idx * ft)) / ft;
-
-    const struct anim_channel* sampl = &reel->channels[frame_idx + subclip->frame_start];
-    const struct anim_channel* next_sampl = &reel->channels[nextframe_idx + subclip->frame_start];
-
-    Mat3 xfm;
-    mat3_set_ident(&xfm);
-
-    for (uint i = 0, pose_cnt = reel->pose_cnt; i < pose_cnt; i++)    {
-        struct vec3f pos_lerp;
-        struct quat4f rot_slerp;
-
-        vec3_lerp(&pos_lerp, &sampl->poses[i].pos_scale, &next_sampl->poses[i].pos_scale, ivalue);
-        quat_slerp(&rot_slerp, &sampl->poses[i].rot, &next_sampl->poses[i].rot, ivalue);
-        mat3_set_trans_rot(&xfm, &pos_lerp, &rot_slerp);
-        mat3_setm(&joints[bindmap[i]], &xfm);
-    }
-
-    for (uint i = 0; i < root_idx_cnt; i++)   {
-        mat3_mul(&joints[root_idxs[i]], &joints[root_idxs[i]], root_mat);
-    }
-}
-
-/*************************************************************************************************/
-
-
-anim_ctrl anim_ctrl_load(struct allocator* alloc, const char* janim_filepath, uint thread_id)
-{
-    struct allocator* tmp_alloc = tsk_get_tmpalloc(thread_id);
-    A_SAVE(tmp_alloc);
-
-    /* load JSON ctrl file */
-    file_t f = fio_openmem(tmp_alloc, janim_filepath, FALSE, MID_ANIM);
-    if (f == nullptr) {
-        err_printf(__FILE__, __LINE__, "Loading ctrl-anim failed: Could not open file '%s'",
-            janim_filepath);
-        A_POP(tmp_alloc);
-        return nullptr;
-    }
-
-    json_t jroot = json_parsefilef(f, tmp_alloc);
-    fio_close(f);
-    if (jroot == nullptr)  {
-        err_printf(__FILE__, __LINE__, "Loading ctrl-anim failed: Invalid json '%s'",
-            janim_filepath);
-        A_POP(tmp_alloc);
-        return nullptr;
-    }
-
-    /* calculate total size and create memory stack */
-    struct stack_alloc stack_mem;
-    struct allocator stack_alloc;
-
-    uint total_tgroups = anim_ctrl_getcount_2nd(jroot, "transitions", "groups");
-    uint total_tgroupitems = anim_ctrl_getcount_3rd(jroot, "transitions", "groups", "conditions");
-    uint total_seqs = anim_ctrl_getcount_2nd(jroot, "blendtrees", "childs");
-    uint total_idxs = anim_ctrl_getcount_2nd(jroot, "states", "transitions") +
-        anim_ctrl_getcount_2nd(jroot, "layers", "states");
-    uint total_bonemasks = anim_ctrl_getcount_2nd(jroot, "layers", "bone-mask");
-    uint param_cnt = anim_ctrl_getcount(jroot, "params");
-    size_t total_sz =
-        sizeof(struct anim_ctrl_data) +
-        hashtable_fixed_estimate_size(param_cnt) +
-        param_cnt*sizeof(struct anim_ctrl_param) +
-        anim_ctrl_getcount(jroot, "clips")*sizeof(struct anim_ctrl_clip) +
-        anim_ctrl_getcount(jroot, "transitions")*sizeof(struct anim_ctrl_transition) +
-        anim_ctrl_getcount(jroot, "blendtrees")*sizeof(struct anim_ctrl_blendtree) +
-        anim_ctrl_getcount(jroot, "layers")*sizeof(struct anim_ctrl_layer) +
-        anim_ctrl_getcount(jroot, "states")*sizeof(struct anim_ctrl_state) +
-        total_tgroups*sizeof(struct anim_ctrl_transition_group) +
-        total_tgroupitems*sizeof(struct anim_ctrl_transition_groupitem) +
-        total_seqs*sizeof(struct anim_ctrl_sequence) +
-        total_idxs*sizeof(uint) +
-        total_bonemasks*32;
-    if (IS_FAIL(mem_stack_create(alloc, &stack_mem, total_sz, MID_GFX)))    {
-        err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
-        A_POP(tmp_alloc);
-        return nullptr;
-    }
-    mem_stack_bindalloc(&stack_mem, &stack_alloc);
-
-    /* create ctrl structure and zero memory */
-    anim_ctrl ctrl = (struct anim_ctrl_data*)A_ALLOC(&stack_alloc, sizeof(struct anim_ctrl_data),
-        MID_ANIM);
-    ASSERT(ctrl);
-    memset(ctrl, 0x00, sizeof(struct anim_ctrl_data));
-    ctrl->alloc = alloc;
-
-    /* animation reel resource */
-    const char* reel_filepath = json_gets_child(jroot, "reel", "");
-    if (reel_filepath[0] == 0)  {
-        err_printf(__FILE__, __LINE__, "Loading ctrl-anim failed: empty reel file");
-        anim_ctrl_unload(ctrl);
-        A_POP(tmp_alloc);
-        return nullptr;
-    }
-    str_safecpy(ctrl->reel_filepath, sizeof(ctrl->reel_filepath), reel_filepath);
-
-    /* */
-    anim_ctrl_load_params(ctrl, json_getitem(jroot, "params"), &stack_alloc);
-    anim_ctrl_load_clips(ctrl, json_getitem(jroot, "clips"), &stack_alloc);
-    anim_ctrl_load_transitions(ctrl, json_getitem(jroot, "transitions"), &stack_alloc);
-    anim_ctrl_load_blendtrees(ctrl, json_getitem(jroot, "blendtrees"), &stack_alloc);
-    anim_ctrl_load_states(ctrl, json_getitem(jroot, "states"), &stack_alloc);
-    anim_ctrl_load_layers(ctrl, json_getitem(jroot, "layers"), &stack_alloc);
-
-    json_destroy(jroot);
-    A_POP(tmp_alloc);
-
-    return ctrl;
-}
-
-
-
-void anim_ctrl_unload(anim_ctrl ctrl)
-{
-    A_ALIGNED_FREE(ctrl->alloc, ctrl);
-}
-
 /*************************************************************************************************/
 /* note: time (tm) parameter should be global and handled by an external global timer */
-void anim_ctrl_update(const anim_ctrl ctrl, anim_ctrl_inst inst, float tm,
-                      struct allocator* tmp_alloc)
-{
-    const anim_reel reel = rs_get_animreel(inst->reel_hdl);
-    if (reel == nullptr)
-        return;
-
-    for (uint i = 0, cnt = ctrl->layer_cnt; i < cnt; i++) {
-        struct anim_ctrl_layer_inst* ilayer = &inst->layers[i];
-
-        /* update current state */
-        struct anim_pose* rposes = ilayer->poses;
-        if (ilayer->state_idx != INVALID_INDEX)   {
-            if (anim_ctrl_checkstate(ctrl, inst, reel, i, ilayer->state_idx, tm))  {
-                anim_ctrl_update(ctrl, inst, tm, tmp_alloc);
-                return;
-            }
-            anim_ctrl_updatestate(rposes, ctrl, inst, reel, i, ilayer->state_idx, tm, tmp_alloc);
-        }   else if (ilayer->transition_idx != INVALID_INDEX) {
-            anim_ctrl_updatetransition(rposes, ctrl, inst, reel, i, ilayer->transition_idx, tm,
-                tmp_alloc);
-        }   else    {
-            /* we have no state, go to default state */
-            ilayer->state_idx = ctrl->layers[i].default_state_idx;
-            ilayer->transition_idx = INVALID_INDEX;
-            anim_ctrl_startstate(ctrl, inst, ilayer->state_idx, tm);
-            anim_ctrl_updatestate(rposes, ctrl, inst, reel, i, ilayer->state_idx, tm, tmp_alloc);
-        }
-    }
-
-    inst->tm = tm;
-}
-
-int anim_ctrl_checkstate(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
-    uint layer_idx, uint state_idx, float tm)
-{
-    const struct anim_ctrl_state* cstate = &ctrl->states[state_idx];
-    int condition_meet = FALSE;
-
-    for (uint i = 0, cnt = cstate->transition_cnt; i < cnt; i++)  {
-        struct anim_ctrl_transition* trans = &ctrl->transitions[cstate->transitions[i]];
-        for (uint k = 0; k < trans->group_cnt; k++)   {
-            const struct anim_ctrl_transition_group* tgroup = &trans->groups[k];
-            condition_meet |= anim_ctrl_checktgroup(ctrl, inst, reel, state_idx, layer_idx, tgroup,
-                tm);
-        }
-
-        if (condition_meet) {
-            uint trans_idx = cstate->transitions[i];
-            if (inst->layers[layer_idx].transition_idx != trans_idx)
-                anim_ctrl_starttransition(ctrl, inst, reel, layer_idx, cstate->transitions[i], tm);
-            break;
-        }
-    }
-
-    return condition_meet;
-}
-
-int anim_ctrl_checktgroup(const anim_ctrl ctrl, anim_ctrl_inst inst,
-                             const anim_reel reel, uint state_idx, uint layer_idx,
-                             const struct anim_ctrl_transition_group* tgroup, float tm)
-{
-    int condition = TRUE;
-    for (uint i = 0; i < tgroup->item_cnt && condition; i++)   {
-        const struct anim_ctrl_transition_groupitem* item = &tgroup->items[i];
-
-        if (item->type == ANIM_CTRL_TGROUP_EXIT)    {
-            float k = anim_ctrl_progress_state(ctrl, inst, reel, state_idx);
-            condition &= anim_ctrl_testpredicate_f(item->predicate, k, item->value.f);
-        }    else if (item->type == ANIM_CTRL_TGROUP_PARAM) {
-            struct anim_ctrl_param_inst* param_i = &inst->params[item->param_idx];
-            switch (param_i->type)    {
-            case ANIM_CTRL_PARAM_BOOLEAN:
-                condition &= anim_ctrl_testpredicate_b(param_i->value.b, item->value.b);
-                break;
-            case ANIM_CTRL_PARAM_FLOAT:
-                condition &= anim_ctrl_testpredicate_f(item->predicate, param_i->value.f,
-                    item->value.f);
-                break;
-            case ANIM_CTRL_PARAM_INT:
-                condition &= anim_ctrl_testpredicate_n(item->predicate, param_i->value.i,
-                    item->value.i);
-                break;
-            default:
-                break;
-            }
-        }
-    }
-    return condition;
-}
-
-void anim_ctrl_starttransition(const anim_ctrl ctrl, anim_ctrl_inst inst,
-                               const anim_reel reel, uint layer_idx, uint transition_idx,
-                               float tm)
-{
-    const struct anim_ctrl_transition* trans = &ctrl->transitions[transition_idx];
-    struct anim_ctrl_transition_inst* itrans = &inst->transitions[transition_idx];
-    struct anim_ctrl_layer_inst* ilayer = &inst->layers[layer_idx];
-
-    ilayer->state_idx = INVALID_INDEX;
-    ilayer->transition_idx = transition_idx;
-
-    itrans->start_tm = tm;
-    itrans->blend = 0.0;
-
-    anim_ctrl_startstate(ctrl, inst, trans->target_state_idx, tm);
-}
-
-void anim_ctrl_updatestate(struct anim_pose* poses, const anim_ctrl ctrl, anim_ctrl_inst inst,
-                           const anim_reel reel, uint layer_idx, uint state_idx, float tm,
-                           struct allocator* tmp_alloc)
-{
-    const struct anim_ctrl_state* cstate = &ctrl->states[state_idx];
-
-    float progress = anim_ctrl_updateseq(poses, ctrl, inst, reel, &cstate->seq, tm, inst->playrate,
-        tmp_alloc);
-
-    /* only update progress for blendtrees because they are recursive */
-    if (cstate->seq.type == ANIM_CTRL_SEQUENCE_BLENDTREE)
-        inst->blendtrees[cstate->seq.idx].progress = progress;
-}
-
-/* returns progress */
-float anim_ctrl_updateseq(struct anim_pose* poses,
-                         const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
-                         const struct anim_ctrl_sequence* seq, float tm, float playrate,
-                         struct allocator* tmp_alloc)
-{
-    if (seq->type == ANIM_CTRL_SEQUENCE_CLIP)
-        return anim_ctrl_updateclip(poses, ctrl, inst, reel, seq->idx, tm, playrate);
-    else if (seq->type == ANIM_CTRL_SEQUENCE_BLENDTREE)
-        return anim_ctrl_updateblendtree(poses, ctrl, inst, reel, seq->idx, tm, playrate, tmp_alloc);
-    return 0.0f;
-}
-
-/* returns progress */
-float anim_ctrl_updateclip(struct anim_pose* poses, const anim_ctrl ctrl,
-                          anim_ctrl_inst inst, const anim_reel reel, uint clip_idx, float tm,
-                          float playrate)
-{
-    struct anim_ctrl_clip_inst* iclip = &inst->clips[clip_idx];
-
-    float tm_raw = playrate*(tm - iclip->start_tm);
-    float progress = tm_raw / iclip->duration;
-
-    /* calculate local clip time */
-    if (iclip->looped)   {
-        iclip->tm = fmodf(tm_raw, iclip->duration);
-        iclip->progress = progress;
-    }   else    {
-        iclip->tm = clampf(tm_raw, 0.0f, iclip->duration);
-        iclip->progress = clampf(progress, 0.0f, 1.0f);
-    }
-
-    /* interpolate frames */
-    anim_ctrl_calcpose(poses, reel, iclip->rclip_idx, iclip->tm);
-
-    return iclip->progress;
-}
-
-void anim_ctrl_calcpose(struct anim_pose* poses, const anim_reel reel, uint clip_idx, float tm)
-{
-    const struct anim_clip* clip = &reel->clips[clip_idx];
-    float ft = reel->ft;
-
-    uint frame_cnt = clip->frame_end - clip->frame_start;
-    uint frame_idx = clampui((uint)(tm/ft), 0, frame_cnt - 1);
-    uint frame_next_idx = (frame_idx + 1) % frame_cnt;
-
-    float interpolate = (tm - (frame_idx*ft)) / ft;
-
-    const struct anim_channel* frame_a = &reel->channels[frame_idx + clip->frame_start];
-    const struct anim_channel* frame_b = &reel->channels[frame_next_idx + clip->frame_start];
-
-    anim_ctrl_blendpose(poses, frame_a->poses, frame_b->poses, reel->pose_cnt, interpolate);
-}
-
-void anim_ctrl_blendpose(struct anim_pose* poses, const struct anim_pose* poses_a,
-                         const struct anim_pose* poses_b, uint pose_cnt, float blend)
-{
-    for (uint i = 0; i < pose_cnt; i++)   {
-        vec3_lerp(&poses[i].pos_scale, &poses_a[i].pos_scale, &poses_b[i].pos_scale, blend);
-        quat_slerp(&poses[i].rot, &poses_a[i].rot, &poses_b[i].rot, blend);
-    }
-}
-
-/* returns progress */
-float anim_ctrl_updateblendtree(struct anim_pose* poses,
-    const anim_ctrl ctrl, anim_ctrl_inst inst,
-    const anim_reel reel, uint blendtree_idx, float tm,
-    float playrate, struct allocator* tmp_alloc)
-{
-    const struct anim_ctrl_blendtree* bt = &ctrl->blendtrees[blendtree_idx];
-    struct anim_ctrl_blendtree_inst* ibt = &inst->blendtrees[blendtree_idx];
-
-    struct anim_ctrl_param_inst* param_i = &inst->params[bt->param_idx];
-    ASSERT(param_i->type == ANIM_CTRL_PARAM_FLOAT);
-
-    float f = clampf(param_i->value.f, 0.0f, 1.0f);    /* must be normalized */
-
-    /* detect which childs we have to blend */
-    float progress = f*(bt->child_cnt_f - 1.0f);
-    float idx_f = floorf(progress);
-    float blend = progress - idx_f;
-
-    uint idx = (uint)idx_f;
-    uint idx2 = minui(idx + 1, bt->child_seq_cnt - 1);
-
-    /* updat instance */
-    ibt->seq_a = idx;
-    ibt->seq_b = idx2;
-
-    ibt->blend = blend;
-
-    /* calculate */
-    if (idx != idx2)    {
-        const struct anim_ctrl_sequence* seq_a = &bt->child_seqs[idx];
-        const struct anim_ctrl_sequence* seq_b = &bt->child_seqs[idx2];
-
-        uint pose_cnt = reel->pose_cnt;
-        struct anim_pose* poses_a = (struct anim_pose*)A_ALIGNED_ALLOC(tmp_alloc,
-            sizeof(struct anim_pose)*pose_cnt, MID_ANIM);
-        struct anim_pose* poses_b = (struct anim_pose*)A_ALIGNED_ALLOC(tmp_alloc,
-            sizeof(struct anim_pose)*pose_cnt, MID_ANIM);
-        ASSERT(poses_a);
-        ASSERT(poses_b);
-
-        float progress_a = anim_ctrl_updateseq(poses_a, ctrl, inst, reel, seq_a, tm, playrate,
-            tmp_alloc);
-        float progress_b = anim_ctrl_updateseq(poses_b, ctrl, inst, reel, seq_b, tm, playrate,
-            tmp_alloc);
-
-        A_ALIGNED_FREE(tmp_alloc, poses_a);
-        A_ALIGNED_FREE(tmp_alloc, poses_b);
-
-        /* blend two sequences */
-        anim_ctrl_blendpose(poses, poses_a, poses_b, pose_cnt, blend);
-        progress = (1.0f - blend)*progress_a + blend*progress_b;
-    }    else   {
-        const struct anim_ctrl_sequence* seq = &bt->child_seqs[idx];
-        progress = anim_ctrl_updateseq(poses, ctrl, inst, reel, seq, tm, playrate, tmp_alloc);
-    }
-
-    return progress;
-}
-
-
-void anim_ctrl_updatetransition(struct anim_pose* poses,
-                                const anim_ctrl ctrl, anim_ctrl_inst inst,
-                                const anim_reel reel, uint layer_idx, uint transition_idx,
-                                float tm, struct allocator* tmp_alloc)
-{
-    const struct anim_ctrl_transition* trans = &ctrl->transitions[transition_idx];
-    struct anim_ctrl_transition_inst* itrans = &inst->transitions[transition_idx];
-    struct anim_ctrl_layer_inst* ilayer = &inst->layers[layer_idx];
-    ASSERT(trans->owner_state_idx != INVALID_INDEX);
-    ASSERT(trans->target_state_idx != INVALID_INDEX);
-
-    float elapsed = inst->playrate*(tm - itrans->start_tm);   /* local elapsed time */
-    float blend = clampf(elapsed / trans->duration, 0.0f, 1.0f);
-    itrans->blend = blend;
-
-    if (blend == 1.0f)  {
-        /* finish transition and move on to target state */
-        ilayer->state_idx = trans->target_state_idx;
-        ilayer->transition_idx = INVALID_INDEX;
-        anim_ctrl_updatestate(poses, ctrl, inst, reel, layer_idx, trans->target_state_idx, tm,
-            tmp_alloc);
-    }   else {
-        /* do blending of two states */
-        uint pose_cnt = reel->pose_cnt;
-        struct anim_pose* poses_a = (struct anim_pose*)A_ALIGNED_ALLOC(tmp_alloc,
-            sizeof(struct anim_pose)*pose_cnt, MID_ANIM);
-        struct anim_pose* poses_b = (struct anim_pose*)A_ALIGNED_ALLOC(tmp_alloc,
-            sizeof(struct anim_pose)*pose_cnt, MID_ANIM);
-        ASSERT(poses_a);
-        ASSERT(poses_b);
-
-        anim_ctrl_updatestate(poses_a, ctrl, inst, reel, layer_idx, trans->owner_state_idx, tm,
-            tmp_alloc);
-        anim_ctrl_updatestate(poses_b, ctrl, inst, reel, layer_idx, trans->target_state_idx, tm,
-            tmp_alloc);
-
-        A_ALIGNED_FREE(tmp_alloc, poses_a);
-        A_ALIGNED_FREE(tmp_alloc, poses_b);
-
-        anim_ctrl_blendpose(poses, poses_a, poses_b, pose_cnt, blend);
-    }
-}
-
-float anim_ctrl_progress_state(const anim_ctrl ctrl, anim_ctrl_inst inst, const anim_reel reel,
-    uint state_idx)
-{
-    const struct anim_ctrl_state* cstate = &ctrl->states[state_idx];
-    const struct anim_ctrl_sequence* seq = &cstate->seq;
-
-    if (seq->type == ANIM_CTRL_SEQUENCE_CLIP)
-        return minf(inst->clips[seq->idx].progress, 1.0f);
-    else if (seq->type == ANIM_CTRL_SEQUENCE_BLENDTREE)
-        return minf(inst->blendtrees[seq->idx].progress, 1.0f);
-
-    return 0.0f;
-}
-
-void anim_ctrl_startstate(const anim_ctrl ctrl, anim_ctrl_inst inst, uint state_idx,
-                          float start_tm)
-{
-    struct anim_ctrl_state* cstate = &ctrl->states[state_idx];
-    anim_ctrl_startseq(ctrl, inst, &cstate->seq, start_tm);
-}
-
-void anim_ctrl_startseq(const anim_ctrl ctrl, anim_ctrl_inst inst,
-                        const struct anim_ctrl_sequence* seq, float start_tm)
-{
-    if (seq->type == ANIM_CTRL_SEQUENCE_CLIP)
-        anim_ctrl_startclip(ctrl, inst, seq->idx, start_tm);
-    else if (seq->type == ANIM_CTRL_SEQUENCE_BLENDTREE)
-        anim_ctrl_startblendtree(ctrl, inst, seq->idx, start_tm);
-}
-
-void anim_ctrl_startclip(const anim_ctrl ctrl, anim_ctrl_inst inst, uint clip_idx, float start_tm)
-{
-    struct anim_ctrl_clip_inst* iclip = &inst->clips[clip_idx];
-    iclip->start_tm = start_tm;
-    iclip->progress = 0.0f;
-}
-
-void anim_ctrl_startblendtree(const anim_ctrl ctrl, anim_ctrl_inst inst, uint blendtree_idx,
-                              float start_tm)
-{
-    struct anim_ctrl_blendtree_inst* ibt = &inst->blendtrees[blendtree_idx];
-    ibt->seq_a = INVALID_INDEX;
-    ibt->seq_b = INVALID_INDEX;
-    ibt->progress = 0.0f;
-
-    /* recurse for child blendtrees */
-    const struct anim_ctrl_blendtree* bt = &ctrl->blendtrees[blendtree_idx];
-    for (uint i = 0, cnt = bt->child_seq_cnt; i < cnt; i++)
-        anim_ctrl_startseq(ctrl, inst, &bt->child_seqs[i], start_tm);
-}
 
 /*************************************************************************************************/
 void anim_ctrl_debug(anim_ctrl ctrl, anim_ctrl_inst inst)
@@ -1707,69 +1721,6 @@ void anim_ctrl_set_parami(anim_ctrl ctrl, anim_ctrl_inst inst, const char* name,
     }
 }
 
-void anim_ctrl_setupclip(const anim_ctrl ctrl, const anim_ctrl_inst inst, const anim_reel reel,
-                         uint clip_idx)
-{
-    const struct anim_ctrl_clip* cclip = &ctrl->clips[clip_idx];
-    struct anim_ctrl_clip_inst* iclip = &inst->clips[clip_idx];
-
-    uint rclip_idx = anim_findclip_hashed(reel, cclip->name_hash);
-    if (rclip_idx == INVALID_INDEX) {
-        iclip->rclip_idx = INVALID_INDEX;
-        return;
-    }
-
-    const struct anim_clip* rclip = &reel->clips[rclip_idx];
-    iclip->duration = rclip->duration;
-    iclip->looped = rclip->looped;
-    iclip->rclip_idx = rclip_idx;
-}
-
-result_t anim_ctrl_bindreel(anim_ctrl_inst inst, const anim_reel reel)
-{
-    /* calcualte clip durations */
-    const anim_ctrl ctrl = inst->owner;
-
-    /* clips */
-    for (uint i = 0; i < ctrl->clip_cnt; i++)
-        anim_ctrl_setupclip(ctrl, inst, reel, i);
-
-    /* layers */
-    for (uint i = 0; i < ctrl->layer_cnt; i++)    {
-        struct anim_ctrl_layer_inst* ilayer = &inst->layers[i];
-        if (ilayer->buff != nullptr)
-            A_ALIGNED_FREE(inst->alloc, ilayer->buff);
-        size_t sz = (sizeof(struct anim_pose) + sizeof(float)) * reel->pose_cnt;
-        uint8* buff = (uint8*)A_ALIGNED_ALLOC(inst->alloc, sz, MID_ANIM);
-        if (buff == nullptr)
-            return RET_OUTOFMEMORY;
-        memset(buff, 0x00, sz);
-
-        ilayer->buff = buff;
-        ilayer->poses = (struct anim_pose*)buff;
-        buff += sizeof(struct anim_pose)*reel->pose_cnt;
-
-        /* construct bone-mask, bone-mask is an array of multipliers that applies to final result */
-        ilayer->bone_mask = (float*)buff;
-        const struct anim_ctrl_layer* layer = &ctrl->layers[i];
-
-        if (i != 0 || layer->bone_mask_cnt != 0) {
-            for (uint k = 0; k < layer->bone_mask_cnt; k++)   {
-                const char* mask_name = layer->bone_mask + k*32;
-                /* find the mask_name in reel's bindings */
-                uint pose_idx = anim_find_posebinding(reel, mask_name);
-                if (pose_idx != INVALID_INDEX)
-                    ilayer->bone_mask[pose_idx] = 1.0f;
-            }
-        }   else    {
-            /* main (first one) layer always applies to full body */
-            for (uint k = 0; k < reel->pose_cnt; k++)
-                ilayer->bone_mask[k] = 1.0f;
-        }
-    }
-
-    return RET_OK;
-}
 
 void anim_ctrl_unbindreel(anim_ctrl_inst inst)
 {
@@ -1784,110 +1735,6 @@ void anim_ctrl_unbindreel(anim_ctrl_inst inst)
     }
 }
 
-anim_ctrl_inst anim_ctrl_createinstance(struct allocator* alloc, const anim_ctrl ctrl)
-{
-    /* calculate bytes needed to create the whole instance data */
-    size_t bytes =
-        sizeof(struct anim_ctrl_instance_data) +
-        ctrl->param_cnt*sizeof(struct anim_ctrl_param_inst) +
-        ctrl->blendtree_cnt*sizeof(struct anim_ctrl_blendtree_inst) +
-        ctrl->clip_cnt*sizeof(struct anim_ctrl_clip_inst) +
-        ctrl->layer_cnt*sizeof(struct anim_ctrl_layer_inst) +
-        ctrl->transition_cnt*sizeof(struct anim_ctrl_transition_inst);
-
-    uint8* buff = (uint8*)A_ALIGNED_ALLOC(alloc, bytes, MID_ANIM);
-    if (buff == nullptr)   {
-        err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
-        return nullptr;
-    }
-    memset(buff, 0x00, bytes);
-    struct anim_ctrl_instance_data* inst = (struct anim_ctrl_instance_data*)buff;
-
-    inst->alloc = alloc;
-    inst->owner = ctrl;
-    inst->playrate = 1.0f;
-    buff += sizeof(struct anim_ctrl_instance_data);
-
-    /* load animation reel */
-    inst->reel_hdl = rs_load_animreel(ctrl->reel_filepath, 0);
-    if (inst->reel_hdl == INVALID_HANDLE)   {
-        err_printf(__FILE__, __LINE__, "Creating anim-ctrl instance failed: could not load resource"
-            " '%s'", ctrl->reel_filepath);
-        A_FREE(alloc, inst);
-        return nullptr;
-    }
-
-    if (ctrl->param_cnt > 0)    {
-        inst->params = (struct anim_ctrl_param_inst*)buff;
-        for (uint i = 0; i < ctrl->param_cnt; i++)    {
-            struct anim_ctrl_param_inst* param = &inst->params[i];
-            param->type = ctrl->params[i].type;
-            param->value.i = ctrl->params[i].value.i;
-        }
-        buff += sizeof(struct anim_ctrl_param_inst)*ctrl->param_cnt;
-    }
-
-    if (ctrl->layer_cnt > 0)    {
-        inst->layers = (struct anim_ctrl_layer_inst*)buff;
-        for (uint i = 0; i < ctrl->layer_cnt; i++)    {
-            struct anim_ctrl_layer_inst* layer = &inst->layers[i];
-            layer->state_idx = INVALID_INDEX;
-            layer->transition_idx = INVALID_INDEX;
-            switch (ctrl->layers[i].type)   {
-                case ANIM_CTRL_LAYER_OVERRIDE:
-                layer->blend_fn = anim_ctrl_layer_override;
-                break;
-                case ANIM_CTRL_LAYER_ADDITIVE:
-                layer->blend_fn = anim_ctrl_layer_additive;
-                break;
-            }
-        }
-        buff += sizeof(struct anim_ctrl_layer_inst)*ctrl->layer_cnt;
-        inst->layer_cnt = ctrl->layer_cnt;
-    }
-
-    if (ctrl->clip_cnt > 0) {
-        inst->clips = (struct anim_ctrl_clip_inst*)buff;
-        for (uint i = 0; i < ctrl->clip_cnt; i++) {
-            struct anim_ctrl_clip_inst* clip = &inst->clips[i];
-            clip->start_tm = 0.0f;
-            clip->tm = 0.0f;
-        }
-        buff += sizeof(struct anim_ctrl_clip_inst)*ctrl->clip_cnt;
-    }
-
-    if (ctrl->blendtree_cnt > 0)    {
-        inst->blendtrees = (struct anim_ctrl_blendtree_inst*)buff;
-        for (uint i = 0; i < ctrl->blendtree_cnt; i++)    {
-            struct anim_ctrl_blendtree_inst* bt = &inst->blendtrees[i];
-            bt->seq_a = INVALID_INDEX;
-            bt->seq_b = INVALID_INDEX;
-            bt->blend = 0.0f;
-        }
-        buff += sizeof(struct anim_ctrl_blendtree_inst)*ctrl->blendtree_cnt;
-    }
-
-    if (ctrl->transition_cnt > 0)   {
-        inst->transitions = (struct anim_ctrl_transition_inst*)buff;
-        for (uint i = 0; i < ctrl->transition_cnt; i++)   {
-            struct anim_ctrl_transition_inst* trans = &inst->transitions[i];
-            trans->blend = 0.0f;
-            trans->start_tm = 0.0f;
-        }
-        buff += sizeof(struct anim_ctrl_transition_inst)*ctrl->transition_cnt;
-    }
-
-    anim_reel reel = rs_get_animreel(inst->reel_hdl);
-    if (reel == nullptr)
-        return inst;
-
-    if (IS_FAIL(anim_ctrl_bindreel(inst, reel)))    {
-        anim_ctrl_destroyinstance(inst);
-        return nullptr;
-    }
-
-    return inst;
-}
 
 void anim_ctrl_destroyinstance(anim_ctrl_inst inst)
 {
