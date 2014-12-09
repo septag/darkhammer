@@ -28,7 +28,7 @@ struct cmp_animchar
 
     /* internal */
     reshandle_t ctrl_hdl;   /* animation controller resource */
-    anim_ctrl_inst inst;    /* animation controller instance */
+    animCharControllerInst *inst;    /* animation controller instance */
 
     uint* bindmap;    /* maps animation poses (count = pose_cnt) to target resource */
 

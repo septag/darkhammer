@@ -14,36 +14,38 @@
  ***********************************************************************************/
 
 #include <stdio.h>
+
 #include "dhcore/core.h"
 #include "dhcore/task-mgr.h"
 #include "dhcore/hwinfo.h"
 
 #include "dhapp/app.h"
 
-#include "gfx.h"
-#include "gfx-device.h"
-#include "gfx-cmdqueue.h"
-#include "gfx-shader.h"
-#include "gfx-font.h"
-#include "gfx-canvas.h"
-#include "debug-hud.h"
-#include "mem-ids.h"
-#include "scene-mgr.h"
-#include "camera.h"
-#include "cmp-mgr.h"
-#include "prf-mgr.h"
-#include "gfx-model.h"
-#include "engine.h"
-#include "console.h"
-#include "gfx-occ.h"
-#include "gfx-billboard.h"
-#include "res-mgr.h"
-#include "world-mgr.h"
+#include "share/mem-ids.h"
 
-#include "renderpaths/gfx-fwd.h"
-#include "renderpaths/gfx-deferred.h"
-#include "renderpaths/gfx-csm.h"
-#include "gfx-postfx.h"
+#include "dheng/gfx.h"
+#include "dheng/gfx-device.h"
+#include "dheng/gfx-cmdqueue.h"
+#include "dheng/gfx-shader.h"
+#include "dheng/gfx-font.h"
+#include "dheng/gfx-canvas.h"
+#include "dheng/debug-hud.h"
+#include "dheng/scene-mgr.h"
+#include "dheng/camera.h"
+#include "dheng/cmp-mgr.h"
+#include "dheng/prf-mgr.h"
+#include "dheng/gfx-model.h"
+#include "dheng/engine.h"
+#include "dheng/console.h"
+#include "dheng/gfx-occ.h"
+#include "dheng/gfx-billboard.h"
+#include "dheng/res-mgr.h"
+#include "dheng/world-mgr.h"
+
+#include "dheng/renderpaths/gfx-fwd.h"
+#include "dheng/renderpaths/gfx-deferred.h"
+#include "dheng/renderpaths/gfx-csm.h"
+#include "dheng/gfx-postfx.h"
 
 #define TONEMAP_DEFAULT_MIDGREY 0.5f
 #define TONEMAP_DEFAULT_LUM_MIN 0.1f
@@ -288,8 +290,8 @@ result_t gfx_init(const appGfxParams* params)
 
 
     /* shader cache/manager */
-    int disable_cache = BIT_CHECK(params->flags, appGfxFlags::DEBUG) &&
-        BIT_CHECK(params->flags, appGfxFlags::REBUILD_SHADERS);
+    int disable_cache = BIT_CHECK(params->flags, static_cast<uint>(appGfxFlags::DEBUG)) &&
+        BIT_CHECK(params->flags, static_cast<uint>(appGfxFlags::REBUILD_SHADERS));
     if (IS_FAIL(gfx_shader_initmgr(disable_cache)))	{
         err_print(__FILE__, __LINE__, "gfx-init failed: could not initialize shader cache");
         return RET_FAIL;
@@ -350,7 +352,7 @@ result_t gfx_init(const appGfxParams* params)
         return RET_FAIL;
     }
 
-    if (BIT_CHECK(params->flags, appGfxFlags::FXAA))    {
+    if (BIT_CHECK(params->flags, static_cast<uint>(appGfxFlags::FXAA)))    {
         g_gfx.fxaa = gfx_pfx_fxaa_create(params->width, params->height);
         if (g_gfx.fxaa == NULL) {
             err_print(__FILE__, __LINE__, "gfx-init failed: could not create fxaa postfx");
@@ -469,9 +471,8 @@ void gfx_render()
     params.width = width;
     params.height = height;
     params.cam = cam;
-    cam_set_viewsize(cam, widthf, heightf);
-    cam_get_perspective(&params.proj, cam);
-    cam_get_view(&params.view, cam);
+    mat4_setm(&params.proj, cam->perspective(widthf/heightf));
+    mat3_setm(&params.view, cam->view());
     mat3_mul4(&params.viewproj, &params.view, &params.proj);
     vec3_setv(&params.cam_pos, &cam->pos);
     cam_calc_frustumplanes(viewfrust.planes, &params.viewproj);
@@ -1236,8 +1237,8 @@ result_t gfx_create_fullscreenquad()
         return RET_FAIL;
 
     const struct gfx_input_element_binding inputs[] = {
-        {GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
-        {GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
+        {gfxInputElemId::POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
+        {gfxInputElemId::TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
     };
 
     const struct gfx_input_vbuff_desc vbuffs[] = {
@@ -1331,8 +1332,8 @@ void gfx_resize(uint width, uint height)
 result_t gfx_composite_init()
 {
     const struct gfx_input_element_binding bindings[] = {
-        {GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
-        {GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
+        {gfxInputElemId::POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
+        {gfxInputElemId::TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
     };
     const struct gfx_shader_define defines[] = {
         {"_DEPTHBUFFER_", "1"},

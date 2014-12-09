@@ -16,24 +16,21 @@
 #ifndef GFX_INPUT_TYPES_H_
 #define GFX_INPUT_TYPES_H_
 
-/* defines maximum number of vertex-buffers and their IDs
- * we call them input-element-id
- * for each element-id we have a vertex-buffer in geometry data
- */
-enum gfx_input_element_id
+// Vertex input element IDs
+enum class gfxInputElemId : uint
 {
-	GFX_INPUTELEMENT_ID_POSITION = 0,   /* float4: POSITION */
-	GFX_INPUTELEMENT_ID_NORMAL, /* float3: NORMAL */
-	GFX_INPUTELEMENT_ID_TEXCOORD0, /* float2: TEXCOORD0 */
-    GFX_INPUTELEMENT_ID_TANGENT, /* float3: TANGENT */
-    GFX_INPUTELEMENT_ID_BINORMAL, /* float3: BINORMAL */
-    GFX_INPUTELEMENT_ID_BLENDINDEX, /* int4: BLENDINDEX */
-    GFX_INPUTELEMENT_ID_BLENDWEIGHT, /* float4: BLENDWEIGHT */
-	GFX_INPUTELEMENT_ID_TEXCOORD1, /* float2: TEXCOORD1 */
-	GFX_INPUTELEMENT_ID_TEXCOORD2, /* float4: TEXCOORD2 */
-	GFX_INPUTELEMENT_ID_TEXCOORD3, /* float4: TEXCOORD3 */
-	GFX_INPUTELEMENT_ID_COLOR, /* float4: COLOR */
-    GFX_INPUTELEMENT_ID_CNT /* don't use this, just for count */
+	POSITION = 0,   // float4
+	NORMAL,         // float3
+	TEXCOORD0,      // float2
+    TANGENT,        // float3
+    BINORMAL,       // float3
+    BLENDINDEX,     // int4
+    BLENDWEIGHT,    // float4
+	TEXCOORD1,      // float2
+	TEXCOORD2,      // float4
+	TEXCOORD3,      // float4
+	COLOR,          // float4
+    COUNT           // Don't use it. just for array counting
 };
 
 #endif /* GFX_INPUT_TYPES_H_ */

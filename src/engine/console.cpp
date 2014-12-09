@@ -14,12 +14,16 @@
  ***********************************************************************************/
 
 #include <stdio.h>
-#include "console.h"
+
+#include "dheng/console.h"
+
 #include "dhcore/core.h"
 #include "dhcore/array.h"
 #include "dhcore/hash-table.h"
-#include "mem-ids.h"
-#include "debug-hud.h"
+
+#include "share/mem-ids.h"
+
+#include "dheng/debug-hud.h"
 
 /*************************************************************************************************
  * types

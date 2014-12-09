@@ -42,7 +42,7 @@ struct gfx_constant_desc
 {
 	char name[32];
 	uint shader_idx;
-	enum gfxUniformType type;
+	gfxUniformType type;
 	uint elem_size;
 	uint arr_size;
 	uint arr_stride;
@@ -91,7 +91,7 @@ struct gfx_shader
 	struct gfx_shader_sampler* samplers;
 	uint sampler_cnt;
 	gfx_program prog;
-    uint bindings[GFX_INPUTELEMENT_ID_CNT];
+    uint bindings[gfxInputElemId::COUNT];
     uint binding_cnt;
     void* meta_data;    /* meta-data is used by each graphics api differently */
 };

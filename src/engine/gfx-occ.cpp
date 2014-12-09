@@ -165,8 +165,8 @@ result_t gfx_occ_init(uint width, uint height, uint cpu_caps)
             return RET_FAIL;
         }
         const struct gfx_input_element_binding bindings[] = {
-            {GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
-            {GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
+            {gfxInputElemId::POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
+            {gfxInputElemId::TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
         };
 
 #if defined(_OCCDEMO_)

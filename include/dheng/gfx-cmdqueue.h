@@ -78,11 +78,11 @@ void gfx_output_clearrendertarget(gfx_cmdqueue cmdqueue, gfx_rendertarget rt,
 void gfx_draw(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type, uint vert_idx,
 		uint vert_cnt, uint draw_id);
 void gfx_draw_indexed(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
-		uint ib_idx, uint idx_cnt, enum gfxIndexType ib_type, uint draw_id);
+		uint ib_idx, uint idx_cnt, gfxIndexType ib_type, uint draw_id);
 void gfx_draw_instance(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
 		uint vert_idx, uint vert_cnt, uint instance_cnt, uint draw_id);
 void gfx_draw_indexedinstance(gfx_cmdqueue cmdqueue, enum gfxPrimitiveType type,
-		uint ib_idx, uint idx_cnt, enum gfxIndexType ib_type, uint instance_cnt,
+		uint ib_idx, uint idx_cnt, gfxIndexType ib_type, uint instance_cnt,
 		uint draw_id);
 
 /* sync */

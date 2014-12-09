@@ -29,7 +29,7 @@ struct mat3f;
 struct gfx_model;
 struct gfx_model_instance;
 struct gfx_shader;
-struct Camera;
+class Camera;
 struct gfx_view_params;
 struct variant;
 struct gfx_model_posegpu;

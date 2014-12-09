@@ -25,20 +25,20 @@
 #include "dhcore/mt.h"
 #include "dhcore/linked-list.h"
 #include "dhcore/task-mgr.h"
-#include "mem-ids.h"
 
-#include "engine.h"
-#include "gfx-device.h"
+#include "share/mem-ids.h"
 
-#include "gfx-texture.h"
-#include "gfx-model.h"
-#include "script.h"
-#include "anim.h"
-#include "components/cmp-model.h"
-#include "components/cmp-rbody.h"
-#include "components/cmp-anim.h"
-#include "components/cmp-animchar.h"
-#include "phx-prefab.h"
+#include "dheng/engine.h"
+#include "dheng/gfx-device.h"
+#include "dheng/gfx-texture.h"
+#include "dheng/gfx-model.h"
+#include "dheng/script.h"
+#include "dheng/anim.h"
+#include "dheng/components/cmp-model.h"
+#include "dheng/components/cmp-rbody.h"
+#include "dheng/components/cmp-anim.h"
+#include "dheng/components/cmp-animchar.h"
+#include "dheng/phx-prefab.h"
 
 /*************************************************************************************************
  * defines
@@ -189,13 +189,13 @@ INLINE struct rs_resource* rs_resource_get(reshandle_t hdl) {
 INLINE struct linked_list* rs_loadqueue_search(reshandle_t hdl)
 {
     struct linked_list* lnode = g_rs.load_list;
-    while (lnode != NULL)   {
+    while (lnode != nullptr)   {
         struct rs_load_data* ldata = (struct rs_load_data*)lnode->data;
         if (ldata->hdl == hdl)
             return lnode;
         lnode = lnode->next;
     }
-    return NULL;
+    return nullptr;
 }
 
 INLINE void rs_register_hotload(const struct rs_load_data* ldata)
@@ -283,7 +283,7 @@ result_t rs_initmgr(uint flags, uint load_thread_cnt)
         g_rs.job_params.load_items = (struct rs_load_data**)ALLOC(
             sizeof(struct rs_load_data*)*load_thread_cnt, MID_RES);
         g_rs.job_result.ptrs = (void**)ALLOC(sizeof(void*)*load_thread_cnt, MID_RES);
-        if (g_rs.job_params.load_items == NULL || g_rs.job_result.ptrs == NULL)    {
+        if (g_rs.job_params.load_items == nullptr || g_rs.job_result.ptrs == nullptr)    {
             err_printn(__FILE__, __LINE__, RET_OUTOFMEMORY);
             return RET_OUTOFMEMORY;
         }
@@ -299,7 +299,7 @@ result_t rs_init_resources()
 {
     /* blank texture */
     g_rs.blank_tex = gfx_texture_loaddds("textures/white1x1.dds", 0, FALSE, 0);
-    if (g_rs.blank_tex == NULL) {
+    if (g_rs.blank_tex == nullptr) {
         err_print(__FILE__, __LINE__, "res-mgr init resources failed: could not load blank texture");
         return RET_FAIL;
     }
@@ -310,7 +310,7 @@ result_t rs_init_resources()
 void rs_releasemgr()
 {
     struct linked_list* unload_item = g_rs.unload_items;
-    while (unload_item != NULL) {
+    while (unload_item != nullptr) {
         struct linked_list* nitem = unload_item->next;
         FREE(unload_item->data);
         unload_item = nitem;
@@ -322,9 +322,9 @@ void rs_releasemgr()
     arr_destroy(&g_rs.ress);
     mem_pool_destroy(&g_rs.load_data_pool);
 
-    if (g_rs.job_params.load_items != NULL)
+    if (g_rs.job_params.load_items != nullptr)
         FREE(g_rs.job_params.load_items);
-    if (g_rs.job_result.ptrs != NULL)
+    if (g_rs.job_result.ptrs != nullptr)
         FREE(g_rs.job_result.ptrs);
 
     log_print(LOG_TEXT, "res-mgr released.");
@@ -344,15 +344,15 @@ void rs_release_resources()
     for (uint i = 0; i < g_rs.job_params.cnt; i++)    {
         reshandle_t hdl = g_rs.job_params.load_items[i]->hdl;
         void* ptr = g_rs.job_result.ptrs[i];
-        if (ptr != NULL)    {
+        if (ptr != nullptr)    {
             struct rs_resource* r = rs_resource_get(hdl);
             r->unload_func(ptr);
         }
     }
 
-    if (g_rs.blank_tex != NULL) {
+    if (g_rs.blank_tex != nullptr) {
         gfx_destroy_texture(g_rs.blank_tex);
-        g_rs.blank_tex = NULL;
+        g_rs.blank_tex = nullptr;
     }
 }
 
@@ -367,42 +367,42 @@ void rs_threaded_load_fn(void* params, void* result, uint thread_id, uint job_id
 
     util_sleep(100);
 
-    void* ptr = NULL;
+    void* ptr = nullptr;
     struct rs_load_data* ldata = lparams->load_items[worker_idx];
     switch (ldata->type)    {
     case RS_RESOURCE_TEXTURE:
         ptr = gfx_texture_loaddds(ldata->filepath, ldata->params.tex.first_mipidx,
             ldata->params.tex.srgb, thread_id);
-        if (ptr != NULL)
+        if (ptr != nullptr)
             log_printf(LOG_LOAD, "(texture) \"%s\" - id: %d", ldata->filepath, GET_ID(ldata->hdl));
         break;
     case RS_RESOURCE_MODEL:
         ptr = gfx_model_load(g_rs.alloc, ldata->filepath, thread_id);
-        if (ptr != NULL)
+        if (ptr != nullptr)
             log_printf(LOG_LOAD, "(model) \"%s\" - id: %d", ldata->filepath, GET_ID(ldata->hdl));
         break;
 
     case RS_RESOURCE_ANIMREEL:
-        ptr = anim_load(g_rs.alloc, ldata->filepath, thread_id);
-        if (ptr != NULL)
+        ptr = anim_reel_loadf(ldata->filepath, g_rs.alloc, thread_id);
+        if (ptr != nullptr)
             log_printf(LOG_LOAD, "(anim-reel) \"%s\" - id:%d", ldata->filepath, GET_ID(ldata->hdl));
         break;
 
     case RS_RESOURCE_PHXPREFAB:
         ptr = phx_prefab_load(ldata->filepath, g_rs.alloc, thread_id);
-        if (ptr != NULL)
+        if (ptr != nullptr)
             log_printf(LOG_LOAD, "(physics) \"%s\" - id: %d", ldata->filepath, GET_ID(ldata->hdl));
         break;
 
     case RS_RESOURCE_SCRIPT:
         ptr = sct_load(ldata->filepath, thread_id);
-        if (ptr != NULL)
+        if (ptr != nullptr)
             log_printf(LOG_LOAD, "(script) \"%s\" - id: %d", ldata->filepath, GET_ID(ldata->hdl));
         break;
 
     case RS_RESOURCE_ANIMCTRL:
-        ptr = anim_ctrl_load(ldata->filepath, g_rs.alloc, thread_id);
-        if (ptr != NULL)
+        ptr = anim_charctrl_loadj(ldata->filepath, g_rs.alloc, thread_id);
+        if (ptr != nullptr)
             log_printf(LOG_LOAD, "(anim-ctrl) \"%s\" - id: %d", ldata->filepath, GET_ID(ldata->hdl));
         break;
 
@@ -410,7 +410,7 @@ void rs_threaded_load_fn(void* params, void* result, uint thread_id, uint job_id
         ASSERT(0);
     }
 
-    if (ptr == NULL)   {
+    if (ptr == nullptr)   {
         log_printf(LOG_WARNING, "res-mgr: loading resource '%s' failed", ldata->filepath);
         err_clear();
     }
@@ -448,7 +448,7 @@ void rs_update()
             int must_unload = rs_search_in_unloads(hdl);
 
             struct rs_resource* r = rs_resource_get(hdl);
-            if (result->ptrs[i] != NULL)    {
+            if (result->ptrs[i] != nullptr)    {
                 r->ptr = result->ptrs[i];
 
                 if (!must_unload)    {
@@ -475,7 +475,7 @@ void rs_update()
     /* fill new params and dispatch the job */
     struct linked_list* lnode = g_rs.load_list;
     uint qcnt = 0;
-    while (qcnt < g_rs.load_threads_max && lnode != NULL)    {
+    while (qcnt < g_rs.load_threads_max && lnode != nullptr)    {
         params->load_items[qcnt++] = (struct rs_load_data*)lnode->data;
         list_remove(&g_rs.load_list, lnode);
         lnode = g_rs.load_list;
@@ -501,7 +501,7 @@ void rs_update()
 int rs_search_in_unloads(reshandle_t hdl)
 {
     struct linked_list* unode = g_rs.unload_items;
-    while (unode != NULL)   {
+    while (unode != nullptr)   {
         struct linked_list* n_unode = unode->next;
         struct rs_unload_item* uitem = (struct rs_unload_item*)unode->data;
         if (uitem->hdl == hdl)  {
@@ -567,7 +567,7 @@ reshandle_t rs_load_texture(const char* tex_filepath, uint first_mipidx,
 
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(tex_filepath));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
@@ -595,12 +595,12 @@ reshandle_t rs_load_texture(const char* tex_filepath, uint first_mipidx,
         	/* determine file extension, then load the texture based on that */
         	char ext[128];
         	path_getfileext(ext, tex_filepath);
-        	gfx_texture tex = NULL;
+        	gfx_texture tex = nullptr;
 
         	if (str_isequal_nocase(ext, "dds"))
         		tex  = gfx_texture_loaddds(tex_filepath, first_mipidx, srgb, 0);
 
-            if (tex == NULL) {
+            if (tex == nullptr) {
                 log_printf(LOG_WARNING, "res-mgr: loading rs_resource '%s' failed:"
                     " could not load texture", tex_filepath);
                 err_clear();
@@ -628,7 +628,7 @@ reshandle_t rs_texture_queueload(const char* tex_filepath, uint first_mipidx, in
                                  reshandle_t override_hdl)
 {
     /* if we have an override handle, check in existing queue and see if it's already exists */
-    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != NULL)
+    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != nullptr)
         return override_hdl;
 
     reshandle_t hdl = rs_add_resource(tex_filepath, g_rs.blank_tex, override_hdl, rs_texture_unload);
@@ -700,7 +700,7 @@ reshandle_t rs_add_todb(const char* filepath, void* ptr, pfn_unload_res unload_f
 
     /* if we have freeslots in free-stack, pop it and re-update it */
     struct stack* sitem = stack_pop(&g_rs.freeslots);
-    if (sitem != NULL)  {
+    if (sitem != nullptr)  {
         uptr_t idx = (uptr_t)sitem->data;
         res_hdl = MAKE_HANDLE(idx, global_id);
         rs = &((struct rs_resource*)g_rs.ress.buffer)[idx];
@@ -752,7 +752,7 @@ void rs_unload(reshandle_t hdl)
 
         /* also search in queued loads and remove from list immediately */
         struct linked_list* lnode = rs_loadqueue_search(hdl);
-        if (lnode != NULL)  {
+        if (lnode != nullptr)  {
             list_remove(&g_rs.load_list, lnode);
             mem_pool_free(&g_rs.load_data_pool, lnode->data);
         }
@@ -796,7 +796,7 @@ reshandle_t rs_load_model(const char* model_filepath, uint flags)
 
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(model_filepath));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
@@ -824,13 +824,13 @@ reshandle_t rs_load_model(const char* model_filepath, uint flags)
         	/* determine file extension, then load the texture based on that */
         	char ext[128];
         	path_getfileext(ext, model_filepath);
-        	struct gfx_model* model = NULL;
+        	struct gfx_model* model = nullptr;
 
         	/* model files should be 'h3dm' extension */
         	if (str_isequal_nocase(ext, "h3dm"))
         		model = gfx_model_load(g_rs.alloc, model_filepath, 0);
 
-            if (model == NULL) {
+            if (model == nullptr) {
                 log_printf(LOG_WARNING, "res-mgr: loading resource '%s' failed:"
                     " could not load model", model_filepath);
                 err_clear();
@@ -854,10 +854,10 @@ reshandle_t rs_load_model(const char* model_filepath, uint flags)
 
 reshandle_t rs_model_queueload(const char* model_filepath, reshandle_t override_hdl)
 {
-    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != NULL)
+    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != nullptr)
         return override_hdl;
 
-    reshandle_t hdl = rs_add_resource(model_filepath, NULL, override_hdl, rs_model_unload);
+    reshandle_t hdl = rs_add_resource(model_filepath, nullptr, override_hdl, rs_model_unload);
     if (hdl == INVALID_HANDLE)
         return hdl;
 
@@ -879,7 +879,7 @@ reshandle_t rs_model_queueload(const char* model_filepath, reshandle_t override_
 
 void rs_model_unload(void* model)
 {
-    if (model != NULL)
+    if (model != nullptr)
 	    gfx_model_unload((struct gfx_model*)model);
 }
 
@@ -893,7 +893,7 @@ reshandle_t rs_load_animreel(const char* reel_filepath, uint flags)
 
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(reel_filepath));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
@@ -921,13 +921,13 @@ reshandle_t rs_load_animreel(const char* reel_filepath, uint flags)
             /* determine file extension, then load the texture based on that */
             char ext[128];
             path_getfileext(ext, reel_filepath);
-            anim_reel reel = NULL;
+            animReel *reel = nullptr;
 
             /* model files should be valid extension */
             if (str_isequal_nocase(ext, "h3da"))
-                reel = anim_load(g_rs.alloc, reel_filepath, 0);
+                reel = anim_reel_loadf(reel_filepath, g_rs.alloc, 0);
 
-            if (reel == NULL) {
+            if (reel == nullptr) {
                 log_printf(LOG_WARNING, "res-mgr: loading rs_resource '%s' failed:"
                     " could not load anim-reel", reel_filepath);
                 err_clear();
@@ -951,10 +951,10 @@ reshandle_t rs_load_animreel(const char* reel_filepath, uint flags)
 
 reshandle_t rs_animreel_queueload(const char* reel_filepath, reshandle_t override_hdl)
 {
-    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != NULL)
+    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != nullptr)
         return override_hdl;
 
-    reshandle_t hdl = rs_add_resource(reel_filepath, NULL, override_hdl, rs_animreel_unload);
+    reshandle_t hdl = rs_add_resource(reel_filepath, nullptr, override_hdl, rs_animreel_unload);
     if (hdl == INVALID_HANDLE)
         return hdl;
 
@@ -975,8 +975,8 @@ reshandle_t rs_animreel_queueload(const char* reel_filepath, reshandle_t overrid
 
 void rs_animreel_unload(void* anim)
 {
-    if (anim != NULL)
-        anim_unload((anim_reel)anim);
+    if (anim)
+        ((animReel*)anim)->destroy();
 }
 
 reshandle_t rs_load_animctrl(const char* ctrl_filepath, uint flags)
@@ -989,7 +989,7 @@ reshandle_t rs_load_animctrl(const char* ctrl_filepath, uint flags)
 
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(ctrl_filepath));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
@@ -1017,13 +1017,13 @@ reshandle_t rs_load_animctrl(const char* ctrl_filepath, uint flags)
             /* determine file extension, then load the texture based on that */
             char ext[128];
             path_getfileext(ext, ctrl_filepath);
-            anim_ctrl ctrl = NULL;
+            animCharController *ctrl = nullptr;
 
             /* model files should be valid extension */
             if (str_isequal_nocase(ext, "json"))
-                ctrl = anim_ctrl_load(ctrl_filepath, g_rs.alloc, 0);
+                ctrl = anim_charctrl_loadj(ctrl_filepath, g_rs.alloc, 0);
 
-            if (ctrl == NULL) {
+            if (ctrl == nullptr) {
                 log_printf(LOG_WARNING, "res-mgr: loading rs_resource '%s' failed:"
                     " could not load anim-ctrl", ctrl_filepath);
                 err_clear();
@@ -1048,10 +1048,10 @@ reshandle_t rs_load_animctrl(const char* ctrl_filepath, uint flags)
 reshandle_t rs_animctrl_queueload(const char* ctrl_filepath, reshandle_t override_hdl)
 {
     /* if we have an override handle, check in existing queue and see if it's already exists */
-    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != NULL)
+    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != nullptr)
         return override_hdl;
 
-    reshandle_t hdl = rs_add_resource(ctrl_filepath, NULL, override_hdl, rs_animctrl_unload);
+    reshandle_t hdl = rs_add_resource(ctrl_filepath, nullptr, override_hdl, rs_animctrl_unload);
     if (hdl == INVALID_HANDLE)
         return hdl;
 
@@ -1072,8 +1072,8 @@ reshandle_t rs_animctrl_queueload(const char* ctrl_filepath, reshandle_t overrid
 
 void rs_animctrl_unload(void* animctrl)
 {
-    if (animctrl != NULL)
-        anim_ctrl_unload((anim_ctrl)animctrl);
+    if (animctrl)
+        ((animCharController*)animctrl)->destroy();
 }
 
 reshandle_t rs_load_script(const char* lua_filepath, uint flags)
@@ -1086,7 +1086,7 @@ reshandle_t rs_load_script(const char* lua_filepath, uint flags)
 
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(lua_filepath));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
@@ -1114,13 +1114,13 @@ reshandle_t rs_load_script(const char* lua_filepath, uint flags)
             /* determine file extension, then load the texture based on that */
             char ext[128];
             path_getfileext(ext, lua_filepath);
-            sct_t script = NULL;
+            sct_t script = nullptr;
 
             /* model files should be valid extension */
             if (str_isequal_nocase(ext, "lua"))
                 script = sct_load(lua_filepath, 0);
 
-            if (script == NULL) {
+            if (script == nullptr) {
                 err_sendtolog(TRUE);
                 log_printf(LOG_WARNING, "res-mgr: loading rs_resource '%s' failed:"
                     " could not load script", lua_filepath);
@@ -1145,10 +1145,10 @@ reshandle_t rs_load_script(const char* lua_filepath, uint flags)
 reshandle_t rs_script_queueload(const char* lua_filepath, reshandle_t override_hdl)
 {
     /* if we have an override handle, check in existing queue and see if it's already exists */
-    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != NULL)
+    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != nullptr)
         return override_hdl;
 
-    reshandle_t hdl = rs_add_resource(lua_filepath, NULL, override_hdl, rs_script_unload);
+    reshandle_t hdl = rs_add_resource(lua_filepath, nullptr, override_hdl, rs_script_unload);
     if (hdl == INVALID_HANDLE)
         return hdl;
 
@@ -1169,7 +1169,7 @@ reshandle_t rs_script_queueload(const char* lua_filepath, reshandle_t override_h
 
 void rs_script_unload(void* script)
 {
-    if (script != NULL)
+    if (script != nullptr)
         sct_unload((sct_t)script);
 }
 
@@ -1183,7 +1183,7 @@ reshandle_t rs_load_phxprefab(const char* phx_filepath, uint flags)
 
     struct hashtable_item_chained* item = hashtable_chained_find(&g_rs.dict,
         hash_str(phx_filepath));
-    if (item != NULL)   {
+    if (item != nullptr)   {
         uint idx = (uint)item->value;
         struct rs_resource* res = (struct rs_resource*)g_rs.ress.buffer + idx;
         res_hdl = res->hdl;
@@ -1211,13 +1211,13 @@ reshandle_t rs_load_phxprefab(const char* phx_filepath, uint flags)
             /* determine file extension, then load the texture based on that */
             char ext[128];
             path_getfileext(ext, phx_filepath);
-            phx_prefab prefab = NULL;
+            phx_prefab prefab = nullptr;
 
             /* model files should be valid extension */
             if (str_isequal_nocase(ext, "h3dp"))
                 prefab = phx_prefab_load(phx_filepath, g_rs.alloc, 0);
 
-            if (prefab == NULL) {
+            if (prefab == nullptr) {
                 err_sendtolog(TRUE);
                 log_printf(LOG_WARNING, "res-mgr: loading rs_resource '%s' failed:"
                     " could not load phx-prefab", phx_filepath);
@@ -1242,10 +1242,10 @@ reshandle_t rs_load_phxprefab(const char* phx_filepath, uint flags)
 reshandle_t rs_phxprefab_queueload(const char* phx_filepath, reshandle_t override_hdl)
 {
     /* if we have an override handle, check in existing queue and see if it's already exists */
-    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != NULL)
+    if (override_hdl != INVALID_HANDLE && rs_loadqueue_search(override_hdl) != nullptr)
         return override_hdl;
 
-    reshandle_t hdl = rs_add_resource(phx_filepath, NULL, override_hdl, rs_phxprefab_unload);
+    reshandle_t hdl = rs_add_resource(phx_filepath, nullptr, override_hdl, rs_phxprefab_unload);
     if (hdl == INVALID_HANDLE)
         return hdl;
 
@@ -1266,7 +1266,7 @@ reshandle_t rs_phxprefab_queueload(const char* phx_filepath, reshandle_t overrid
 
 void rs_phxprefab_unload(void* prefab)
 {
-    if (prefab != NULL)
+    if (prefab != nullptr)
         phx_prefab_unload((phx_prefab)prefab);
 }
 
@@ -1306,16 +1306,16 @@ struct gfx_model* rs_get_model(reshandle_t mdl_hdl)
     return (struct gfx_model*)rs_resource_get(mdl_hdl)->ptr;
 }
 
-anim_reel rs_get_animreel(reshandle_t anim_hdl)
+animReel* rs_get_animreel(reshandle_t anim_hdl)
 {
     ASSERT(g_rs.init);
-    return (anim_reel)rs_resource_get(anim_hdl)->ptr;
+    return (animReel*)rs_resource_get(anim_hdl)->ptr;
 }
 
-anim_ctrl rs_get_animctrl(reshandle_t ctrl_hdl)
+animCharController* rs_get_animctrl(reshandle_t ctrl_hdl)
 {
     ASSERT(g_rs.init);
-    return (anim_ctrl)rs_resource_get(ctrl_hdl)->ptr;
+    return (animCharController*)rs_resource_get(ctrl_hdl)->ptr;
 }
 
 void rs_set_dataalloc(struct allocator* alloc)
@@ -1361,5 +1361,5 @@ void rs_unloadptr(reshandle_t hdl)
 {
     struct rs_resource* r = rs_resource_get(hdl);
     r->unload_func(r->ptr);
-    r->ptr = NULL;
+    r->ptr = nullptr;
 }

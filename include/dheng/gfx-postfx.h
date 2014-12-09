@@ -39,7 +39,7 @@ result_t gfX_pfx_downsample_resize(struct gfx_pfx_downsample* pfx, uint width, u
  * downsample 1/2 with depth
  */
 struct gfx_pfx_downsample* gfx_pfx_downsamplewdepth_create(uint width, uint height,
-    enum gfxFormat fmt, int depthpass_stencilvalue /*=-1*/);
+    gfxFormat fmt, int depthpass_stencilvalue /*=-1*/);
 void gfx_pfx_downsamplewdepth_destroy(struct gfx_pfx_downsample* pfx);
 gfx_texture gfx_pfx_downsamplewdepth_render(gfx_cmdqueue cmdqueue, struct gfx_pfx_downsample* pfx,
     const struct gfx_view_params* params, gfx_texture src_tex, gfx_texture src_depth,

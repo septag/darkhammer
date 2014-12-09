@@ -132,8 +132,8 @@ void Camera::frustum_planes(const Mat4 &viewproj, OUT Plane planes[6]) const
                 vp->m24 + vp->m22,
                 vp->m34 + vp->m32,
                 vp->m44 + vp->m42);
-    planes[(int)Camera::FrustumPlane::NEAR].set(vp->m13, vp->m23, vp->m33, vp->m43);
-    planes[(int)Camera::FrustumPlane::FAR].set(vp->m14-vp->m13, vp->m24-vp->m23, vp->m34-vp->m33,
+    planes[(int)Camera::FrustumPlane::PNEAR].set(vp->m13, vp->m23, vp->m33, vp->m43);
+    planes[(int)Camera::FrustumPlane::PFAR].set(vp->m14-vp->m13, vp->m24-vp->m23, vp->m34-vp->m33,
                                                vp->m44-vp->m43);
 
     // Normalize planes
@@ -370,14 +370,14 @@ CameraFPS* cam_fps_create(const vec4f *pos, const vec4f *lookat, float fnear, fl
     return cam;
 }
 
-void cam_fps_destroy(struct CameraFPS* cam)
+void cam_fps_destroy(CameraFPS* cam)
 {
     ASSERT(cam);
     mem_delete_aligned<CameraFPS>(cam);
 }
 
-void cam_fps_init(CameraFPS* cfps, const vec4f *pos, const vec4f *lookat,
-                  float fnear, float ffar, float fov)
+void cam_fps_init(CameraFPS* cfps, const vec4f *pos, const vec4f *lookat, float fnear, float ffar, 
+                  float fov)
 {
     cfps->set(Vec3(*pos), Vec3(*lookat), fnear, ffar, fov);
 }

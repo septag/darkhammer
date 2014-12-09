@@ -14,20 +14,21 @@
  ***********************************************************************************/
 #include <stdio.h>
 
-#include "debug-hud.h"
+#include "dheng/debug-hud.h"
+
 #include "dhcore/core.h"
 #include "dhcore/linked-list.h"
 #include "dhcore/timer.h"
 #include "dhcore/util.h"
 
-#include "gfx.h"
-#include "gfx-canvas.h"
-#include "gfx-font.h"
-#include "gfx-cmdqueue.h"
-#include "engine.h"
-#include "mem-ids.h"
-#include "console.h"
-#include "dhapp/input.h"
+#include "dheng/gfx.h"
+#include "dheng/gfx-canvas.h"
+#include "dheng/gfx-font.h"
+#include "dheng/gfx-cmdqueue.h"
+#include "dheng/engine.h"
+#include "dheng/console.h"
+
+#include "share/mem-ids.h"
 
 #define GRAPH_UPDATE_INTERVAL	0.05f
 
@@ -568,7 +569,7 @@ void hud_console_input(char c, inKey key)
 			idx --;	/* then continue to DELETE */
 		else
 			break;
-	case inKey::DELETE:
+	case inKey::DEL:
 		{
 			uint s = (uint)strlen(console->cmd);
 			if (idx < s)	{

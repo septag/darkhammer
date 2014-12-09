@@ -211,20 +211,20 @@ INLINE GLenum sampler_choose_minfiter(enum gfxFilterMode min_filter,
 		return GL_NEAREST;
 }
 
-INLINE const struct gfx_input_element* get_elem(enum gfx_input_element_id id)
+INLINE const struct gfx_input_element* get_elem(gfxInputElemId id)
 {
 	static const struct gfx_input_element elems[] = {
-			{GFX_INPUTELEMENT_ID_POSITION, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
-			{GFX_INPUTELEMENT_ID_NORMAL, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
-            {GFX_INPUTELEMENT_ID_TEXCOORD0, gfxInputElemFormat::FLOAT, 2, sizeof(struct vec2f)},
-			{GFX_INPUTELEMENT_ID_TANGENT, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
-			{GFX_INPUTELEMENT_ID_BINORMAL, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
-            {GFX_INPUTELEMENT_ID_BLENDINDEX, gfxInputElemFormat::INT, 4, sizeof(struct vec4i)},
-            {GFX_INPUTELEMENT_ID_BLENDWEIGHT, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
-			{GFX_INPUTELEMENT_ID_TEXCOORD1, gfxInputElemFormat::FLOAT, 2, sizeof(struct vec2f)},
-			{GFX_INPUTELEMENT_ID_TEXCOORD2, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
-			{GFX_INPUTELEMENT_ID_TEXCOORD3, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
-			{GFX_INPUTELEMENT_ID_COLOR, gfxInputElemFormat::FLOAT, 4, sizeof(struct color)}
+			{gfxInputElemId::POSITION, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+			{gfxInputElemId::NORMAL, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
+            {gfxInputElemId::TEXCOORD0, gfxInputElemFormat::FLOAT, 2, sizeof(struct vec2f)},
+			{gfxInputElemId::TANGENT, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
+			{gfxInputElemId::BINORMAL, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
+            {gfxInputElemId::BLENDINDEX, gfxInputElemFormat::INT, 4, sizeof(struct vec4i)},
+            {gfxInputElemId::BLENDWEIGHT, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+			{gfxInputElemId::TEXCOORD1, gfxInputElemFormat::FLOAT, 2, sizeof(struct vec2f)},
+			{gfxInputElemId::TEXCOORD2, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+			{gfxInputElemId::TEXCOORD3, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+			{gfxInputElemId::COLOR, gfxInputElemFormat::FLOAT, 4, sizeof(struct color)}
 	};
 	static const uint elem_cnt = sizeof(elems)/sizeof(struct gfx_input_element);
 
@@ -418,8 +418,8 @@ GLuint gfx_create_inputlayout_gl(const struct gfx_input_vbuff_desc* vbuffs,
         ASSERT(vb_idx < vbuff_cnt);
         glBindBuffer(GL_ARRAY_BUFFER, (GLuint)vbuffs[vb_idx].vbuff->api_obj);
 
-        enum gfx_input_element_id elem_id = inputs[i].id;
-        ASSERT(elem_id != GFX_INPUTELEMENT_ID_CNT);
+        gfxInputElemId elem_id = inputs[i].id;
+        ASSERT(elem_id != gfxInputElemId::COUNT);
         const struct gfx_input_element* elem = get_elem(elem_id);
         GLuint vert_att_idx = (uint)elem_id;
 

@@ -20,7 +20,7 @@
 #include "dhcore/types.h"
 #include "dhcore/vec-math.h"
 
-struct Camera;
+class Camera;
 
 // API Specific enums
 #if defined(_D3D_)
@@ -42,12 +42,12 @@ struct Camera;
 #define GFX_DRAWCALL_GROUP_COUNT 12
 
 // Render Passes
-#define GFX_RENDERPASS_SUNSHADOW 0 /* sun shadow render-path used for shadow casting objects */
+#define GFX_RENDERPASS_SUNSHADOW 0 
 #define GFX_RENDERPASS_SPOTSHADOW 1
 #define GFX_RENDERPASS_POINTSHADOW 2
-#define GFX_RENDERPASS_MIRROR 3 /* mirror render-path used for water and other reflection effects */
-#define GFX_RENDERPASS_PRIMARY 4 /* Primary render-path that is used for every drawable object */
-#define GFX_RENDERPASS_TRANSPARENT 5 /* transparent objects should use previous z-buffer and z-ordering*/
+#define GFX_RENDERPASS_MIRROR 3 
+#define GFX_RENDERPASS_PRIMARY 4 
+#define GFX_RENDERPASS_TRANSPARENT 5 
 #define GFX_RENDERPASS_MAX 6
 
 #define GFX_INPUT_OFFSET_PACKED INVALID_INDEX
@@ -240,7 +240,7 @@ struct gfx_device_info
 
 struct gfx_input_element
 {
-	enum gfx_input_element_id id;
+	gfxInputElemId id;
 	gfxInputElemFormat fmt;	/* format of single component */
 	int component_cnt;	/* number of components in element */
 	int stride;	/* can be 0 if it's packed */
@@ -248,7 +248,7 @@ struct gfx_input_element
 
 struct gfx_input_element_binding
 {
-	enum gfx_input_element_id id;
+	gfxInputElemId id;
 	const char* var_name;	/* variable name in the shader */
     uint vb_idx;  /* which vertex-buffer it belongs to */
     uint elem_offset; /* offset inside parent structure, this can be GFX_INPUT_OFFSET_PACKED */
@@ -408,8 +408,8 @@ struct gfx_obj_desc
 
         /* input-layouts */
         struct	{
-        	void* vbuffs[GFX_INPUTELEMENT_ID_CNT];	/* type = gfx_obj. any element can be NULL! */
-            uint strides[GFX_INPUTELEMENT_ID_CNT];
+        	void* vbuffs[gfxInputElemId::COUNT];	/* type = gfx_obj. any element can be NULL! */
+            uint strides[gfxInputElemId::COUNT];
             uint vbuff_cnt;
         	void* ibuff;	/* type = gfx_obj */
             gfxIndexType idxfmt;

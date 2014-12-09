@@ -32,7 +32,7 @@
 #include "gfx-types.h"
 
 /* fwd */
-struct Camera;
+class Camera;
 struct gfx_model_geo;
 
 /* enums/flags */

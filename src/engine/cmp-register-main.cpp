@@ -15,19 +15,19 @@
 
 #include "dhcore/core.h"
 
-#include "engine.h"
-#include "components/cmp-xform.h"
-#include "components/cmp-bounds.h"
-#include "components/cmp-model.h"
-#include "components/cmp-light.h"
-#include "components/cmp-lodmodel.h"
-#include "components/cmp-rbody.h"
-#include "components/cmp-trigger.h"
-#include "components/cmp-attachdock.h"
-#include "components/cmp-attachment.h"
-#include "components/cmp-anim.h"
-#include "components/cmp-animchar.h"
-#include "components/cmp-camera.h"
+#include "dheng/engine.h"
+#include "dheng/components/cmp-xform.h"
+#include "dheng/components/cmp-bounds.h"
+#include "dheng/components/cmp-model.h"
+#include "dheng/components/cmp-light.h"
+#include "dheng/components/cmp-lodmodel.h"
+#include "dheng/components/cmp-rbody.h"
+#include "dheng/components/cmp-trigger.h"
+#include "dheng/components/cmp-attachdock.h"
+#include "dheng/components/cmp-attachment.h"
+#include "dheng/components/cmp-anim.h"
+#include "dheng/components/cmp-animchar.h"
+#include "dheng/components/cmp-camera.h"
 
 result_t cmp_register_main_components()
 {
@@ -72,7 +72,7 @@ result_t cmp_register_main_components()
         return RET_FAIL;
 
     /* physics related */
-    if (!BIT_CHECK(eng_get_params()->flags, appEngineFlags::DISABLE_PHYSICS))    {
+    if (!BIT_CHECK(eng_get_params()->flags, static_cast<uint>(appEngineFlags::DISABLE_PHYSICS)))  {
         r = cmp_rbody_register(alloc);
         if (IS_FAIL(r))
             return RET_FAIL;

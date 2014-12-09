@@ -116,7 +116,7 @@ public:
 
     // Reel Accessor
     virtual reshandle_t reel() const = 0;
-    virtual void set_reel(reshandle_t reel_hdl) = 0;
+    virtual result_t set_reel(reshandle_t reel_hdl) = 0;
 
     // Update
     virtual void update(float tm, Allocator *tmp_alloc = mem_heap()) = 0;

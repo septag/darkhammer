@@ -192,14 +192,14 @@ struct canvas
 static struct canvas g_cvs;
 
 const struct gfx_input_element_binding canvas_shader2d_il[] = {
-    {GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
-    {GFX_INPUTELEMENT_ID_COLOR, "vsi_color", 0, GFX_INPUT_OFFSET_PACKED},
-    {GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
+    {gfxInputElemId::POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
+    {gfxInputElemId::COLOR, "vsi_color", 0, GFX_INPUT_OFFSET_PACKED},
+    {gfxInputElemId::TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
 };
 
 const struct gfx_input_element_binding canvas_shader3d_il[] = {
-    {GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
-    {GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED},
+    {gfxInputElemId::POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
+    {gfxInputElemId::TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED},
 };
 
 /*************************************************************************************************

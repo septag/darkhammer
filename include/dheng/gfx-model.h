@@ -77,7 +77,7 @@ struct gfx_model_geo
 	uint tri_cnt;
 	uint subset_cnt;
 	gfxIndexType ib_type;
-	uint vert_ids[GFX_INPUTELEMENT_ID_CNT];
+	uint vert_ids[gfxInputElemId::COUNT];
 
 	/* renderables */
 	gfx_buffer vbuffers[GFX_MODEL_BUFFER_CNT];

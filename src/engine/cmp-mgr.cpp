@@ -14,19 +14,21 @@
  ***********************************************************************************/
 
 #include <stdio.h>
+
+#include "dheng/cmp-mgr.h"
+
 #include "dhcore/core.h"
 #include "dhcore/array.h"
 #include "dhcore/pool-alloc.h"
 #include "dhcore/linked-list.h"
 #include "dhcore/hash-table.h"
 
-#include "cmp-mgr.h"
-#include "mem-ids.h"
-#include "gfx.h"
-#include "prf-mgr.h"
-#include "scene-mgr.h"
-#include "console.h"
-#include "engine.h"
+#include "share/mem-ids.h"
+#include "dheng/gfx.h"
+#include "dheng/prf-mgr.h"
+#include "dheng/scene-mgr.h"
+#include "dheng/console.h"
+#include "dheng/engine.h"
 
 #define CHAIN_POOLSIZE  1000
 
@@ -145,7 +147,7 @@ result_t cmp_initmgr()
     }
 
     /* console commands */
-    if (BIT_CHECK(eng_get_params()->flags, appEngineFlags::CONSOLE))   {
+    if (BIT_CHECK(eng_get_params()->flags, static_cast<uint>(appEngineFlags::CONSOLE)))   {
         con_register_cmd("debug", cmp_console_debug, NULL, "debug [obj-name] [component-name]");
         con_register_cmd("undebug", cmp_console_undebug, NULL, "undebug [obj-name] [component-name]");
     }

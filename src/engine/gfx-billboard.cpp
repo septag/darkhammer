@@ -70,10 +70,10 @@ result_t gfx_blb_init()
 {
     /* shaders, pass POSITION (FLOAT4) for bindings */
     const struct gfx_input_element_binding inputs[] = {
-        {GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
-        {GFX_INPUTELEMENT_ID_TEXCOORD2, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED},
-        {GFX_INPUTELEMENT_ID_TEXCOORD3, "vsi_billboard", 0, GFX_INPUT_OFFSET_PACKED},
-        {GFX_INPUTELEMENT_ID_COLOR, "vsi_color", 0, GFX_INPUT_OFFSET_PACKED}
+        {gfxInputElemId::POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
+        {gfxInputElemId::TEXCOORD2, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED},
+        {gfxInputElemId::TEXCOORD3, "vsi_billboard", 0, GFX_INPUT_OFFSET_PACKED},
+        {gfxInputElemId::COLOR, "vsi_color", 0, GFX_INPUT_OFFSET_PACKED}
     };
 
     g_blb.shader_id = gfx_shader_load("gfx-blb", eng_get_lsralloc(),

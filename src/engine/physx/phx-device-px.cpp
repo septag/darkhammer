@@ -1246,7 +1246,7 @@ struct phx_geo_gpu* phx_creategeo(const struct vec3f* verts, uint vert_cnt,
     }
 
     const struct gfx_input_element_binding inputs[] = {
-        {GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED}
+        {gfxInputElemId::POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED}
     };
 
     const struct gfx_input_vbuff_desc vbuffs[] = {

@@ -16,8 +16,12 @@
 #include <stdio.h>
 #include <time.h>
 
+#if HAVE_CONFIG_H
 #include "config.h"
-#include "engine.h"
+#endif
+
+#include "dheng/engine.h"
+
 #include "dhcore/core.h"
 #include "dhcore/timer.h"
 #include "dhcore/json.h"
@@ -25,26 +29,27 @@
 #include "dhcore/freelist-alloc.h"
 #include "dhcore/task-mgr.h"
 #include "dhcore/hwinfo.h"
+#include "dhcore/file-io.h"
+#include "dhcore/stack-alloc.h"
 
 #include "dhapp/input.h"
 
-#include "mem-ids.h"
-#include "gfx.h"
-#include "dhcore/file-io.h"
-#include "dhcore/stack-alloc.h"
-#include "res-mgr.h"
-#include "debug-hud.h"
-#include "console.h"
-#include "prf-mgr.h"
-#include "cmp-mgr.h"
-#include "scene-mgr.h"
-#include "script.h"
-#include "gfx-canvas.h"
-#include "gfx-cmdqueue.h"
-#include "lod-scheme.h"
-#include "phx.h"
-#include "world-mgr.h"
-#include "gfx-device.h"
+#include "share/mem-ids.h"
+
+#include "dheng/gfx.h"
+#include "dheng/res-mgr.h"
+#include "dheng/debug-hud.h"
+#include "dheng/console.h"
+#include "dheng/prf-mgr.h"
+#include "dheng/cmp-mgr.h"
+#include "dheng/scene-mgr.h"
+#include "dheng/script.h"
+#include "dheng/gfx-canvas.h"
+#include "dheng/gfx-cmdqueue.h"
+#include "dheng/lod-scheme.h"
+#include "dheng/phx.h"
+#include "dheng/world-mgr.h"
+#include "dheng/gfx-device.h"
 
 #if !defined(SHARE_DIR) && defined(_MSVC_)
   #include "sharedir.h"
@@ -166,7 +171,7 @@ result_t eng_init(const struct appInitParams* params)
     hw_getinfo(&g_eng->hwinfo, HWINFO_ALL);
 
     /* console (before anything else) */
-    if (BIT_CHECK(params->flags, appEngineFlags::CONSOLE))	{
+    if (BIT_CHECK(params->flags, static_cast<uint>(appEngineFlags::CONSOLE)))	{
 		r |= con_init(params->console_lines_max);
 		if (IS_FAIL(r))
 			return RET_FAIL;
@@ -218,7 +223,7 @@ result_t eng_init(const struct appInitParams* params)
 
     /* allocators */
     /* dynamic allocator for data in dev (editor) mode, stack allocator in game (normal) mode */
-    if (BIT_CHECK(params->flags, appEngineFlags::OPTIMIZE_MEMORY))   {
+    if (BIT_CHECK(params->flags, static_cast<uint>(appEngineFlags::OPTIMIZE_MEMORY)))   {
         /* lsr (load-stay-resident) allocator for essential engine data */
         r |= mem_stack_create(mem_heap(), &g_eng->lsr_stack, LSR_SIZE, MID_DATA);
         mem_stack_bindalloc(&g_eng->lsr_stack, &g_eng->lsr_alloc);
@@ -285,10 +290,10 @@ result_t eng_init(const struct appInitParams* params)
 
     uint rs_flags = 0;
     /* activate hot loading in DEV mode */
-    rs_flags |= BIT_CHECK(params->flags, appEngineFlags::CONSOLE) ? RS_FLAG_HOTLOADING : 0;
-    if (!BIT_CHECK(params->flags, appEngineFlags::DISABLE_BGLOAD))  {
+    rs_flags |= BIT_CHECK(params->flags, static_cast<uint>(appEngineFlags::CONSOLE)) ? 
+                RS_FLAG_HOTLOADING : 0;
+    if (!BIT_CHECK(params->flags, static_cast<uint>(appEngineFlags::DISABLE_BGLOAD)))  
         rs_flags |= RS_FLAG_PREPARE_BGLOAD;
-    }
 
     /* task manager */
     uint thread_cnt = maxui(g_eng->hwinfo.cpu_core_cnt - 1, 1);
@@ -316,14 +321,14 @@ result_t eng_init(const struct appInitParams* params)
     }
 
     /* debug HUD */
-    r = hud_init(BIT_CHECK(params->flags, appEngineFlags::CONSOLE));
+    r = hud_init(BIT_CHECK(params->flags, static_cast<uint>(appEngineFlags::CONSOLE)));
     if (IS_FAIL(r))	{
         err_print(__FILE__, __LINE__, "engine init failed: could not init debug-hud");
         return RET_FAIL;
     }
 
     /* Physics */
-    if (!BIT_CHECK(params->flags, appEngineFlags::DISABLE_PHYSICS)) {
+    if (!BIT_CHECK(params->flags, static_cast<uint>(appEngineFlags::DISABLE_PHYSICS))) {
         r = phx_init(params);
         if (IS_FAIL(r)) {
             err_print(__FILE__, __LINE__, "engine init failed: could not init physics");
@@ -354,7 +359,7 @@ result_t eng_init(const struct appInitParams* params)
     }
 
     /* init lua */
-    r = sct_init(&params->sct, BIT_CHECK(params->flags, appEngineFlags::CONSOLE) ? TRUE : FALSE);
+    r = sct_init(&params->sct, BIT_CHECK(params->flags, static_cast<uint>(appEngineFlags::CONSOLE)));
     if (IS_FAIL(r)) {
         err_print(__FILE__, __LINE__, "engine init failed: could not init script engine");
         return RET_FAIL;
@@ -401,7 +406,7 @@ result_t eng_init(const struct appInitParams* params)
     con_register_cmd("lockfps", eng_console_lockfps, NULL, "lockfps [fps]");
 
     /* execute console commands - should be the final stage if initialization */
-    if (BIT_CHECK(params->flags, appEngineFlags::CONSOLE))	{
+    if (BIT_CHECK(params->flags, static_cast<uint>(appEngineFlags::CONSOLE)))	{
 		for (uint i = 0; i < params->console_cmds_cnt; i++)	{
 			con_exec(params->console_cmds + i*128);
 		}
@@ -438,7 +443,7 @@ void eng_release()
         timer_destroyinstance(g_eng->timer);
 
     /* check for main memory leaks */
-    if (BIT_CHECK(g_eng->params.flags, appEngineFlags::CONSOLE))    {
+    if (BIT_CHECK(g_eng->params.flags, static_cast<uint>(appEngineFlags::CONSOLE)))    {
         int leak_cnt = mem_freelist_getleaks(&g_eng->data_freelist, NULL);
         if (leak_cnt > 0)
             log_printf(LOG_WARNING, "%d leaks found on dynamic 'data' memory", leak_cnt);
@@ -449,7 +454,7 @@ void eng_release()
 
     log_print(LOG_TEXT, "engine released.");
 
-	if (BIT_CHECK(g_eng->params.flags, appEngineFlags::CONSOLE))	{
+	if (BIT_CHECK(g_eng->params.flags, static_cast<uint>(appEngineFlags::CONSOLE)))	{
 		log_outputfunc(FALSE, NULL, NULL);
 		con_release();
 	}
@@ -473,7 +478,7 @@ void eng_update()
     g_eng->frame_stats.start_tick = start_tick;
 
     /* check for file changes (dev-mode) */
-    if (BIT_CHECK(g_eng->params.flags, appEngineFlags::CONSOLE))
+    if (BIT_CHECK(g_eng->params.flags, static_cast<uint>(appEngineFlags::CONSOLE)))
         fio_mon_update();
 
     /* update all timers */
@@ -486,7 +491,7 @@ void eng_update()
     rs_update();
 
     /* physics */
-    if (!BIT_CHECK(g_eng->params.flags, appEngineFlags::DISABLE_PHYSICS)) {
+    if (!BIT_CHECK(g_eng->params.flags, static_cast<uint>(appEngineFlags::DISABLE_PHYSICS))) {
         if (simulated)
             phx_wait();
         phx_update_xforms(simulated);   /* gather results */
@@ -496,7 +501,7 @@ void eng_update()
     sct_update();
 
     /* physics: run simulation */
-    if (!BIT_CHECK(g_eng->params.flags, appEngineFlags::DISABLE_PHYSICS))
+    if (!BIT_CHECK(g_eng->params.flags, static_cast<uint>(appEngineFlags::DISABLE_PHYSICS)))
         simulated = phx_update_sim(dt);
 
     /* update component system stages */
@@ -574,7 +579,7 @@ struct allocator* eng_get_dataalloc()
 void eng_get_memstats(struct eng_mem_stats* stats)
 {
     memset(stats, 0x00, sizeof(struct eng_mem_stats));
-    if (BIT_CHECK(g_eng->params.flags, appEngineFlags::OPTIMIZE_MEMORY)) {
+    if (BIT_CHECK(g_eng->params.flags, static_cast<uint>(appEngineFlags::OPTIMIZE_MEMORY))) {
         stats->data_max = g_eng->data_freelist.size;
         stats->data_size = g_eng->data_freelist.alloc_size;
         stats->lsr_max = g_eng->lsr_stack.size;

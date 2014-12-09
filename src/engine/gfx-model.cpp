@@ -40,7 +40,7 @@ int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
 int model_loadmtl(struct gfx_model_mtl* mtl, file_t f, struct allocator* alloc);
 int model_loadocc(struct gfx_model_occ* occ, file_t f, struct allocator* alloc);
 
-int model_checkvertid(const uint* vert_ids, uint vert_id_cnt, enum gfx_input_element_id id);
+int model_checkvertid(const uint* vert_ids, uint vert_id_cnt, gfxInputElemId id);
 gfx_buffer model_loadvbuffer(file_t f, uint vert_cnt, uint elem_sz, struct allocator* tmp_alloc,
                              uint thread_id);
 
@@ -59,7 +59,7 @@ const struct mat3f* model_loadmat_pq(struct mat3f* rm, const float* pos, const f
 const struct mat3f* model_loadmat(struct mat3f* rm, const float* f);
 
 int gfx_model_create_inputlayout(struct gfx_model_geo* geo);
-uint gfx_model_choose_elem_buffidx(enum gfx_input_element_id id, OUT uint* offset);
+uint gfx_model_choose_elem_buffidx(gfxInputElemId id, OUT uint* offset);
 size_t gfx_model_choose_vbuff_size(uint idx);
 
 /*************************************************************************************************
@@ -383,11 +383,11 @@ int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
 	/* vertices */
 	/* base data */
     int has_pos = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
-        GFX_INPUTELEMENT_ID_POSITION);
+        gfxInputElemId::POSITION);
     int has_norm = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
-        GFX_INPUTELEMENT_ID_NORMAL);
+        gfxInputElemId::NORMAL);
     int has_coord = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
-        GFX_INPUTELEMENT_ID_TEXCOORD0);
+        gfxInputElemId::TEXCOORD0);
 
 	if (has_pos | has_norm | has_coord)	{
 		geo->vbuffers[GFX_MODEL_BUFFER_BASE] =
@@ -396,17 +396,17 @@ int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
 		if (geo->vbuffers[GFX_MODEL_BUFFER_BASE] == NULL)
 			goto err_cleanup;
 	}
-    geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_POSITION;
+    geo->vert_ids[v_cnt++] = gfxInputElemId::POSITION;
 	if (has_norm)
-		geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_NORMAL;
+		geo->vert_ids[v_cnt++] = gfxInputElemId::NORMAL;
 	if (has_coord)
-		geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_TEXCOORD0;
+		geo->vert_ids[v_cnt++] = gfxInputElemId::TEXCOORD0;
 
     /* skin data */
     int has_bindex = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
-        GFX_INPUTELEMENT_ID_BLENDINDEX);
+        gfxInputElemId::BLENDINDEX);
     int has_bweight = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
-        GFX_INPUTELEMENT_ID_BLENDWEIGHT);
+        gfxInputElemId::BLENDWEIGHT);
     if (has_bindex | has_bweight)   {
         geo->vbuffers[GFX_MODEL_BUFFER_SKIN] = model_loadvbuffer(f, h3dgeo.vert_cnt,
             sizeof(struct h3d_vertex_skin), tmp_alloc, thread_id);
@@ -415,15 +415,15 @@ int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
     }
 
     if (has_bindex)
-        geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_BLENDINDEX;
+        geo->vert_ids[v_cnt++] = gfxInputElemId::BLENDINDEX;
     if (has_bweight)
-        geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_BLENDWEIGHT;
+        geo->vert_ids[v_cnt++] = gfxInputElemId::BLENDWEIGHT;
 
     /* normal-map coord data */
     int has_tangent = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
-        GFX_INPUTELEMENT_ID_TANGENT);
+        gfxInputElemId::TANGENT);
     int has_binorm = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
-        GFX_INPUTELEMENT_ID_BINORMAL);
+        gfxInputElemId::BINORMAL);
     if (has_tangent | has_binorm)   {
         geo->vbuffers[GFX_MODEL_BUFFER_NMAP] = model_loadvbuffer(f, h3dgeo.vert_cnt,
             sizeof(struct h3d_vertex_nmap), tmp_alloc, thread_id);
@@ -431,15 +431,15 @@ int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
             goto err_cleanup;
     }
     if (has_tangent)
-        geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_TANGENT;
+        geo->vert_ids[v_cnt++] = gfxInputElemId::TANGENT;
     if (has_binorm)
-        geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_BINORMAL;
+        geo->vert_ids[v_cnt++] = gfxInputElemId::BINORMAL;
 
     /* Extra data */
     int has_coord1 = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
-        GFX_INPUTELEMENT_ID_TEXCOORD1);
+        gfxInputElemId::TEXCOORD1);
     int has_color = model_checkvertid(h3dgeo.vert_ids, h3dgeo.vert_id_cnt,
-        GFX_INPUTELEMENT_ID_COLOR);
+        gfxInputElemId::COLOR);
     if (has_coord1 | has_color) {
         geo->vbuffers[GFX_MODEL_BUFFER_EXTRA] = model_loadvbuffer(f, h3dgeo.vert_cnt,
             sizeof(struct h3d_vertex_extra), tmp_alloc, thread_id);
@@ -447,9 +447,9 @@ int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
             goto err_cleanup;
     }
 	if (has_coord1)
-		geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_TEXCOORD1;
+		geo->vert_ids[v_cnt++] = gfxInputElemId::TEXCOORD1;
 	if (has_color)
-		geo->vert_ids[v_cnt++] = GFX_INPUTELEMENT_ID_COLOR;
+		geo->vert_ids[v_cnt++] = gfxInputElemId::COLOR;
 
 	/* skeleton */
 	if (h3dgeo.joint_cnt > 0)	{
@@ -491,10 +491,10 @@ int model_loadgeo(struct gfx_model_geo* geo, file_t f, struct allocator* alloc,
     uint buff_cnt = 0;
     uint input_cnt = geo->vert_id_cnt;
     struct gfx_input_vbuff_desc vbuffs[GFX_MODEL_BUFFER_CNT];
-    struct gfx_input_element_binding inputs[GFX_INPUTELEMENT_ID_CNT];
+    struct gfx_input_element_binding inputs[gfxInputElemId::COUNT];
 
     for (uint i = 0; i < input_cnt; i++)  {
-        inputs[i].id = (enum gfx_input_element_id)geo->vert_ids[i];
+        inputs[i].id = (gfxInputElemId)geo->vert_ids[i];
         inputs[i].vb_idx = gfx_model_choose_elem_buffidx(inputs[i].id, &inputs[i].elem_offset);
     }
 
@@ -540,7 +540,7 @@ const struct mat3f* model_loadmat(struct mat3f* rm, const float* f)
 }
 
 
-int model_checkvertid(const uint* vert_ids, uint vert_id_cnt, enum gfx_input_element_id id)
+int model_checkvertid(const uint* vert_ids, uint vert_id_cnt, gfxInputElemId id)
 {
 	for (uint i = 0; i < vert_id_cnt; i++)	{
 		if (vert_ids[i] == id)
@@ -1171,34 +1171,34 @@ void gfx_model_update_skin(struct gfx_model_posegpu* pose)
     }
 }
 
-uint gfx_model_choose_elem_buffidx(enum gfx_input_element_id id, OUT uint* offset)
+uint gfx_model_choose_elem_buffidx(gfxInputElemId id, OUT uint* offset)
 {
     switch (id) {
-    case GFX_INPUTELEMENT_ID_POSITION:
+    case gfxInputElemId::POSITION:
         *offset = offsetof(struct h3d_vertex_base, pos);
         return GFX_MODEL_BUFFER_BASE;
-    case GFX_INPUTELEMENT_ID_NORMAL:
+    case gfxInputElemId::NORMAL:
         *offset = offsetof(struct h3d_vertex_base, norm);
         return GFX_MODEL_BUFFER_BASE;
-    case GFX_INPUTELEMENT_ID_TEXCOORD0:
+    case gfxInputElemId::TEXCOORD0:
         *offset = offsetof(struct h3d_vertex_base, coord);
         return GFX_MODEL_BUFFER_BASE;
-    case GFX_INPUTELEMENT_ID_BLENDINDEX:
+    case gfxInputElemId::BLENDINDEX:
         *offset = offsetof(struct h3d_vertex_skin, indices);
         return GFX_MODEL_BUFFER_SKIN;
-    case GFX_INPUTELEMENT_ID_BLENDWEIGHT:
+    case gfxInputElemId::BLENDWEIGHT:
         *offset = offsetof(struct h3d_vertex_skin, weights);
         return GFX_MODEL_BUFFER_SKIN;
-    case GFX_INPUTELEMENT_ID_TANGENT:
+    case gfxInputElemId::TANGENT:
         *offset = offsetof(struct h3d_vertex_nmap, tangent);
         return GFX_MODEL_BUFFER_SKIN;
-    case GFX_INPUTELEMENT_ID_BINORMAL:
+    case gfxInputElemId::BINORMAL:
         *offset = offsetof(struct h3d_vertex_nmap, binorm);
         return GFX_MODEL_BUFFER_SKIN;
-    case GFX_INPUTELEMENT_ID_TEXCOORD1:
+    case gfxInputElemId::TEXCOORD1:
         *offset = offsetof(struct h3d_vertex_extra, coord2);
         return GFX_MODEL_BUFFER_EXTRA;
-    case GFX_INPUTELEMENT_ID_COLOR:
+    case gfxInputElemId::COLOR:
         *offset = offsetof(struct h3d_vertex_extra, color);
         return GFX_MODEL_BUFFER_EXTRA;
     default:

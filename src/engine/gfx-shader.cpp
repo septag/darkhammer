@@ -527,16 +527,16 @@ uint gfx_shader_add(const char* alias, uint binding_cnt, uint define_cnt, ...)
 {
 	ASSERT(g_shader_mgr.load_item.alloc != NULL);
 
-	struct gfx_input_element_binding bindings[GFX_INPUTELEMENT_ID_CNT];
+	struct gfx_input_element_binding bindings[gfxInputElemId::COUNT];
 	struct gfx_shader_define defines[16];
 
 	va_list args;
 	va_start(args, define_cnt);
 
 	/* make bindings */
-	ASSERT(binding_cnt < GFX_INPUTELEMENT_ID_CNT);
+	ASSERT(binding_cnt < gfxInputElemId::COUNT);
 	for (uint i = 0; i < binding_cnt; i++)	{
-		bindings[i].id = (enum gfx_input_element_id)va_arg(args, unsigned int);
+		bindings[i].id = (gfxInputElemId)va_arg(args, unsigned int);
 		bindings[i].var_name = va_arg(args, const char*);
         bindings[i].vb_idx = va_arg(args, uint);
         bindings[i].elem_offset = GFX_INPUT_OFFSET_PACKED;

@@ -883,22 +883,22 @@ struct geo_ext* import_create_geo(const struct aiScene* scene, const uint* mesh_
 
         /* base group */
         ASSERT(submesh->mVertices != NULL);
-        vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, GFX_INPUTELEMENT_ID_POSITION);
+        vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, gfxInputElemId::POSITION);
         if (geo->vbase == NULL) {
             geo->vbase =
                 (struct h3d_vertex_base*)ALIGNED_ALLOC(sizeof(struct h3d_vertex_base)*vert_cnt, 0);
         }
 
         if (submesh->mNormals != NULL)
-	        vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, GFX_INPUTELEMENT_ID_NORMAL);
+	        vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, gfxInputElemId::NORMAL);
 
         if (submesh->mTextureCoords[0] != NULL)
-            vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, GFX_INPUTELEMENT_ID_TEXCOORD0);
+            vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, gfxInputElemId::TEXCOORD0);
 
         /* skinning group */
         if (submesh->mBones != NULL && submesh->mNumBones > 0)	{
-            vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, GFX_INPUTELEMENT_ID_BLENDWEIGHT);
-            vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, GFX_INPUTELEMENT_ID_BLENDINDEX);
+            vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, gfxInputElemId::BLENDWEIGHT);
+            vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, gfxInputElemId::BLENDINDEX);
 
             if (geo->vskin == NULL) {
                 geo->vskin = (struct h3d_vertex_skin*)
@@ -909,8 +909,8 @@ struct geo_ext* import_create_geo(const struct aiScene* scene, const uint* mesh_
 
         /* normal-map group */
 		if (submesh->mTangents != NULL && submesh->mBitangents != NULL) {
-			vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, GFX_INPUTELEMENT_ID_TANGENT);
-			vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, GFX_INPUTELEMENT_ID_BINORMAL);
+			vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, gfxInputElemId::TANGENT);
+			vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, gfxInputElemId::BINORMAL);
 			if (geo->vnmap == NULL) {
 				geo->vnmap = (struct h3d_vertex_nmap*)
                     ALIGNED_ALLOC(sizeof(struct h3d_vertex_nmap)*vert_cnt, 0);
@@ -926,10 +926,10 @@ struct geo_ext* import_create_geo(const struct aiScene* scene, const uint* mesh_
         }
 
 		if (submesh->mTextureCoords[1] != NULL)
-			vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, GFX_INPUTELEMENT_ID_TEXCOORD1);
+			vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, gfxInputElemId::TEXCOORD1);
 
 		if (submesh->mColors[0] != NULL)
-			vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, GFX_INPUTELEMENT_ID_COLOR);
+			vid_cnt = import_addvertid(geo->g.vert_ids, vid_cnt, gfxInputElemId::COLOR);
 	}
 
 	/* joint data and temp memory for bone referencing */

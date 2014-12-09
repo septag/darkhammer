@@ -696,19 +696,19 @@ int deferred_load_gbuffer_shaders(struct allocator* alloc)
         2, "shaders/df-common.inc", "shaders/skin.inc");
     /* raw (nothing) */
     r = deferred_addshader(gfx_shader_add("def-raw", 3, 1,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
         "_MAX_INSTANCES_", max_instances_str),
         GFX_RPATH_RAW, DEFERRED_SHADERGROUP_GBUFFER);
     if (!r)   return FALSE;
     /* raw - skinned */
     r = deferred_addshader(gfx_shader_add("def-s", 5, 3,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
-        GFX_INPUTELEMENT_ID_BLENDINDEX, "vsi_blendidxs", 1,
-        GFX_INPUTELEMENT_ID_BLENDWEIGHT, "vsi_blendweights", 1,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
+        gfxInputElemId::BLENDINDEX, "vsi_blendidxs", 1,
+        gfxInputElemId::BLENDWEIGHT, "vsi_blendweights", 1,
         "_MAX_INSTANCES_", max_instances_str,
         "_SKIN_", "1",
         "_MAX_BONES_", max_bones_str),
@@ -716,31 +716,31 @@ int deferred_load_gbuffer_shaders(struct allocator* alloc)
     if (!r)   return FALSE;
     /* diffusemap */
     r = deferred_addshader(gfx_shader_add("def-d", 3, 2,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
         "_DIFFUSEMAP_", "1",
         "_MAX_INSTANCES_", max_instances_str),
         GFX_RPATH_RAW|GFX_RPATH_DIFFUSEMAP, DEFERRED_SHADERGROUP_GBUFFER);
     if (!r)   return FALSE;
     /* diffusemap - skinned */
     r = deferred_addshader(gfx_shader_add("def-ds", 5, 4,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
-        GFX_INPUTELEMENT_ID_BLENDINDEX, "vsi_blendidxs", 1,
-        GFX_INPUTELEMENT_ID_BLENDWEIGHT, "vsi_blendweights", 1,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
+        gfxInputElemId::BLENDINDEX, "vsi_blendidxs", 1,
+        gfxInputElemId::BLENDWEIGHT, "vsi_blendweights", 1,
         "_MAX_INSTANCES_", max_instances_str, "_DIFFUSEMAP_", "1", "_SKIN_", "1",
         "_MAX_BONES_", max_bones_str),
         GFX_RPATH_RAW|GFX_RPATH_DIFFUSEMAP|GFX_RPATH_SKINNED, DEFERRED_SHADERGROUP_GBUFFER);
     if (!r)   return FALSE;
     /* diffusemap - skinned - alphamap */
     r = deferred_addshader(gfx_shader_add("def-dsa", 5, 5,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
-        GFX_INPUTELEMENT_ID_BLENDINDEX, "vsi_blendidxs", 1,
-        GFX_INPUTELEMENT_ID_BLENDWEIGHT, "vsi_blendweights", 1,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
+        gfxInputElemId::BLENDINDEX, "vsi_blendidxs", 1,
+        gfxInputElemId::BLENDWEIGHT, "vsi_blendweights", 1,
         "_MAX_INSTANCES_", max_instances_str,
         "_DIFFUSEMAP_", "1",
         "_SKIN_", "1",
@@ -751,11 +751,11 @@ int deferred_load_gbuffer_shaders(struct allocator* alloc)
     if (!r)   return FALSE;
     /* diffusemap - normalmap */
     r = deferred_addshader(gfx_shader_add("def-dn", 5, 3,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
-        GFX_INPUTELEMENT_ID_TANGENT, "vsi_tangent", 1,
-        GFX_INPUTELEMENT_ID_BINORMAL, "vsi_binorm", 1,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
+        gfxInputElemId::TANGENT, "vsi_tangent", 1,
+        gfxInputElemId::BINORMAL, "vsi_binorm", 1,
         "_MAX_INSTANCES_", max_instances_str,
         "_DIFFUSEMAP_", "1",
         "_NORMALMAP_", "1"),
@@ -764,11 +764,11 @@ int deferred_load_gbuffer_shaders(struct allocator* alloc)
     if (!r)   return FALSE;
     /* diffusemap - normalmap - alphamap */
     r = deferred_addshader(gfx_shader_add("def-dna", 5, 4,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
-        GFX_INPUTELEMENT_ID_TANGENT, "vsi_tangent", 1,
-        GFX_INPUTELEMENT_ID_BINORMAL, "vsi_binorm", 1,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
+        gfxInputElemId::TANGENT, "vsi_tangent", 1,
+        gfxInputElemId::BINORMAL, "vsi_binorm", 1,
         "_MAX_INSTANCES_", max_instances_str,
         "_DIFFUSEMAP_", "1",
         "_NORMALMAP_", "1",
@@ -778,13 +778,13 @@ int deferred_load_gbuffer_shaders(struct allocator* alloc)
     if (!r)   return FALSE;
     /* diffusemap - normalmap - skinned */
     r = deferred_addshader(gfx_shader_add("def-dnsk", 7, 5,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
-        GFX_INPUTELEMENT_ID_TANGENT, "vsi_tangent", 2,
-        GFX_INPUTELEMENT_ID_BINORMAL, "vsi_binorm", 2,
-        GFX_INPUTELEMENT_ID_BLENDINDEX, "vsi_blendidxs", 1,
-        GFX_INPUTELEMENT_ID_BLENDWEIGHT, "vsi_blendweights", 1,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
+        gfxInputElemId::TANGENT, "vsi_tangent", 2,
+        gfxInputElemId::BINORMAL, "vsi_binorm", 2,
+        gfxInputElemId::BLENDINDEX, "vsi_blendidxs", 1,
+        gfxInputElemId::BLENDWEIGHT, "vsi_blendweights", 1,
         "_MAX_INSTANCES_", max_instances_str,
         "_DIFFUSEMAP_", "1",
         "_NORMALMAP_", "1",
@@ -795,13 +795,13 @@ int deferred_load_gbuffer_shaders(struct allocator* alloc)
     if (!r)   return FALSE;
     /* diffusemap - normalmap - skinned - alphamap */
     r = deferred_addshader(gfx_shader_add("def-dnsa", 7, 6,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
-        GFX_INPUTELEMENT_ID_TANGENT, "vsi_tangent", 2,
-        GFX_INPUTELEMENT_ID_BINORMAL, "vsi_binorm", 2,
-        GFX_INPUTELEMENT_ID_BLENDINDEX, "vsi_blendidxs", 1,
-        GFX_INPUTELEMENT_ID_BLENDWEIGHT, "vsi_blendweights", 1,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
+        gfxInputElemId::TANGENT, "vsi_tangent", 2,
+        gfxInputElemId::BINORMAL, "vsi_binorm", 2,
+        gfxInputElemId::BLENDINDEX, "vsi_blendidxs", 1,
+        gfxInputElemId::BLENDWEIGHT, "vsi_blendweights", 1,
         "_MAX_INSTANCES_", max_instances_str,
         "_DIFFUSEMAP_", "1",
         "_NORMALMAP_", "1",
@@ -813,11 +813,11 @@ int deferred_load_gbuffer_shaders(struct allocator* alloc)
     if (!r)   return FALSE;
     /* normalmap */
     r = deferred_addshader(gfx_shader_add("def-n", 5, 2,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
-        GFX_INPUTELEMENT_ID_TANGENT, "vsi_tangent", 1,
-        GFX_INPUTELEMENT_ID_BINORMAL, "vsi_binorm", 1,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
+        gfxInputElemId::TANGENT, "vsi_tangent", 1,
+        gfxInputElemId::BINORMAL, "vsi_binorm", 1,
         "_MAX_INSTANCES_", max_instances_str,
         "_NORMALMAP_", "1"),
         GFX_RPATH_RAW|GFX_RPATH_NORMALMAP,
@@ -1080,52 +1080,52 @@ int deferred_load_prev_shaders(struct allocator* alloc)
         "shaders/df-common.inc", "shaders/common.inc");
     g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_ALBEDO] =
         gfx_shader_add("gbuff-prev-albedo", 2, 1,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
         "_VIEWALBEDO_", "1");
     if (g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_ALBEDO] == 0)
         return FALSE;
 
     g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_SPECULAR] =
         gfx_shader_add("gbuff-prev-specular", 2, 1,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
         "_VIEWSPECULARMUL_", "1");
     if (g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_SPECULAR] == 0)
         return FALSE;
 
     g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_NORMALS] =
         gfx_shader_add("gbuff-prev-normals", 2, 1,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
         "_VIEWNORMALS_", "1");
     if (g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_NORMALS] == 0)
         return FALSE;
     g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_NORMALS_NOMAP] =
         gfx_shader_add("gbuff-prev-normalsnomap", 2, 1,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
         "_VIEWNORMALSNOMAP_", "1");
     if (g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_NORMALS_NOMAP] == 0)
         return FALSE;
     g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_DEPTH] =
         gfx_shader_add("gbuff-prev-depth", 2, 1,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
         "_VIEWDEPTH_", "1");
     if (g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_DEPTH] == 0)
         return FALSE;
     g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_MTL] =
         gfx_shader_add("gbuff-prev-mtl", 2, 1,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
         "_VIEWMTL_", "1");
     if (g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_MTL] == 0)
         return FALSE;
     g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_GLOSS] =
         gfx_shader_add("gbuff-prev-gloss", 2, 1,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
         "_VIEWGLOSS_", "1");
     if (g_deferred->prev_shaders[GFX_DEFERRED_PREVIEW_GLOSS] == 0)
         return FALSE;
@@ -1305,8 +1305,8 @@ int deferred_load_light_shaders(struct allocator* alloc)
     gfx_shader_beginload(alloc, "shaders/fsq-pos.vs", "shaders/df-light.ps", NULL, 2,
         "shaders/df-common.inc", "shaders/brdf.inc");
     r = deferred_addshader(gfx_shader_add("dlight-sun", 2, 2,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
         "_MAX_MTLS_", mtlsmax,
         "_SUN_LIGHTING_", "1"),
         0, DEFERRED_SHADERGROUP_LIGHT);
@@ -1317,8 +1317,8 @@ int deferred_load_light_shaders(struct allocator* alloc)
     gfx_shader_beginload(alloc, "shaders/df-light.vs", "shaders/df-light.ps", NULL, 2,
         "shaders/df-common.inc", "shaders/brdf.inc");
     r = deferred_addshader(gfx_shader_add("dlight-local", 2, 5,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
         "_MAX_MTLS_", mtlsmax,
         "_LOCAL_LIGHTING_", "1",
         "_MAX_LIGHTS_", lightsmax,
@@ -2088,8 +2088,8 @@ result_t deferred_createtilequad()
         return RET_FAIL;
 
     const struct gfx_input_element_binding inputs[] = {
-        {GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
-        {GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
+        {gfxInputElemId::POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
+        {gfxInputElemId::TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
     };
 
     const struct gfx_input_vbuff_desc vbuffs[] = {

@@ -44,8 +44,8 @@ public:
         RIGHT = 1,
         TOP = 2,
         BOTTOM = 3,
-        NEAR = 4,
-        FAR = 5
+        PNEAR = 4,
+        PFAR = 5
     };
 
 protected:
@@ -204,10 +204,10 @@ ENGINE_API void cam_strafe(Camera *cam, float dx);
 class ALIGN16 CameraFPS : public Camera
 {
 private:
-    inKey _fwd_keys[2] = {inKey::UP, inKey::W};
-    inKey _back_keys[2] = {inKey::DOWN, inKey::S};
-    inKey _strafe_left_keys[2] = {inKey::LEFT, inKey::A};
-    inKey _strafe_right_keys[2] = {inKey::RIGHT, inKey::D};
+    inKey _fwd_keys[2];
+    inKey _back_keys[2];
+    inKey _strafe_left_keys[2];
+    inKey _strafe_right_keys[2];
 
     // Speed
     float _rotate_speed = 0.005f;
@@ -223,7 +223,17 @@ private:
     dh::Vec3 _spos = dh::Vec3::Zero;
 
 public:
-    CameraFPS() = default;
+    CameraFPS()
+    {
+        _fwd_keys[0] = inKey::UP;
+        _fwd_keys[1] = inKey::W;
+        _back_keys[0] = inKey::DOWN;
+        _back_keys[1] = inKey::S;
+        _strafe_left_keys[0] = inKey::LEFT;
+        _strafe_left_keys[1] = inKey::A;
+        _strafe_right_keys[0] = inKey::RIGHT; 
+        _strafe_right_keys[1] = inKey::D;
+    }
 
     void set_rotate_speed(float speed);
     void set_move_speed(float speed);
@@ -352,6 +362,6 @@ ENGINE_API void cam_fps_set_smoothing(CameraFPS *cfps, bool smooth);
  * @param dt Delta time between current frame and the previous frame (in seconds)
  * @ingroup cam
  */
-ENGINE_API void cam_fps_updateinput(struct CameraFPS *cfps, float dx, float dy, float dt);
+ENGINE_API void cam_fps_updateinput(CameraFPS *cfps, float dx, float dy, float dt);
 
 #endif /* CAMERA_H */

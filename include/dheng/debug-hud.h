@@ -17,10 +17,11 @@
 #define DEBUG_HUD_H_
 
 #include "dhcore/types.h"
+
+#include "dhapp/input.h"
+
 #include "gfx-types.h"
 #include "gui.h"
-
-inKey;
 
 /**
  * callback for rendering label items

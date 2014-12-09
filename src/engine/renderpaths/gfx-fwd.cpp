@@ -75,15 +75,15 @@ result_t gfx_fwd_init(uint width, uint height)
 	gfx_shader_beginload(lsr_alloc, "shaders/fwd.vs", "shaders/fwd.ps", NULL, 2,
         "shaders/common.inc", "shaders/skin.inc");
 	g_fwd->shaderid_raw = gfx_shader_add("fwd-raw", 3, 1,
-			GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-			GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-			GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
+			gfxInputElemId::POSITION, "vsi_pos", 0,
+			gfxInputElemId::NORMAL, "vsi_norm", 0,
+			gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
             "_MAX_INSTANCES_", max_instances_str);
 
 	g_fwd->shaderid_diffmap = gfx_shader_add("fwd-diffmap", 3, 2,
-			GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-			GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-			GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord0", 0,
+			gfxInputElemId::POSITION, "vsi_pos", 0,
+			gfxInputElemId::NORMAL, "vsi_norm", 0,
+			gfxInputElemId::TEXCOORD0, "vsi_coord0", 0,
 			"_DIFFUSEMAP_", "1",
             "_MAX_INSTANCES_", max_instances_str);
 	gfx_shader_endload();

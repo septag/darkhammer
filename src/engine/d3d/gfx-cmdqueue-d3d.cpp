@@ -47,7 +47,7 @@ struct gfx_cmdqueue_s
     gfx_rasterstate default_raster;
     gfx_blendstate default_blend;
     gfx_rendertarget cur_rt;
-    uint input_bindings[GFX_INPUTELEMENT_ID_CNT];
+    uint input_bindings[gfxInputElemId::COUNT];
     uint input_binding_cnt;
 
     uint blit_shaderid;   /* blit shader is used for d3d10.0 spec */
@@ -198,8 +198,8 @@ result_t gfx_initcmdqueue(gfx_cmdqueue cmdqueue)
         }
 
         const struct gfx_input_element_binding bindings[] = {
-            {GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
-            {GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
+            {gfxInputElemId::POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
+            {gfxInputElemId::TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
         };
         cmdqueue->blit_shaderid = gfx_shader_load("blit-raw", eng_get_lsralloc(),
             "shaders/fsq.vs", "shaders/blit-raw.ps", NULL,
@@ -240,9 +240,9 @@ void gfx_input_setlayout(gfx_cmdqueue cmdqueue, gfx_inputlayout inputlayout)
     ASSERT(inputlayout->type == GFX_OBJ_INPUTLAYOUT);
 
     /* vertex buffers */
-    ID3D11Buffer* vbs[GFX_INPUTELEMENT_ID_CNT];
-    uint offsets[GFX_INPUTELEMENT_ID_CNT];
-    uint strides[GFX_INPUTELEMENT_ID_CNT];
+    ID3D11Buffer* vbs[gfxInputElemId::COUNT];
+    uint offsets[gfxInputElemId::COUNT];
+    uint strides[gfxInputElemId::COUNT];
     uint vb_cnt = inputlayout->desc.il.vbuff_cnt;
 
     for (uint i = 0; i < vb_cnt; i++) {

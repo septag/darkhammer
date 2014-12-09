@@ -203,8 +203,8 @@ struct gfx_pfx_downsample* gfx_pfx_downsamplewdepth_create(uint width, uint heig
      struct allocator* lsr_alloc = eng_get_lsralloc();
      gfx_shader_beginload(lsr_alloc, "shaders/fsq.vs", "shaders/downsample-depth.ps", NULL, 0);
      pfx->shader_id = gfx_shader_add("pfx-downsamplewdepth", 2, 0,
-         GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-         GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0);
+         gfxInputElemId::POSITION, "vsi_pos", 0,
+         gfxInputElemId::TEXCOORD0, "vsi_coord", 0);
      gfx_shader_endload();
      if (pfx->shader_id == 0)   {
          err_print(__FILE__, __LINE__, "pfx-downsamplewdepth failed: could not load shaders");
@@ -361,8 +361,8 @@ struct gfx_pfx_ssao* gfx_pfx_ssao_create(uint width, uint height,
     gfx_shader_beginload(eng_get_lsralloc(), "shaders/fsq.vs", "shaders/ssao.ps", NULL, 1,
         "shaders/df-common.inc");
     pfx->shader_id = gfx_shader_add("pfx-ssao", 2, 1,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
         "_PASSCNT_", passcnt);
     gfx_shader_endload();
     if (pfx->shader_id == 0)    {
@@ -580,8 +580,8 @@ struct gfx_pfx_upsample* gfx_pfx_upsamplebilateral_create(uint width, uint heigh
     gfx_shader_beginload(eng_get_lsralloc(), "shaders/fsq.vs", "shaders/upsample-bilateral.ps",
         NULL, 1, "shaders/df-common.inc");
     pfx->shader_id = gfx_shader_add("pfx-upsampleb", 2, 0,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0);
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0);
     gfx_shader_endload();
     if (pfx->shader_id == 0)    {
         err_print(__FILE__, __LINE__, "pfx-upsample-b init failed: could not create shaders");
@@ -734,8 +734,8 @@ struct gfx_pfx_shadow* gfx_pfx_shadowcsm_create(uint width, uint height,
     if (hwver != appGfxDeviceVersion::D3D10_0 && hwver != appGfxDeviceVersion::GL3_2 && hwver != appGfxDeviceVersion::GL3_3) {
         pfx->shader_id =
             gfx_shader_add("df-csm", 2, 1,
-            GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-            GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+            gfxInputElemId::POSITION, "vsi_pos", 0,
+            gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
             "_CASCADE_CNT_", cascadecnt);
         if (pfx->shader_id == 0)    {
             gfx_pfx_shadowcsm_destroy(pfx);
@@ -744,8 +744,8 @@ struct gfx_pfx_shadow* gfx_pfx_shadowcsm_create(uint width, uint height,
 
         pfx->prev_shaderid =
             gfx_shader_add("df-csm-prev", 2, 2,
-            GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-            GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+            gfxInputElemId::POSITION, "vsi_pos", 0,
+            gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
             "_PREVIEW_", "1",
             "_CASCADE_CNT_", cascadecnt);
         if (pfx->prev_shaderid == 0)   {
@@ -755,8 +755,8 @@ struct gfx_pfx_shadow* gfx_pfx_shadowcsm_create(uint width, uint height,
     }   else    {
         pfx->shader_id =
             gfx_shader_add("df-csm", 2, 2,
-            GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-            GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+            gfxInputElemId::POSITION, "vsi_pos", 0,
+            gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
             "_CASCADE_CNT_", cascadecnt, "_D3D10_", "1");
         if (pfx->shader_id == 0)    {
             gfx_pfx_shadowcsm_destroy(pfx);
@@ -765,8 +765,8 @@ struct gfx_pfx_shadow* gfx_pfx_shadowcsm_create(uint width, uint height,
 
         pfx->prev_shaderid =
             gfx_shader_add("df-csm-prev", 2, 3,
-            GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-            GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+            gfxInputElemId::POSITION, "vsi_pos", 0,
+            gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
             "_PREVIEW_", "1", "_CASCADE_CNT_", cascadecnt, "_D3D10_", "1");
         if (pfx->prev_shaderid == 0)   {
             gfx_pfx_shadowcsm_destroy(pfx);
@@ -1030,8 +1030,8 @@ struct gfx_pfx_tonemap* gfx_pfx_tonemap_create(uint width, uint height, float mi
     /* shaders */
     struct allocator* alloc = eng_get_lsralloc();
     const struct gfx_input_element_binding bindings[] = {
-        {GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
-        {GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
+        {gfxInputElemId::POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
+        {gfxInputElemId::TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
     };
     const struct gfx_shader_define bright_defines[] = {
         {"_BRIGHTPASS_", "1"}
@@ -1435,8 +1435,8 @@ struct gfx_pfx_fxaa* gfx_pfx_fxaa_create(uint width, uint height)
 
     /* construct defines/bindings */
     const struct gfx_input_element_binding bindings[] = {
-        {GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
-        {GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
+        {gfxInputElemId::POSITION, "vsi_pos", 0, GFX_INPUT_OFFSET_PACKED},
+        {gfxInputElemId::TEXCOORD0, "vsi_coord", 0, GFX_INPUT_OFFSET_PACKED}
     };
 
     struct gfx_shader_define defines[4];

@@ -14,7 +14,6 @@
  ***********************************************************************************/
 
 #include "dhcore/core.h"
-#include "dhcore/mt.h"
 
 #if defined(_D3D_)
 
@@ -30,18 +29,18 @@
 #include <D3Dcommon.h>
 
 #include "dhcore/win.h"
-
+#include "dhcore/mt.h"
 #include "dhapp/app.h"
-
 
 #include "dhcore/pool-alloc.h"
 #include "dhcore/color.h"
 
-#include "gfx-device.h"
-#include "gfx-cmdqueue.h"
-#include "mem-ids.h"
-#include "gfx.h"
-#include "gfx-texture.h"
+#include "dheng/gfx-device.h"
+#include "dheng/gfx-cmdqueue.h"
+#include "dheng/gfx.h"
+#include "dheng/gfx-texture.h"
+
+#include "dhcore/mt.h"
 
 
 #if !defined(RELEASE)
@@ -209,7 +208,7 @@ INLINE void shader_output_error(const char* err_desc)
     err_print(__FILE__, __LINE__, err_info);
 }
 
-INLINE const D3D11_INPUT_ELEMENT_DESC* shader_get_element_byid(enum gfx_input_element_id id)
+INLINE const D3D11_INPUT_ELEMENT_DESC* shader_get_element_byid(gfxInputElemId id)
 {
     static const D3D11_INPUT_ELEMENT_DESC elem_pos = {
         "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,
@@ -246,27 +245,27 @@ INLINE const D3D11_INPUT_ELEMENT_DESC* shader_get_element_byid(enum gfx_input_el
         D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 };
 
     switch (id) {
-    case GFX_INPUTELEMENT_ID_POSITION:
+    case gfxInputElemId::POSITION:
         return &elem_pos;
-    case GFX_INPUTELEMENT_ID_NORMAL:
+    case gfxInputElemId::NORMAL:
         return &elem_norm;
-    case GFX_INPUTELEMENT_ID_TANGENT:
+    case gfxInputElemId::TANGENT:
         return &elem_tangent;
-    case GFX_INPUTELEMENT_ID_BINORMAL:
+    case gfxInputElemId::BINORMAL:
         return &elem_binorm;
-    case GFX_INPUTELEMENT_ID_TEXCOORD0:
+    case gfxInputElemId::TEXCOORD0:
         return &elem_coord0;
-    case GFX_INPUTELEMENT_ID_TEXCOORD1:
+    case gfxInputElemId::TEXCOORD1:
         return &elem_coord1;
-    case GFX_INPUTELEMENT_ID_TEXCOORD2:
+    case gfxInputElemId::TEXCOORD2:
         return &elem_coord2;
-    case GFX_INPUTELEMENT_ID_TEXCOORD3:
+    case gfxInputElemId::TEXCOORD3:
         return &elem_coord3;
-    case GFX_INPUTELEMENT_ID_COLOR:
+    case gfxInputElemId::COLOR:
         return &elem_color;
-    case GFX_INPUTELEMENT_ID_BLENDINDEX:
+    case gfxInputElemId::BLENDINDEX:
         return &elem_index;
-    case GFX_INPUTELEMENT_ID_BLENDWEIGHT:
+    case gfxInputElemId::BLENDWEIGHT:
         return &elem_weight;
     default:
         return NULL;
@@ -303,22 +302,22 @@ INLINE DXGI_FORMAT texture_get_srvfmt(enum gfxFormat fmt)
     }
 }
 
-INLINE const struct gfx_input_element* get_elem(enum gfx_input_element_id id)
+INLINE const struct gfx_input_element* get_elem(gfxInputElemId id)
 {
     static const struct gfx_input_element elems[] = {
-        {GFX_INPUTELEMENT_ID_POSITION, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
-        {GFX_INPUTELEMENT_ID_NORMAL, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
-        {GFX_INPUTELEMENT_ID_TEXCOORD0, gfxInputElemFormat::FLOAT, 2, sizeof(struct vec2f)},
-        {GFX_INPUTELEMENT_ID_TANGENT, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
-        {GFX_INPUTELEMENT_ID_BINORMAL, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
-        {GFX_INPUTELEMENT_ID_BLENDINDEX, gfxInputElemFormat::INT, 4, sizeof(struct vec4i)},
-        {GFX_INPUTELEMENT_ID_BLENDWEIGHT, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
-        {GFX_INPUTELEMENT_ID_TEXCOORD1, gfxInputElemFormat::FLOAT, 2, sizeof(struct vec2f)},
-        {GFX_INPUTELEMENT_ID_TEXCOORD2, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
-        {GFX_INPUTELEMENT_ID_TEXCOORD3, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
-        {GFX_INPUTELEMENT_ID_COLOR, gfxInputElemFormat::FLOAT, 4, sizeof(struct color)}
+        {gfxInputElemId::POSITION, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+        {gfxInputElemId::NORMAL, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
+        {gfxInputElemId::TEXCOORD0, gfxInputElemFormat::FLOAT, 2, sizeof(struct vec2f)},
+        {gfxInputElemId::TANGENT, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
+        {gfxInputElemId::BINORMAL, gfxInputElemFormat::FLOAT, 3, sizeof(struct vec4f)},
+        {gfxInputElemId::BLENDINDEX, gfxInputElemFormat::INT, 4, sizeof(struct vec4i)},
+        {gfxInputElemId::BLENDWEIGHT, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+        {gfxInputElemId::TEXCOORD1, gfxInputElemFormat::FLOAT, 2, sizeof(struct vec2f)},
+        {gfxInputElemId::TEXCOORD2, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+        {gfxInputElemId::TEXCOORD3, gfxInputElemFormat::FLOAT, 4, sizeof(struct vec4f)},
+        {gfxInputElemId::COLOR, gfxInputElemFormat::FLOAT, 4, sizeof(struct color)}
     };
-    static const uint elem_cnt = GFX_INPUTELEMENT_ID_CNT;
+    static const uint elem_cnt = gfxInputElemId::COUNT;
 
     for (uint i = 0; i < elem_cnt; i++)	{
         if (id == elems[i].id)
@@ -1501,8 +1500,8 @@ ID3D11InputLayout* gfx_create_inputlayout_fromshader(const void* vs_data, uint v
                                                      const struct gfx_input_element_binding* bindings,
                                                      uint binding_cnt)
 {
-    D3D11_INPUT_ELEMENT_DESC elems[GFX_INPUTELEMENT_ID_CNT];
-    ASSERT(binding_cnt  < GFX_INPUTELEMENT_ID_CNT);
+    D3D11_INPUT_ELEMENT_DESC elems[gfxInputElemId::COUNT];
+    ASSERT(binding_cnt  < gfxInputElemId::COUNT);
 
     for (uint i = 0; i < binding_cnt; i++)    {
         memcpy(&elems[i], shader_get_element_byid(bindings[i].id), sizeof(D3D11_INPUT_ELEMENT_DESC));

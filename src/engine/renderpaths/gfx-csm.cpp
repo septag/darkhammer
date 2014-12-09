@@ -521,18 +521,18 @@ int csm_load_shaders(struct allocator* alloc)
     /* for normal csm, do not load pixel-shader */
     gfx_shader_beginload(alloc, "shaders/csm.vs", NULL, "shaders/csm.gs", 1, "shaders/skin.inc");
     r = csm_add_shader(gfx_shader_add("csm-raw", 2, 2,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
         "_MAX_INSTANCES_", max_instances_str,
         "_CASCADE_CNT_", cascade_cnt_str),
         GFX_RPATH_CSMSHADOW | extra_rpath);
     if (!r)
         return FALSE;
     r = csm_add_shader(gfx_shader_add("csm-skin", 4, 4,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_BLENDINDEX, "vsi_blendidxs", 1,
-        GFX_INPUTELEMENT_ID_BLENDWEIGHT, "vsi_blendweights", 1,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::BLENDINDEX, "vsi_blendidxs", 1,
+        gfxInputElemId::BLENDWEIGHT, "vsi_blendweights", 1,
         "_MAX_INSTANCES_", max_instances_str,
         "_CASCADE_CNT_", cascade_cnt_str,
         "_SKIN_", "1",
@@ -546,9 +546,9 @@ int csm_load_shaders(struct allocator* alloc)
     gfx_shader_beginload(alloc, "shaders/csm.vs", "shaders/csm.ps", "shaders/csm.gs", 1,
         "shaders/skin.inc");
     r = csm_add_shader(gfx_shader_add("csm-alpha", 3, 3,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm",  0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm",  0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
         "_MAX_INSTANCES_", max_instances_str,
         "_CASCADE_CNT_", cascade_cnt_str,
         "_ALPHAMAP_", "1"),
@@ -556,11 +556,11 @@ int csm_load_shaders(struct allocator* alloc)
     if (!r)
         return FALSE;
     r = csm_add_shader(gfx_shader_add("csm-skin-alpha", 5, 5,
-        GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-        GFX_INPUTELEMENT_ID_NORMAL, "vsi_norm", 0,
-        GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
-        GFX_INPUTELEMENT_ID_BLENDINDEX, "vsi_blendidxs", 1,
-        GFX_INPUTELEMENT_ID_BLENDWEIGHT, "vsi_blendweights", 1,
+        gfxInputElemId::POSITION, "vsi_pos", 0,
+        gfxInputElemId::NORMAL, "vsi_norm", 0,
+        gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
+        gfxInputElemId::BLENDINDEX, "vsi_blendidxs", 1,
+        gfxInputElemId::BLENDWEIGHT, "vsi_blendweights", 1,
         "_MAX_INSTANCES_", max_instances_str,
         "_CASCADE_CNT_", cascade_cnt_str,
         "_ALPHAMAP_", "1",
@@ -926,13 +926,13 @@ int csm_load_prev_shaders(struct allocator* alloc)
         "shaders/common.inc");
     if (hwver == appGfxDeviceVersion::D3D10_0 || hwver == appGfxDeviceVersion::GL3_2 || hwver == appGfxDeviceVersion::GL3_3)    {
         g_csm->prev_shader = gfx_shader_add("csm-prev", 2, 2,
-            GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-            GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+            gfxInputElemId::POSITION, "vsi_pos", 0,
+            gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
             "_CASCADE_CNT_", str_itos(cascadecnt, CSM_CASCADE_CNT), "_D3D10_", "1");
     }    else   {
         g_csm->prev_shader = gfx_shader_add("csm-prev", 2, 1,
-            GFX_INPUTELEMENT_ID_POSITION, "vsi_pos", 0,
-            GFX_INPUTELEMENT_ID_TEXCOORD0, "vsi_coord", 0,
+            gfxInputElemId::POSITION, "vsi_pos", 0,
+            gfxInputElemId::TEXCOORD0, "vsi_coord", 0,
             "_CASCADE_CNT_", str_itos(cascadecnt, CSM_CASCADE_CNT));
     }
 

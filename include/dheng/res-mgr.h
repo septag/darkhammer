@@ -33,20 +33,19 @@
 #define __RESMGR_H__
 
 #include "dhcore/types.h"
+#include "dhcore/allocator.h"
 #include "engine-api.h"
 
 /* fwd */
 struct gfx_obj_data;
 typedef struct gfx_obj_data* gfx_texture;
 struct gfx_model;
-struct allocator;
-struct anim_reel_data;
-typedef struct anim_reel_data* anim_reel;
 typedef void* sct_s;
 struct phx_prefab_data;
 typedef struct phx_prefab_data* phx_prefab;
-struct anim_ctrl_data;
-typedef struct anim_ctrl_data* anim_ctrl;
+
+class animReel;
+class animCharController;
 
 /* init flags */
 enum rs_init_flags
@@ -173,7 +172,7 @@ ENGINE_API struct gfx_model* rs_get_model(reshandle_t mdl_hdl);
  * it's already loaded
  * @ingroup res
  */
-ENGINE_API anim_reel rs_get_animreel(reshandle_t anim_hdl);
+ENGINE_API animReel* rs_get_animreel(reshandle_t anim_hdl);
 
 /**
  * Fetch actual animation controller binded \n
@@ -181,7 +180,7 @@ ENGINE_API anim_reel rs_get_animreel(reshandle_t anim_hdl);
  * it's already loaded
  * @ingroup res
  */
-ENGINE_API anim_ctrl rs_get_animctrl(reshandle_t ctrl_hdl);
+ENGINE_API animCharController* rs_get_animctrl(reshandle_t ctrl_hdl);
 
 /**
  * Fetch actual animation object binded to resource handle\n

@@ -24,7 +24,7 @@
 gfx_texture gfx_texture_loaddds(const char* dds_filepath, uint first_mipidx,
 		int srgb, uint thread_id);
 
-uint gfx_texture_getbpp(enum gfxFormat fmt);
+uint gfx_texture_getbpp(gfxFormat fmt);
 
 
 #endif /* GFX_TEXTURE_H_ */

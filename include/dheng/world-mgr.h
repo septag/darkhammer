@@ -20,7 +20,7 @@
 #include "dhcore/variant.h"
 #include "engine-api.h"
 
-struct Camera;
+class Camera;
 struct cmp_obj;
 
 /* callback for changing world vars (can be optionally assigned) */
