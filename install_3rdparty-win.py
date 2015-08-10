@@ -29,14 +29,14 @@ def get_msvccompiler():
 
 def install_lua():
     lua_srcfiles = {\
-        'x86-vc12': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win32_dll12_lib.zip/download',
-        'x64-vc12': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win64_dll12_lib.zip/download',
-        'x64-vc11': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win64_dll11_lib.zip/download',
-        'x86-vc11': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win32_dll11_lib.zip/download',
-        'x86-vc9': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win32_dll9_lib.zip/download',
-        'x64-vc9': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win64_dll9_lib.zip/download',
-        'x64-vc10': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win64_dll10_lib.zip/download',
-        'x86-vc10': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.3_Win32_dll10_lib.zip/download'
+        'x86-vc12': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win32_dll12_lib.zip/download',
+        'x64-vc12': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win64_dll12_lib.zip/download',
+        'x64-vc11': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win64_dll11_lib.zip/download',
+        'x86-vc11': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win32_dll11_lib.zip/download',
+        'x86-vc9': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win32_dll9_lib.zip/download',
+        'x64-vc9': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win64_dll9_lib.zip/download',
+        'x64-vc10': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win64_dll10_lib.zip/download',
+        'x86-vc10': 'http://sourceforge.net/projects/luabinaries/files/5.2.1/Windows%20Libraries/Dynamic/lua-5.2.1_Win32_dll10_lib.zip/download'
         }
     
     luadir = os.path.join(ROOTDIR, '3rdparty', 'tmp', 'lua')

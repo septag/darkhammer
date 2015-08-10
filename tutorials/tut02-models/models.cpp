@@ -172,8 +172,6 @@ int init_scene()
         return FALSE;
     }
 
-    set_datadir();
-
     return tut02_load_data();
 }
 
