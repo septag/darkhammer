@@ -1,7 +1,6 @@
 ## darkHAMMER Game Engine
 
 Version 0.5.1-devel  
-[http://www.hmrengine.com](http://www.hmrengine.com)  
 [https://github.com/septag/darkhammer](https://github.com/septag/darkhammer)  
 [https://github.com/septag/libdhcore](https://github.com/septag/libdhcore) - dakHAMMER Core library
 
@@ -9,6 +8,13 @@ Version 0.5.1-devel
 *darkHAMMER* is a lightweight, open-source, multiplatform game engine. written in C (C99) language.
 Supports additional scripting languages like *Python*, *C#* and *Lua*.  
 Current supported platforms are Windows (Direct3D10+, OpenGL3.3+) and Linux (OpenGL3.3+) (tested on ArchLinux 3.13), MacOS support is there, but it's incomplete and have problems in some parts of graphics and build system.
+
+### Videos
+- [Character Animation Tools](https://youtu.be/Xbsj6LUVThE)
+- [Rigid body physics test](https://youtu.be/Y7qeH95COs0)
+- [Profile/Monitoring tools](https://youtu.be/LLpdIgjjPDw)
+- [Content creation and hot loading](https://youtu.be/exOkFoyiCb0)
+- [Software Occlusion culling](https://youtu.be/Onvsn-N7Ruk)
 
 ### Installation
 
